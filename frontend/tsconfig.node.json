@@ -20,5 +20,12 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["vite.config.ts"]
+  "include": [
+    "src/**/*.ts",   // Inclui todos os arquivos .ts na pasta src
+    "src/**/*.tsx",  // Inclui todos os arquivos .tsx na pasta src
+    "vite.config.ts" // Se você estiver usando TypeScript para configurar o Vite
+  ],
+  "exclude": [
+    "node_modules"  // Exclui a pasta node_modules
+  ]
 }
