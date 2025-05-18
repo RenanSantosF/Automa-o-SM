@@ -89,6 +89,10 @@ def processar_cte(execucao_id: int, dados_principal: dict, db: Session, usuario:
             rota_selecionada = rota_atual
         )
 
+    finally:
+        if driver:
+            driver.quit()
+
 class LoginData(BaseModel):
     usuario: str
     senha: str
