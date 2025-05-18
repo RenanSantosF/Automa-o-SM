@@ -12,6 +12,7 @@ def login_apisul(usuario, senha):
     try:
         options = webdriver.ChromeOptions()
         # options.add_argument("--headless")  # opcional: remove interface gráfica
+        options.add_argument(f"--user-data-dir={tempfile.mkdtemp()}")
         options.add_argument("--window-size=1920,1080")
         driver = webdriver.Chrome(options=options)
 
