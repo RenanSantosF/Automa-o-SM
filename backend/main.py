@@ -22,10 +22,15 @@ from fastapi import Query
 
 app = FastAPI()
 
-# CORS
+
+origins = [
+    "https://automacaosm.vercel.app",
+    "http://localhost:5173",  # para testes locais com Vite
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
