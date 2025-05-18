@@ -89,7 +89,10 @@ def login_apisul(usuario, senha):
 
         driver = webdriver.Chrome(options=options)
         driver.get("https://novoapisullog.apisul.com.br/Login")
-        time.sleep(2)
+        
+        WebDriverWait(driver, 20).until(
+            EC.presence_of_element_located((By.ID, "txtUsuario"))
+        )
 
         campo_usuario = driver.find_element(By.ID, "txtUsuario")
         campo_senha = driver.find_element(By.ID, "txtSenha")
