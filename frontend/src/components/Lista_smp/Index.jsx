@@ -4,6 +4,8 @@ import { CgDetailsMore } from "react-icons/cg";
 import { IoReload } from "react-icons/io5";
 import Modal from "../Modal";
 import { useLogin } from "../../Contexts/LoginContext";
+import { IoReloadCircle } from "react-icons/io5";
+
 
 const ListaSM = () => {
   const [execucoes, setExecucoes] = useState([]);
@@ -59,6 +61,13 @@ const ListaSM = () => {
     return dataObj.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
   };
 
+  const recarregarExecucoes = async () => {
+    setExecucoes([]);
+    setOffset(0);
+    setTemMais(true);
+    await carregarMaisExecucoes();
+  };
+
   const reprocessarExecucao = async (id) => {
     const payload = {
       execucao_id: {
@@ -80,6 +89,7 @@ const ListaSM = () => {
         throw new Error("Erro ao reprocessar");
       }
 
+      await recarregarExecucoes();
       console.log("Reprocessamento iniciado com sucesso!");
     } catch (error) {
       console.log(`Erro ao reprocessar execução ${id}: ${error.message}`);
@@ -88,9 +98,20 @@ const ListaSM = () => {
 
   return (
     <div className="max-w-full mx-auto py-6">
-      <h2 className="text-2xl font-semibold text-gray-300 mb-4">
-        Solicitações realizadas
-      </h2>
+      <div className="w-full flex items-center">
+        <h2 className="text-2xl font-semibold text-gray-300">
+          Solicitações realizadas
+        </h2>
+
+        <IconButton
+          icon={IoReloadCircle}
+          onClick={() => recarregarExecucoes()}
+          color="#FFF"
+          size={28}
+        />
+
+      </div>
+
 
       {execucoes.length === 0 ? (
         <p className="text-xl text-gray-500">
