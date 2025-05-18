@@ -65,7 +65,7 @@ import tempfile
 import subprocess
 import time
 import platform
-import tempfile3
+import tempfile
 
 def chrome_ja_esta_rodando():
     sistema = platform.system()
