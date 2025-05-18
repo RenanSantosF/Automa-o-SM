@@ -14,21 +14,20 @@ def login_apisul(usuario, senha):
     temp_user_data_dir = None
     try:
         options = webdriver.ChromeOptions()
-        options.add_argument("--window-size=1920,1080")
-        options.add_argument("--no-first-run")
-        options.add_argument("--no-default-browser-check")
-        options.add_argument("--disable-default-apps")
         options.add_argument("--headless=new")
         options.add_argument("--disable-gpu")
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
         options.add_argument("--disable-software-rasterizer")
-        options.add_argument('--disable-dev-shm-usage')
-        options.add_argument('--no-sandbox')
+        options.add_argument("--remote-debugging-port=9222")
+        options.add_argument("--window-size=1920,1080")
 
 
-        # Diretório único com UUID
-        temp_user_data_dir = os.path.join(tempfile.gettempdir(), "chrome-profile-" + str(uuid.uuid4()))
-        options.add_argument(f"--user-data-dir={temp_user_data_dir}")
-        print(f"Usando perfil temporário: {temp_user_data_dir}")
+
+        # # Diretório único com UUID
+        # temp_user_data_dir = os.path.join(tempfile.gettempdir(), "chrome-profile-" + str(uuid.uuid4()))
+        # options.add_argument(f"--user-data-dir={temp_user_data_dir}")
+        # print(f"Usando perfil temporário: {temp_user_data_dir}")
 
         driver = webdriver.Chrome(options=options)
         driver.get("https://novoapisullog.apisul.com.br/Login")

@@ -22,27 +22,56 @@ const ListaSM = () => {
 
   const [temMais, setTemMais] = useState(true); // <- novo estado
 
-  const carregarMaisExecucoes = async () => {
+  // const carregarMaisExecucoes = async () => {
+  //   setCarregandoMais(true);
+
+  //   try {
+  //     const response = await fetch(`https://automa-o-sm.onrender.com/execucoes/?limite=${LIMITE_POR_PAGINA}&offset=${offset}`);
+  //     const novasExecucoes = await response.json();
+
+  //     // setExecucoes((prev) => [...prev, ...novasExecucoes]);
+  //     setExecucoes((prev) => {
+  //       const idsExistentes = new Set(prev.map((e) => e.id));
+  //       const novasUnicas = novasExecucoes.filter((e) => !idsExistentes.has(e.id));
+  //       return [...prev, ...novasUnicas];
+  //     });
+  //     setOffset((prev) => prev + LIMITE_POR_PAGINA);
+  
+  //     if (novasExecucoes.length < LIMITE_POR_PAGINA) {
+  //       setTemMais(false); // chegou no fim
+  //     }
+  //   } catch (error) {
+  //     console.error("Erro ao carregar execuções:", error);
+  //   }
+  //   setCarregandoMais(false);
+  // };
+
+  const carregarMaisExecucoes = async (offsetForcado = null) => {
     setCarregandoMais(true);
 
+    const offsetReal = offsetForcado !== null ? offsetForcado : offset;
+
     try {
-      const response = await fetch(`https://automa-o-sm.onrender.com/execucoes/?limite=${LIMITE_POR_PAGINA}&offset=${offset}`);
+      const response = await fetch(
+        `https://automa-o-sm.onrender.com/execucoes/?limite=${LIMITE_POR_PAGINA}&offset=${offsetReal}`
+      );
       const novasExecucoes = await response.json();
 
-      // setExecucoes((prev) => [...prev, ...novasExecucoes]);
       setExecucoes((prev) => {
         const idsExistentes = new Set(prev.map((e) => e.id));
         const novasUnicas = novasExecucoes.filter((e) => !idsExistentes.has(e.id));
-        return [...prev, ...novasUnicas];
+        return offsetForcado !== null ? novasUnicas : [...prev, ...novasUnicas]; // ← resetar se for recarga
       });
-      setOffset((prev) => prev + LIMITE_POR_PAGINA);
-  
+
+      setOffset(offsetReal + LIMITE_POR_PAGINA);
+
       if (novasExecucoes.length < LIMITE_POR_PAGINA) {
-        setTemMais(false); // chegou no fim
+        setTemMais(false);
       }
     } catch (error) {
       console.error("Erro ao carregar execuções:", error);
     }
+
     setCarregandoMais(false);
   };
   
@@ -63,10 +92,10 @@ const ListaSM = () => {
 
   const recarregarExecucoes = async () => {
     setExecucoes([]);
-    setOffset(0);
     setTemMais(true);
-    await carregarMaisExecucoes();
+    await carregarMaisExecucoes(0); // força o offset inicial
   };
+
 
   const reprocessarExecucao = async (id) => {
     const payload = {
