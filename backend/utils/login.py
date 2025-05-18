@@ -13,8 +13,16 @@ def login_apisul(usuario, senha):
     try:
         options = webdriver.ChromeOptions()
         # options.add_argument("--headless")  # opcional: remove interface gráfica
-        options.add_argument(f"--user-data-dir={tempfile.mkdtemp()}")
+
+        # Cria um diretório temporário único para evitar conflitos de perfil
+        user_data_dir = tempfile.mkdtemp()
+        options.add_argument(f"--user-data-dir={user_data_dir}")
+
         options.add_argument("--window-size=1920,1080")
+
+        # Porta dinâmica para evitar conflitos de debug remoto
+        options.add_argument("--remote-debugging-port=0")
+
         driver = webdriver.Chrome(options=options)
 
         driver.get("https://novoapisullog.apisul.com.br/Login")
