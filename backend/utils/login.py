@@ -14,7 +14,7 @@ def login_apisul(usuario, senha):
     temp_user_data_dir = None
     try:
         options = webdriver.ChromeOptions()
-        # options.add_argument("--headless=new")
+        options.add_argument("--headless=new")
         options.add_argument("--disable-gpu")
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
@@ -22,17 +22,10 @@ def login_apisul(usuario, senha):
         options.add_argument("--remote-debugging-port=9222")
         options.add_argument("--window-size=1920,1080")
 
-        # # Diretório único com UUID
-        # temp_user_data_dir = os.path.join(tempfile.gettempdir(), "chrome-profile-" + str(uuid.uuid4()))
-        # options.add_argument(f"--user-data-dir={temp_user_data_dir}")
-        # print(f"Usando perfil temporário: {temp_user_data_dir}")
-
         driver = webdriver.Chrome(options=options)
         driver.get("https://novoapisullog.apisul.com.br/Login")
 
-        WebDriverWait(driver, 20).until(
-            EC.element_to_be_clickable((By.ID, "txtUsuario"))
-        )
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "txtUsuario")))
 
         time.sleep(2)
 
@@ -43,10 +36,19 @@ def login_apisul(usuario, senha):
 
         campo_usuario.send_keys(usuario)
         campo_senha.send_keys(senha)
+        time.sleep(1)
         campo_senha.send_keys(Keys.RETURN)
+
         print("logado")
 
         time.sleep(3)
+
+        # Verificar se o conteúdo foi realmente inserido
+        usuario_inserido = campo_usuario.get_attribute("value")
+        senha_inserida = campo_senha.get_attribute("value")
+
+        print(f"Usuário inserido: {usuario_inserido}")
+        print(f"Senha inserida: {senha_inserida}")
 
         if "Login" in driver.title or driver.current_url.endswith("/Login"):
             driver.quit()
