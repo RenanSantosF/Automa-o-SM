@@ -36,12 +36,6 @@ def login_apisul(usuario, senha):
 
         campo_usuario.send_keys(usuario)
         campo_senha.send_keys(senha)
-        time.sleep(1)
-        campo_senha.send_keys(Keys.RETURN)
-
-        print("logado")
-
-        time.sleep(3)
 
         # Verificar se o conteúdo foi realmente inserido
         usuario_inserido = campo_usuario.get_attribute("value")
@@ -49,6 +43,12 @@ def login_apisul(usuario, senha):
 
         print(f"Usuário inserido: {usuario_inserido}")
         print(f"Senha inserida: {senha_inserida}")
+        time.sleep(1)
+        campo_senha.send_keys(Keys.RETURN)
+
+        print("logado")
+
+        time.sleep(3)
 
         if "Login" in driver.title or driver.current_url.endswith("/Login"):
             driver.quit()
