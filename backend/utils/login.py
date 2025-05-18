@@ -22,8 +22,6 @@ def login_apisul(usuario, senha):
         options.add_argument("--remote-debugging-port=9222")
         options.add_argument("--window-size=1920,1080")
 
-
-
         # # Diretório único com UUID
         # temp_user_data_dir = os.path.join(tempfile.gettempdir(), "chrome-profile-" + str(uuid.uuid4()))
         # options.add_argument(f"--user-data-dir={temp_user_data_dir}")
@@ -35,6 +33,10 @@ def login_apisul(usuario, senha):
         WebDriverWait(driver, 20).until(
             EC.element_to_be_clickable((By.ID, "txtUsuario"))
         )
+
+        time.sleep(2)
+
+
 
         campo_usuario = driver.find_element(By.ID, "txtUsuario")
         campo_senha = driver.find_element(By.ID, "txtSenha")
