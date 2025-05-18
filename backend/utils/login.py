@@ -28,7 +28,7 @@ def login_apisul(usuario, senha):
         WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "txtUsuario")))
 
 
-        time.sleep(2)
+        time.sleep(5)
 
 
 
@@ -45,11 +45,14 @@ def login_apisul(usuario, senha):
         print(f"Usuário inserido: {usuario_inserido}")
         print(f"Senha inserida: {senha_inserida}")
         time.sleep(1)
-        campo_senha.send_keys(Keys.RETURN)
+
+        # Supondo que o driver já esteja inicializado e na página certa:
+        botao_login = driver.find_element(By.ID, "btnLogin")
+        botao_login.click()
 
         print("logado")
 
-        time.sleep(3)
+        time.sleep(10)
 
         if "Login" in driver.title or driver.current_url.endswith("/Login"):
             driver.quit()
