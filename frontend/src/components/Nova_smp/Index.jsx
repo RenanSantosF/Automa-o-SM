@@ -206,6 +206,8 @@ const NovaSM = ({ onUploadSuccess, onClose }) => {
       }
     } catch (error) {
       console.error("Erro ao enviar dados:", error);
+      alert("Erro interno do servidor.");
+
     }
   };
 

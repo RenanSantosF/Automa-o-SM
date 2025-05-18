@@ -2,3 +2,8 @@ fastapi
 uvicorn
 python-multipart
 pdfplumber
+sqlalchemy
+psycopg2-binary
+python-dotenv
+selenium
+sqlalchemy
