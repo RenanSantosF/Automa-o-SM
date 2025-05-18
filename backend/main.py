@@ -32,22 +32,6 @@ fila_processamento = queue.Queue()
 
 app = FastAPI()
 
-def worker_de_fila():
-    db = next(get_db())  # Reutiliza uma sessão do banco
-    while True:
-        execucao_id, dados, usuario, senha = fila_processamento.get()
-        try:
-            processar_cte(execucao_id, dados, db, usuario, senha)
-        except Exception as e:
-            print(f"Erro ao processar execução {execucao_id}: {e}")
-        finally:
-            fila_processamento.task_done()
-
-
-
-threading.Thread(target=worker_de_fila, daemon=True).start()
-
-
 origins = [
     "https://automacaosm.vercel.app",  # seu frontend no Vercel
 ]
@@ -72,9 +56,13 @@ def get_db():
 def processar_cte(execucao_id: int, dados_principal: dict, db: Session, usuario: str, senha: str):
     driver = None
     try:
+        print("entrou em processar CTe atualizando status")
         atualizar_status(db, execucao_id, status="Solicitação em andamento")
+        print("entrou no login apisul")
         driver = login_apisul(usuario, senha)
+        print("entrou em peenchimento de sm")
         preencher_sm(driver, dados_principal)
+        print("saiu do preenchimento de sm")
 
         # Dados opcionais (depois de preencher_sm)
         remetente = dados_principal.get("remetente_cadastrado_apisul")
@@ -82,6 +70,7 @@ def processar_cte(execucao_id: int, dados_principal: dict, db: Session, usuario:
         rotas = dados_principal.get("rotas_cadastradas_apisul")
         rota_atual = dados_principal.get("rota_selecionada")
 
+        print("entrou em atualiza status")
         atualizar_status(
             db,
             execucao_id,
@@ -92,8 +81,12 @@ def processar_cte(execucao_id: int, dados_principal: dict, db: Session, usuario:
             rotas_cadastradas_apisul=rotas,
             rota_selecionada = rota_atual
         )
+
+        print("finalizou atualiza status")
+
     except Exception as e:
         # Mesmo em caso de erro, extrai os dados do dicionário (se existirem)
+        print("caiu no erro e vai atualizar status")
         remetente = dados_principal.get("remetente_cadastrado_apisul")
         destinatario = dados_principal.get("destinatario_cadastrado_apisul")
         rotas = dados_principal.get("rotas_cadastradas_apisul")
@@ -153,12 +146,8 @@ async def upload_xml(payload: PayloadUpload = Body(...), db: Session = Depends(g
 
         execucao = criar_execucao(db, dados_dict)
 
-        # thread = threading.Thread(target=processar_cte, args=(execucao.id, dados_dict, db, usuario, senha))
-        # thread.start()
-
-        # Enfileira a tarefa
-        fila_processamento.put((execucao.id, dados_dict, usuario, senha))
-        
+        thread = threading.Thread(target=processar_cte, args=(execucao.id, dados_dict, db, usuario, senha))
+        thread.start()
 
         return {
             "mensagem": "Solicitação recebida e sendo processada em segundo plano.",
@@ -189,6 +178,7 @@ class PayloadReprocessar(BaseModel):
 @app.post("/reprocessar-execucao/")
 async def reprocessar_execucao(payload: PayloadReprocessar, db: Session = Depends(get_db)):
     try:
+        print("iniciou reprocessamento")
 
         id = payload.execucao_id.id  # <- agora é necessário acessar o campo `.id`
         usuario = payload.login.usuario
@@ -212,11 +202,11 @@ async def reprocessar_execucao(payload: PayloadReprocessar, db: Session = Depend
             print("Erro ao carregar JSON do resultado:", execucao.resultado)
             raise HTTPException(status_code=500, detail="Resultado da execução não é um JSON válido")
 
+        print("Levou à thread")
+        thread = threading.Thread(target=processar_cte, args=(execucao.id, dados_principal, db, usuario, senha))
+        thread.start()
 
-        # thread = threading.Thread(target=processar_cte, args=(execucao.id, dados_principal, db, usuario, senha))
-        # thread.start()
-
-        fila_processamento.put((execucao.id, dados_principal, usuario, senha))
+        print("passou pela thread")
 
         return {
             "mensagem": "Solicitação de reprocessamento recebida e sendo processada em segundo plano.",
