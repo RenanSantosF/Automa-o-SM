@@ -33,7 +33,7 @@ def login_apisul(usuario, senha):
         driver.get("https://novoapisullog.apisul.com.br/Login")
 
         WebDriverWait(driver, 20).until(
-            EC.presence_of_element_located((By.ID, "txtUsuario"))
+            EC.element_to_be_clickable((By.ID, "txtUsuario"))
         )
 
         campo_usuario = driver.find_element(By.ID, "txtUsuario")
