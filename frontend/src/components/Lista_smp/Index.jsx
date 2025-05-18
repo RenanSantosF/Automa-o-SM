@@ -6,6 +6,7 @@ import Modal from "../Modal";
 import { useLogin } from "../../Contexts/LoginContext";
 import { IoReloadCircle } from "react-icons/io5";
 
+const api = import.meta.env.VITE_API_URL;
 
 const ListaSM = () => {
   const [execucoes, setExecucoes] = useState([]);
@@ -22,30 +23,6 @@ const ListaSM = () => {
 
   const [temMais, setTemMais] = useState(true); // <- novo estado
 
-  // const carregarMaisExecucoes = async () => {
-  //   setCarregandoMais(true);
-
-  //   try {
-  //     const response = await fetch(`https://automa-o-sm.onrender.com/execucoes/?limite=${LIMITE_POR_PAGINA}&offset=${offset}`);
-  //     const novasExecucoes = await response.json();
-
-  //     // setExecucoes((prev) => [...prev, ...novasExecucoes]);
-  //     setExecucoes((prev) => {
-  //       const idsExistentes = new Set(prev.map((e) => e.id));
-  //       const novasUnicas = novasExecucoes.filter((e) => !idsExistentes.has(e.id));
-  //       return [...prev, ...novasUnicas];
-  //     });
-  //     setOffset((prev) => prev + LIMITE_POR_PAGINA);
-  
-  //     if (novasExecucoes.length < LIMITE_POR_PAGINA) {
-  //       setTemMais(false); // chegou no fim
-  //     }
-  //   } catch (error) {
-  //     console.error("Erro ao carregar execuções:", error);
-  //   }
-  //   setCarregandoMais(false);
-  // };
-
   const carregarMaisExecucoes = async (offsetForcado = null) => {
     setCarregandoMais(true);
 
@@ -53,7 +30,7 @@ const ListaSM = () => {
 
     try {
       const response = await fetch(
-        `https://automa-o-sm.onrender.com/execucoes/?limite=${LIMITE_POR_PAGINA}&offset=${offsetReal}`
+        `${api}/execucoes/?limite=${LIMITE_POR_PAGINA}&offset=${offsetReal}`
       );
       const novasExecucoes = await response.json();
 
@@ -106,7 +83,7 @@ const ListaSM = () => {
     };
 
     try {
-      const response = await fetch(`https://automa-o-sm.onrender.com/reprocessar-execucao/`, {
+      const response = await fetch(`${api}/reprocessar-execucao/`, {
         method: "POST",
         headers: {
           "content-type": "application/json",

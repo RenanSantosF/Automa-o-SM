@@ -20,6 +20,8 @@ from fastapi import Body
 from typing import List, Optional
 from crud import listar_execucoes
 from fastapi.encoders import jsonable_encoder
+from dotenv import load_dotenv
+import os
 
 from models import Base
 from database import engine
@@ -49,10 +51,15 @@ worker_thread = threading.Thread(target=worker, daemon=True)
 worker_thread.start()
 
 
+load_dotenv()
+
+ENV = os.getenv("ENV", "local")
+FRONTEND_URL = os.getenv("FRONTEND_URL")
+
 app = FastAPI()
 
 origins = [
-    "https://automacaosm.vercel.app",  # seu frontend no Vercel
+    FRONTEND_URL,  # seu frontend no Vercel
 ]
 
 app.add_middleware(

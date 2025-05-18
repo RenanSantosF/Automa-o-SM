@@ -6,6 +6,9 @@ import { useLogin } from "../../Contexts/LoginContext";
 import { necessitaGNRE } from "../../utils/necessita_gnre";
 import AlertaGNRE from "../Alerta_GNRE/AlertaGNRE";
 
+const api = import.meta.env.VITE_API_URL; // se for Vite
+
+
 const NovaSM = ({ onUploadSuccess, onClose }) => {
   const [modalConfirmacaoGNRE, setmodalConfirmacaoGNRE] = useState(false);
 
@@ -189,7 +192,7 @@ const NovaSM = ({ onUploadSuccess, onClose }) => {
       // Adicionando o log para depurar os dados antes de enviar
   
     try {
-      const response = await fetch("https://automa-o-sm.onrender.com/upload-xml/", {
+      const response = await fetch(`${api}/upload-xml/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
