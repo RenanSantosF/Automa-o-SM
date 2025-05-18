@@ -58,6 +58,8 @@ FRONTEND_URL = os.getenv("FRONTEND_URL")
 
 app = FastAPI()
 
+print(FRONTEND_URL)
+
 origins = [
     FRONTEND_URL,  # seu frontend no Vercel
 ]
