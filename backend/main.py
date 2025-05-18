@@ -18,6 +18,11 @@ from typing import List, Optional
 from crud import listar_execucoes
 from fastapi.encoders import jsonable_encoder
 
+from models import Base
+from database import engine
+
+Base.metadata.create_all(bind=engine)
+
 from fastapi import Query
 
 app = FastAPI()
