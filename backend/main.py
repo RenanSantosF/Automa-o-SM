@@ -25,7 +25,14 @@ Base.metadata.create_all(bind=engine)
 
 from fastapi import Query
 
+import queue
+import threading
+
+fila_processamento = queue.Queue()
+
 app = FastAPI()
+
+threading.Thread(target=worker_de_fila, daemon=True).start()
 
 
 origins = [
@@ -46,6 +53,18 @@ def get_db():
         yield db
     finally:
         db.close()
+
+def worker_de_fila():
+    db = next(get_db())  # Reutiliza uma sessão do banco
+    while True:
+        execucao_id, dados, usuario, senha = fila_processamento.get()
+        try:
+            processar_cte(execucao_id, dados, db, usuario, senha)
+        except Exception as e:
+            print(f"Erro ao processar execução {execucao_id}: {e}")
+        finally:
+            fila_processamento.task_done()
+
 
 
 def processar_cte(execucao_id: int, dados_principal: dict, db: Session, usuario: str, senha: str):
@@ -130,16 +149,14 @@ async def upload_xml(payload: PayloadUpload = Body(...), db: Session = Depends(g
         usuario = payload.login.usuario
         senha = payload.login.senha
 
-        print("criou execução")
-
-
         execucao = criar_execucao(db, dados_dict)
 
-        print("criou execução")
+        # thread = threading.Thread(target=processar_cte, args=(execucao.id, dados_dict, db, usuario, senha))
+        # thread.start()
 
-
-        thread = threading.Thread(target=processar_cte, args=(execucao.id, dados_dict, db, usuario, senha))
-        thread.start()
+        # Enfileira a tarefa
+        fila_processamento.put((execucao.id, dados_dict, usuario, senha))
+        
 
         return {
             "mensagem": "Solicitação recebida e sendo processada em segundo plano.",
@@ -194,8 +211,10 @@ async def reprocessar_execucao(payload: PayloadReprocessar, db: Session = Depend
             raise HTTPException(status_code=500, detail="Resultado da execução não é um JSON válido")
 
 
-        thread = threading.Thread(target=processar_cte, args=(execucao.id, dados_principal, db, usuario, senha))
-        thread.start()
+        # thread = threading.Thread(target=processar_cte, args=(execucao.id, dados_principal, db, usuario, senha))
+        # thread.start()
+
+        fila_processamento.put((execucao.id, dados_principal, usuario, senha))
 
         return {
             "mensagem": "Solicitação de reprocessamento recebida e sendo processada em segundo plano.",
