@@ -1,3 +1,6 @@
+import queue
+import threading
+import time
 from fastapi import FastAPI, UploadFile, File, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
@@ -25,10 +28,26 @@ Base.metadata.create_all(bind=engine)
 
 from fastapi import Query
 
-import queue
-import threading
-
 fila_processamento = queue.Queue()
+
+def worker():
+    while True:
+        item = fila_processamento.get()
+        if item is None:
+            break  # Permite encerrar a thread se necessário no futuro
+
+        execucao_id, dados_principal, usuario, senha = item
+        db = SessionLocal()
+        try:
+            processar_cte(execucao_id, dados_principal, db, usuario, senha)
+        finally:
+            db.close()
+            fila_processamento.task_done()
+
+# Inicia o worker em segundo plano ao subir a API
+worker_thread = threading.Thread(target=worker, daemon=True)
+worker_thread.start()
+
 
 app = FastAPI()
 
@@ -146,8 +165,10 @@ async def upload_xml(payload: PayloadUpload = Body(...), db: Session = Depends(g
 
         execucao = criar_execucao(db, dados_dict)
 
-        thread = threading.Thread(target=processar_cte, args=(execucao.id, dados_dict, db, usuario, senha))
-        thread.start()
+        # thread = threading.Thread(target=processar_cte, args=(execucao.id, dados_dict, db, usuario, senha))
+        # thread.start()
+        # Em vez de iniciar thread direto, coloca na fila
+        fila_processamento.put((execucao.id, dados_dict, usuario, senha))
 
         return {
             "mensagem": "Solicitação recebida e sendo processada em segundo plano.",
@@ -203,8 +224,13 @@ async def reprocessar_execucao(payload: PayloadReprocessar, db: Session = Depend
             raise HTTPException(status_code=500, detail="Resultado da execução não é um JSON válido")
 
         print("Levou à thread")
-        thread = threading.Thread(target=processar_cte, args=(execucao.id, dados_principal, db, usuario, senha))
-        thread.start()
+
+        # thread = threading.Thread(target=processar_cte, args=(execucao.id, dados_principal, db, usuario, senha))
+        # thread.start()
+
+        # Em vez de iniciar thread, coloca na fila
+        fila_processamento.put((execucao.id, dados_principal, usuario, senha))
+
 
         print("passou pela thread")
 
