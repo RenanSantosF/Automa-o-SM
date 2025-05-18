@@ -7,6 +7,7 @@ from selenium.common.exceptions import (
     WebDriverException
 )
 import time
+import tempfile
 
 def login_apisul(usuario, senha):
     try:
