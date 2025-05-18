@@ -15,7 +15,7 @@ function App() {
 
   const fetchExecucoes = async () => {
     try {
-      const response = await fetch('http://localhost:8000/execucoes/');
+      const response = await fetch('http://automacaosm.vercel.app/execucoes/');
       const data = await response.json();
       setExecucoes(data);
     } catch (error) {

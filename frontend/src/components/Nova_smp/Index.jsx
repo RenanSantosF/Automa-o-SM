@@ -189,7 +189,7 @@ const NovaSM = ({ onUploadSuccess, onClose }) => {
       // Adicionando o log para depurar os dados antes de enviar
   
     try {
-      const response = await fetch("http://localhost:8000/upload-xml/", {
+      const response = await fetch("http://automacaosm.vercel.app/upload-xml/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
