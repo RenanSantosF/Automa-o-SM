@@ -75,9 +75,12 @@ def login_apisul(usuario, senha):
         options.add_argument("--no-first-run")
         options.add_argument("--no-default-browser-check")
         options.add_argument("--disable-default-apps")
-        options.add_argument("--headless")
+        options.add_argument("--headless=new")
         options.add_argument("--disable-gpu")
         options.add_argument("--disable-software-rasterizer")
+        options.add_argument('--disable-dev-shm-usage')
+        options.add_argument('--no-sandbox')
+
 
         # Diretório único com UUID
         temp_user_data_dir = os.path.join(tempfile.gettempdir(), "chrome-profile-" + str(uuid.uuid4()))
@@ -94,6 +97,7 @@ def login_apisul(usuario, senha):
         campo_usuario.send_keys(usuario)
         campo_senha.send_keys(senha)
         campo_senha.send_keys(Keys.RETURN)
+        print("logado")
 
         time.sleep(3)
 
