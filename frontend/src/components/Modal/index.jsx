@@ -32,9 +32,9 @@ const Modal = ({ isOpen, onClose, content }) => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 50 }}
             transition={{ duration: 0.3 }}
-            className="relative bg-white rounded-lg p-6 w-3/4 max-h-80 overflow-y-auto custom-scroll"
+            className="relative flex-col bg-white rounded-lg p-6 w-3/4 max-h-80 overflow-y-auto custom-scroll"
           >
-            <div className=" flex justify-between items-center">
+            <div className="flex justify-between items-center">
               <h2 className="text-xl font-semibold">Informação</h2>
               <button
                 onClick={onClose}
@@ -43,13 +43,14 @@ const Modal = ({ isOpen, onClose, content }) => {
                 &times;
               </button>
             </div>
-            <div className="mt-4 text-gray-700">
-              <p>{content}</p>
+            <div className="mt-4 max-w-full  text-gray-700">
+              <p className="break-words text-sm whitespace-normal">{content}</p>
+
             </div>
             <div className="mt-6 flex justify-end">
               <button
                 onClick={onClose}
-                className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition duration-200"
+                className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition duration-200"
               >
                 Fechar
               </button>

@@ -6,7 +6,7 @@ class Execucao(Base):
     __tablename__ = "execucoes"
 
     id = Column(Integer, primary_key=True, index=True)
-    status = Column(String, default="pendente")  # pendente, sucesso, erro
+    status = Column(String, default="Solicitação em andamento")  # pendente, sucesso, erro
     resultado = Column(Text, nullable=True)
     erro = Column(Text, nullable=True)
     criado_em = Column(DateTime(timezone=True), server_default=func.now())
@@ -31,3 +31,6 @@ class Execucao(Base):
     remetente_cadastrado_apisul = Column(String, nullable=True)
     destinatario_cadastrado_apisul = Column(String, nullable=True)
     rotas_cadastradas_apisul = Column(JSON, nullable=True)  # pode ser JSON se for uma lista
+    id_smp = Column(String, nullable=True)
+    numero_smp = Column(String, nullable=True)
+    rota_selecionada = Column(String, nullable=True)

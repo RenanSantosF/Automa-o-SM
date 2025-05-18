@@ -30,7 +30,7 @@ export function LoginProvider({ children }) {
   };
 
   return (
-    <LoginContext.Provider value={{ isAuthenticated, login, logout, userData }}>
+    <LoginContext.Provider value={{ isAuthenticated, setIsAuthenticated, login, logout, userData }}>
       {children}
     </LoginContext.Provider>
   );

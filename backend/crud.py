@@ -4,7 +4,7 @@ import json
 
 def criar_execucao(db: Session, dados: dict):
     execucao = Execucao(
-        status="pendente",
+        status="Solicitação em andamento",
         resultado=json.dumps(dados),
         valor_total_carga=float(dados["valor_total_carga"].replace(",", ".")) if dados.get("valor_total_carga") else None,
         placa_cavalo=dados.get("placa_cavalo"),
@@ -36,7 +36,8 @@ def atualizar_status(
         erro: str = None,
         remetente_cadastrado_apisul: str = None,
         destinatario_cadastrado_apisul: str = None,
-        rotas_cadastradas_apisul: list = None
+        rotas_cadastradas_apisul: list = None,
+        rota_selecionada: str = None
     ):
     execucao = db.query(Execucao).filter(Execucao.id == execucao_id).first()
     if execucao:
@@ -49,11 +50,17 @@ def atualizar_status(
             execucao.destinatario_cadastrado_apisul = destinatario_cadastrado_apisul
         if rotas_cadastradas_apisul is not None:
             execucao.rotas_cadastradas_apisul = rotas_cadastradas_apisul
+        if rota_selecionada is not None:
+            execucao.rota_selecionada = rota_selecionada
 
         db.commit()
 
-def listar_execucoes(db: Session, limite: int = 100):
-    return db.query(Execucao).order_by(Execucao.criado_em.desc()).limit(limite).all()
+def listar_execucoes(db: Session, limite: int = 20, offset: int = 0):
+    return db.query(Execucao)\
+             .order_by(Execucao.criado_em.desc())\
+             .offset(offset)\
+             .limit(limite)\
+             .all()
 
 
 def buscar_execucao_por_id(db: Session, execucao_id: int):

@@ -1,10 +1,12 @@
 import React from "react";
 
-const AdicionarCampoBtn = ({ onClick, label = "Adicionar campo" }) => {
+const AdicionarCampoBtn = ({ onClick, label = "Adicionar campo", disabled }) => {
   return (
     <button
       onClick={onClick}
-      className="m-1 cursor-pointer px-2 py-1 bg-indigo-600 text-white rounded text-sm hover:bg-indigo-600 transition"
+      disabled={disabled}
+      className={`px-4 mb-3 mx-2 py-2 text-sm rounded-md transition duration-200
+        ${disabled ? 'bg-gray-300 text-gray-600 cursor-not-allowed' : 'bg-green-300 text-white hover:bg-green-400'}`}
     >
       {label}
     </button>

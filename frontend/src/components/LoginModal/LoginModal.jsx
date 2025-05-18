@@ -17,12 +17,12 @@ export default function LoginModal() {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50">
+    <div className="fixed inset-0 bg-black/4 flex justify-center items-center z-50">
       <form
         onSubmit={handleSubmit}
-        className="bg-white p-6 rounded-lg shadow-md w-80 space-y-4"
+        className=" p-6 rounded-lg shadow-md w-80 space-y-4"
       >
-        <h2 className="text-xl font-semibold">Login</h2>
+        <h2 className="text-xl font-semibold">Login Apisul</h2>
         {error && <p className="text-red-500 text-sm">{error}</p>}
         <input
           type="text"
@@ -42,7 +42,7 @@ export default function LoginModal() {
         />
         <button
           type="submit"
-          className="w-full bg-indigo-600 text-white p-2 rounded hover:bg-indigo-700"
+          className="w-full bg-green-600 text-white p-2 rounded hover:bg-green-700"
         >
           Entrar
         </button>

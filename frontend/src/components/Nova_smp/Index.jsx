@@ -3,20 +3,26 @@ import { MdFileUpload } from "react-icons/md";
 import Input from "../Input/Input";
 import AdicionarCampoBtn from "../AdicionarCampoBtn/AdicionarCampoBtn";
 import { useLogin } from "../../Contexts/LoginContext";
+import { necessitaGNRE } from "../../utils/necessita_gnre";
+import AlertaGNRE from "../Alerta_GNRE/AlertaGNRE";
 
 const NovaSM = ({ onUploadSuccess, onClose }) => {
+  const [modalConfirmacaoGNRE, setmodalConfirmacaoGNRE] = useState(false);
+
   const [files, setFiles] = useState([]);
   const [resposta, setResposta] = useState(null);
   const [xmlData, setXmlData] = useState({});
   const [error, setError] = useState(null);
   const [placaCavaloBase, setPlacaCavaloBase] = useState(null);
   const { userData } = useLogin()
+  const [rawXmlFiles, setRawXmlFiles] = useState([]);
   const [camposExtras, setCamposExtras] = useState({
     placa_cavalo: true,
     placa_carreta_1: "placa_carreta_1" in xmlData,
     placa_carreta_2: "placa_carreta_2" in xmlData,
   });
   
+
 
   const parseXML = (xml) => {
     const parser = new DOMParser();
@@ -59,9 +65,17 @@ const NovaSM = ({ onUploadSuccess, onClose }) => {
   };
 
   const handleChange = (field, value) => {
-    setXmlData(prev => ({ ...prev, [field]: value }));
-    
+    let formattedValue = value
 
+    if (
+      field === "placa_cavalo" ||
+      field === "placa_carreta_1" ||
+      field === "placa_carreta_2"
+    ) {
+      formattedValue = value.replace(/[-\s]/g, "").toUpperCase()
+    }
+
+    setXmlData(prev => ({ ...prev, [field]: formattedValue }));
   };
 
   const processFiles = (newFiles) => {
@@ -78,8 +92,9 @@ const NovaSM = ({ onUploadSuccess, onClose }) => {
         const reader = new FileReader();
         reader.onload = () => {
           try {
-            const parsed = parseXML(reader.result);
-            resolve({ file, data: parsed });
+            const rawXml = reader.result
+            const parsed = parseXML(rawXml);
+            resolve({ file, data: parsed, raw: rawXml });
           } catch (err) {
             reject(err.message);
           }
@@ -92,6 +107,7 @@ const NovaSM = ({ onUploadSuccess, onClose }) => {
       const successes = results.filter(r => r.status === "fulfilled").map(r => r.value);
       const failures = results.filter(r => r.status === "rejected");
 
+      setRawXmlFiles(prev => [...prev, ...successes.map(s => s.raw)])
       if (failures.length > 0) {
         setError(failures[0].reason || "Erro ao ler um ou mais XMLs.");
         return;
@@ -112,10 +128,6 @@ const NovaSM = ({ onUploadSuccess, onClose }) => {
         setError("Os XMLs devem ter a mesma placa ou todos sem placa. O upload não pode ser feito.");
         return;
       }
-
-
-
-
 
       // Tudo OK, pode adicionar
       setFiles(prev => [...prev, ...successes.map(s => s.file)]);
@@ -144,11 +156,6 @@ const NovaSM = ({ onUploadSuccess, onClose }) => {
     });
   };
 
-
-  
-  
-
-  console.log(xmlData)
   const handleFileChange = (e) => {
     const newFiles = Array.from(e.target.files);
     processFiles(newFiles);
@@ -176,11 +183,10 @@ const NovaSM = ({ onUploadSuccess, onClose }) => {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (e = null) => {
+    if (e) e.preventDefault();
     if (!xmlData || error) return;
       // Adicionando o log para depurar os dados antes de enviar
-    console.log("Enviando dados:", JSON.stringify(payload));
   
     try {
       const response = await fetch("http://localhost:8000/upload-xml/", {
@@ -202,6 +208,26 @@ const NovaSM = ({ onUploadSuccess, onClose }) => {
       console.error("Erro ao enviar dados:", error);
     }
   };
+
+    const confirmarEnvio = (e) => {
+    e.preventDefault();
+    // Verifica se algum dos XMLs exige GNRE
+    const precisaGNRE = rawXmlFiles.some(xmlStr => necessitaGNRE(xmlStr));
+    
+    if (precisaGNRE) {
+      console.log("precisa de gnre")
+      setmodalConfirmacaoGNRE(true);
+    } else {
+      console.log("Não precisa de gnre")
+      handleSubmit(e);
+    }
+  };
+
+    const confirmarEnvioComGNRE = () => {
+      setmodalConfirmacaoGNRE(false); // fecha modal
+      handleSubmit(); // envia formulário logo após
+    };
+
   
 
   return (
@@ -210,7 +236,7 @@ const NovaSM = ({ onUploadSuccess, onClose }) => {
 
       <form onSubmit={handleSubmit} className="flex flex-col space-y-4 max-w-md mx-auto">
         <div
-          className="relative h-20 w-full p-4 border-2 border-dashed border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className="relative h-20 w-full p-4 border-2 border-dashed border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
           onDragOver={handleDragOver}
           onDrop={handleDrop}
         >
@@ -286,17 +312,15 @@ const NovaSM = ({ onUploadSuccess, onClose }) => {
                   />
                 </div>
               ) : (
-                <AdicionarCampoBtn onClick={() => ativarCampo("placa_carreta_2")} label="Adicionar Placa Carreta 2" />
+                // <AdicionarCampoBtn onClick={() => ativarCampo("placa_carreta_2")} label="Adicionar Placa Carreta 2" />
+
+                <AdicionarCampoBtn
+                onClick={() => ativarCampo("placa_carreta_2")}
+                label="Adicionar Placa Carreta 2"
+                disabled={!camposExtras.placa_carreta_1} // 🔒 só ativa se a 1 estiver ativa
+              />
               )}
             </div>
-
-            {/* <p>
-              <strong>Valor Total Carga:</strong>{" "}
-              {new Intl.NumberFormat("pt-BR", {
-                style: "currency",
-                currency: "BRL",
-              }).format(Number(xmlData.valor_total_carga))}
-            </p> */}
 
             <p>
               <strong>Valor Total Carga (Somada):</strong>{" "}
@@ -319,7 +343,7 @@ const NovaSM = ({ onUploadSuccess, onClose }) => {
         {error && <div className="mt-2 text-red-500 text-sm">{error}</div>}
 
         <button
-          onClick={handleSubmit}
+          onClick={confirmarEnvio}
           disabled={
             files.length === 0 ||
             error === "As placas do cavalo são diferentes. O upload não pode ser feito." ||
@@ -335,14 +359,22 @@ const NovaSM = ({ onUploadSuccess, onClose }) => {
              xmlData.placa_cavalo === ""
 
               ? 'bg-gray-400 cursor-not-allowed'
-              : 'bg-indigo-600 hover:bg-indigo-600'
+              : 'bg-green-600 hover:bg-green-600'
           }`}
         >
           <MdFileUpload />
           Enviar XML
         </button>
       </form>
+      {modalConfirmacaoGNRE && (
+        <AlertaGNRE
+          isOpen={confirmarEnvio}
+          onClose={confirmarEnvioComGNRE}
+        />
+      )}
+
     </div>
+    
   );
 };
 

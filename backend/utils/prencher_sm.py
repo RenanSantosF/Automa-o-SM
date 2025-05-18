@@ -5,79 +5,58 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from utils.calcula_distancia import calcular_data_entrega
+from selenium.common.exceptions import TimeoutException, NoSuchElementException
 
+def formatar_cnpj(cnpj_str):
+    cnpj_str = ''.join(filter(str.isdigit, cnpj_str))  # Remove qualquer caractere não numérico
+    if len(cnpj_str) != 14:
+        raise ValueError(f"CNPJ inválido: {cnpj_str}")
+    return f"{cnpj_str[:2]}.{cnpj_str[2:5]}.{cnpj_str[5:8]}/{cnpj_str[8:12]}-{cnpj_str[12:]}"
 
 
 def preencher_sm(driver, dados):
     driver.get("https://novoapisullog.apisul.com.br/SMP/0")
-    time.sleep(3)
     
+    try:
+        # Espera até que um elemento específico esteja presente no DOM (ex: o campo de login ou outro identificador confiável)
+        WebDriverWait(driver, 20).until(
+            EC.presence_of_element_located((By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl02_ctl00_lnkPontoExistente"))
+        )
+    except Exception as e:
+        print("Erro ao carregar a página:", e)
 
     try:
         vincular_ponto_origem = driver.find_element(By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl02_ctl00_lnkPontoExistente")
         vincular_ponto_origem.click()
-        time.sleep(5)
-    except Exception as e:
 
+        # Espera até o elemento com ID 'rcbIdentificadorPonto_Input' estar presente no DOM e visível
+        WebDriverWait(driver, 20).until(
+            EC.visibility_of_element_located((By.ID, "rcbIdentificadorPonto_Input"))
+        )
+    except Exception as e:
         print("Erro ao clicar em 'Vincular ponto origem':", e)
         raise Exception(f"Erro ao clicar em 'Vincular ponto origem': {e}")
 
-
     try:
-        filtrar_cidade = driver.find_element(By.CSS_SELECTOR, '[title="Filtrar por cidade"]')
-        filtrar_cidade.click()
-        time.sleep(3)
+        cnpj_formatado = formatar_cnpj(dados["remetente_cnpj"])
+        remetente_input = driver.find_element(By.ID, "rcbIdentificadorPonto_Input")
+        remetente_input.clear()
+        remetente_input.send_keys(cnpj_formatado)
 
-        # 1. Separa cidade e estado
-        cidade_estado = dados["local_origem"].split(" - ")
-        cidade = cidade_estado[0].strip().upper()
-        estado = cidade_estado[1].strip().upper()
-
-        input_filtro_cidade = driver.find_element(By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl02_ctl02_rcbCidadePonto_Input")
-        input_filtro_cidade.clear()
-        input_filtro_cidade.send_keys(cidade)
-        time.sleep(4)
-
-        lista_itens = WebDriverWait(driver, 10).until(
-            EC.presence_of_all_elements_located((By.CSS_SELECTOR, "li.comboBoxListItem"))
-        )
-        time.sleep(4)
-
-        for item in lista_itens:
-            texto_item = item.text.upper()
-            if f"CIDADE: {cidade}" in texto_item and f"ESTADO: {estado}" in texto_item:
-                item.click()
-                break
-        else:
-            raise Exception(f"Nenhum item encontrado para {cidade} - {estado}")
-    except Exception as e:
-        print("Erro ao selecionar cidade de origem:", e)
-        raise Exception(f"Erro ao selecionar cidade de origem: {e}")
-
-    try:
-        time.sleep(3)
-        remetente_nome = driver.find_element(By.ID, "rcbIdentificadorPonto_Input")
-        remetente_nome.clear()
-        remetente_nome.send_keys(dados["remetente_nome"][:7])
-        time.sleep(3)
-
-        # Aguarda a lista de sugestões aparecer (ul.rcbList)
         try:
             WebDriverWait(driver, 15).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, "ul.rcbList"))
+                EC.element_to_be_clickable((By.CSS_SELECTOR, "ul.rcbList li.rcbTemplate"))
             )
-        except:
-            print("Nenhum remetente encontrado (ul.rcbList não apareceu).")
+        except TimeoutException:
+            print("Nenhum remetente encontrado (autocomplete_smp não apareceu).")
             raise Exception("Remetente não encontrado")
 
-        # Pressiona seta pra baixo e enter
-        remetente_nome.send_keys(Keys.DOWN)
-        remetente_nome.send_keys(Keys.ENTER)
-        time.sleep(2)
+        remetente_input.send_keys(Keys.DOWN)
+        remetente_input.send_keys(Keys.ENTER)
+        time.sleep(1)
 
-        # Rebusca o input e pega o valor preenchido
-        remetente_nome = driver.find_element(By.ID, "rcbIdentificadorPonto_Input")
-        nome_completo_remetente_cadastrado = remetente_nome.get_attribute("value")
+        remetente_input = driver.find_element(By.ID, "rcbIdentificadorPonto_Input")
+        nome_completo_remetente_cadastrado = remetente_input.get_attribute("value")
 
         if not nome_completo_remetente_cadastrado.strip():
             raise Exception("Remetente não foi preenchido corretamente após ENTER.")
@@ -85,88 +64,80 @@ def preencher_sm(driver, dados):
         dados["remetente_cadastrado_apisul"] = nome_completo_remetente_cadastrado
         print("Remetente cadastrado na apisul:", nome_completo_remetente_cadastrado)
 
-        time.sleep(4)
-        botao_salvar_remetente = driver.find_element(By.NAME, "ctl00$MainContent$gridPontosVinculados$ctl00$ctl02$ctl02$btnSalvarPontoSMP")
+        botao_salvar_remetente = driver.find_element(
+            By.NAME, "ctl00$MainContent$gridPontosVinculados$ctl00$ctl02$ctl02$btnSalvarPontoSMP"
+        )
         botao_salvar_remetente.click()
 
     except Exception as e:
         print("Erro ao preencher remetente:", e)
         raise Exception(f"Erro ao preencher remetente: {e}", e)
 
-
     try:
-        time.sleep(2)
-        # Clica em vincular ponto pra colocar destino
-        vincular_ponto_destino = driver.find_element(By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl02_ctl00_lnkPontoExistente")
-        vincular_ponto_destino.click()
-        time.sleep(3)
 
-        filtrar_cidade = driver.find_element(By.CSS_SELECTOR, '[title="Filtrar por cidade"]')
-        filtrar_cidade.click()
-        time.sleep(2)
-
-        cidade_estado = dados["local_destino"].split(" - ")
-        cidade_destino = cidade_estado[0].strip().upper()
-        estado_destino = cidade_estado[1].strip().upper()
-
-        input_filtro_cidade = driver.find_element(By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl02_ctl02_rcbCidadePonto_Input")
-        input_filtro_cidade.clear()
-        input_filtro_cidade.send_keys(cidade_destino)
-        time.sleep(2)
-
-        lista_itens = WebDriverWait(driver, 10).until(
-            EC.presence_of_all_elements_located((By.CSS_SELECTOR, "li.comboBoxListItem"))
+        WebDriverWait(driver, 15).until(
+            EC.presence_of_element_located((By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00__0"))
         )
-        time.sleep(2)
 
-        for item in lista_itens:
-            texto_item = item.text.upper()
-            if f"CIDADE: {cidade_destino}" in texto_item and f"ESTADO: {estado_destino}" in texto_item:
-                item.click()
-                break
-        else:
-            print("Nenhum item encontrado para cidade destino")
-            raise Exception(f"Nenhum item encontrado para {cidade_destino} - {estado_destino}")
+        time.sleep(0.5)
 
+        # Clica em vincular ponto pra colocar destino
+        try:
+            vincular_ponto_destino = driver.find_element(By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl02_ctl00_lnkPontoExistente")
+        
+        except NoSuchElementException:
+            raise Exception("Remetente não cadastrado")
+        
 
-        time.sleep(2)
-        destinatario_nome = driver.find_element(By.ID, "rcbIdentificadorPonto_Input")
-        destinatario_nome.clear()
-        destinatario_nome.send_keys(dados["destinatario_nome"][:7])
-        time.sleep(3)
+        try:
+            vincular_ponto_destino = driver.find_element(By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl02_ctl00_lnkPontoExistente")
+            vincular_ponto_destino.click()
 
-        # Aguarda a lista de sugestões aparecer (ul.rcbList)
+            # Espera até o elemento com ID 'rcbIdentificadorPonto_Input' estar presente no DOM e visível
+            WebDriverWait(driver, 20).until(
+                EC.visibility_of_element_located((By.ID, "rcbIdentificadorPonto_Input"))
+            )
+        except Exception as e:
+            print("Erro ao clicar em 'Vincular ponto origem':", e)
+            raise Exception(f"Erro ao clicar em 'Vincular ponto origem': {e}")
+
+        
+        # Formata o CNPJ do destinatário
+        cnpj_formatado = formatar_cnpj(dados["destinatario_cnpj"])
+
+        # Encontra o input do destinatário (é o mesmo ID do remetente)
+        destinatario_input = driver.find_element(By.ID, "rcbIdentificadorPonto_Input")
+        destinatario_input.clear()
+        destinatario_input.send_keys(cnpj_formatado)
+
+        # Aguarda a lista correta de sugestões aparecer (com div.autocomplete_smp)
         try:
             WebDriverWait(driver, 15).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, "ul.rcbList"))
+                EC.element_to_be_clickable((By.CSS_SELECTOR, "ul.rcbList li.rcbTemplate"))
             )
-        except:
-            print("Nenhum remetente encontrado (ul.rcbList não apareceu).")
-            raise Exception("Remetente não encontrado")
+        except TimeoutException:
+            print("Nenhum destinatário encontrado (autocomplete_smp não apareceu).")
+            raise Exception("Destinatário não encontrado")
 
-        # Tecla seta para baixo e depois ENTER
-        destinatario_nome.send_keys(Keys.DOWN)
-        destinatario_nome.send_keys(Keys.ENTER)
-        time.sleep(2)
+        # Seleciona o item da lista
+        destinatario_input.send_keys(Keys.DOWN)
+        destinatario_input.send_keys(Keys.ENTER)
+        time.sleep(1)
 
-        # Rebuscar de novo após ENTER
-        destinatario_nome = driver.find_element(By.ID, "rcbIdentificadorPonto_Input")
-        nome_completo_destinatario_cadastrado = destinatario_nome.get_attribute("value")
-        dados["destinatario_cadastrado_apisul"] = nome_completo_destinatario_cadastrado
-        print("Destinatário cadastrado na apisul:", nome_completo_destinatario_cadastrado)
+        # Rebusca o valor após pressionar ENTER
+        destinatario_input = driver.find_element(By.ID, "rcbIdentificadorPonto_Input")
+        nome_completo_destinatario_cadastrado = destinatario_input.get_attribute("value")
 
         if not nome_completo_destinatario_cadastrado.strip():
             raise Exception("Destinatário não foi preenchido corretamente após ENTER.")
 
+        # Salva o valor no dicionário
         dados["destinatario_cadastrado_apisul"] = nome_completo_destinatario_cadastrado
         print("Destinatário cadastrado na apisul:", nome_completo_destinatario_cadastrado)
 
-        time.sleep(4)
         botao_tempo_permanencia = driver.find_element(By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl02_ctl02_txtTempoPermanencia_dateInput")
         botao_tempo_permanencia.send_keys("1100")
-        time.sleep(1)
-        botao_tempo_permanencia.send_keys(Keys.ENTER)
-        time.sleep(1)
+        time.sleep(0.5)
     except Exception as e:
         print("Erro ao preencher destino:", e)
         raise Exception(f"Erro ao preencher destino:", e)
@@ -179,19 +150,25 @@ def preencher_sm(driver, dados):
         print("Previsão de entrega:", data_formatada)
 
         
-        campo_data_entrega = driver.find_element(By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl02_ctl02_txtPrevisaoChegada_dateInput")
+        # Espera até que o campo esteja visível e habilitado
+        campo_data_entrega = WebDriverWait(driver, 15).until(
+            EC.element_to_be_clickable((By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl02_ctl02_txtPrevisaoChegada_dateInput"))
+        )
+
+        # Garante que o campo está realmente interativo
         campo_data_entrega.click()
         time.sleep(1)
-        campo_data_entrega.clear()
-        time.sleep(1)
+        print("Daaata formatadaa")
+        print(data_formatada)
         campo_data_entrega.send_keys(data_formatada)
         time.sleep(1)
-        campo_data_entrega.send_keys(Keys.ENTER)
+        campo_data_entrega.send_keys(Keys.TAB)
+
 
     except Exception as e:
         print("Erro ao preencher campo de data estimada:", e)
         raise Exception(f"Erro ao preencher campo de data estimada:", e)
-    time.sleep(2)
+    time.sleep(0.5)
 
     try:
         campo_tipo_do_ponto = driver.find_element(By.ID, "cmbTipoPontoSMP_Input")
@@ -205,7 +182,7 @@ def preencher_sm(driver, dados):
     
     try:
 
-        time.sleep(2)
+        time.sleep(1)
         botao_salvar_destinatario = driver.find_element(By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl02_ctl02_btnSalvarPontoSMP")
         botao_salvar_destinatario.click()
     except Exception as e:
@@ -214,27 +191,41 @@ def preencher_sm(driver, dados):
     
     try:
 
+        #Verifica se o destinatário foi informado antes de adicionar projeto
+        WebDriverWait(driver, 15).until(
+            EC.presence_of_element_located((By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00__1"))
+        )
+        time.sleep(0.5)
+
         # Adicionar projeto
-        time.sleep(3)
-        botao_extender_ponto = driver.find_element(By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl07_GECBtnExpandColumn")
+        try:
+            botao_extender_ponto = driver.find_element(By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl07_GECBtnExpandColumn")
+        except NoSuchElementException:
+            raise Exception("Destinatário não cadastrado")
+        
         botao_extender_ponto.click()
 
-        time.sleep(1.5)
-        botao_adicionar_projeto = driver.find_element(By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl09_Detail21_ctl02_ctl00_InitInsertButton")
+        botao_adicionar_projeto = WebDriverWait(driver, 15).until(
+            EC.element_to_be_clickable((By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl09_Detail21_ctl02_ctl00_InitInsertButton"))
+        )
+        
         botao_adicionar_projeto.click()
-        time.sleep(3)
 
-        # dados do projeto
+        # Espera até o campo de tipo de projeto estar pronto para interação
+        campo_tipo_projeto = WebDriverWait(driver, 15).until(
+            EC.element_to_be_clickable((By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl09_Detail21_ctl02_ctl02_rcbProjeto_Input"))
+        )
 
-        campo_tipo_projeto = driver.find_element(By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl09_Detail21_ctl02_ctl02_rcbProjeto_Input")
-        campo_tipo_projeto.send_keys("DELLMAR - ESPECIFICAS")    
+        # Preenche os dados do projeto
+        campo_tipo_projeto.send_keys("DELLMAR - ESPECIFICAS")
+        time.sleep(0.5)    
         campo_tipo_projeto.send_keys(Keys.ENTER)
-        time.sleep(2)
-
+        time.sleep(0.5)
         campo_tipo_carga = driver.find_element(By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl09_Detail21_ctl02_ctl02_rcbTipoCarga_Input")
-        campo_tipo_carga.send_keys("DIVERSOS")    
+        campo_tipo_carga.send_keys("DIVERSOS")   
+        time.sleep(0.5) 
         campo_tipo_carga.send_keys(Keys.ENTER)
-        time.sleep(2)
+        time.sleep(0.5)
 
         campo_valor_carga = driver.find_element(By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl09_Detail21_ctl02_ctl02_rntxtValorCarga")
         valor_str = dados["valor_total_carga"]
@@ -247,7 +238,9 @@ def preencher_sm(driver, dados):
 
         campo_valor_carga.clear()
         campo_valor_carga.send_keys(valor_formatado)
-        time.sleep(1)
+        time.sleep(0.5)
+        campo_valor_carga.send_keys(Keys.TAB)
+        time.sleep(0.5)
 
         botao_salvar_projeto = driver.find_element(By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl09_Detail21_ctl02_ctl02_btnSalvarProjeto")
         botao_salvar_projeto.click()
@@ -260,10 +253,11 @@ def preencher_sm(driver, dados):
         # Preencher Transportadora
     campo_transportadora = driver.find_element(By.ID, "ctl00_MainContent_txtEmitenteTransportadora_Input")
     campo_transportadora.send_keys("DELLMAR TRANSPORTES")  # Exemplo fixo, pode vir de dados
+    campo_transportadora.send_keys(Keys.ENTER)
 
     # Preencher Campo Tipo operação
     campo_tipo_operação = driver.find_element(By.ID, "ctl00_MainContent_cmbTipoOperacao_Input")
-    campo_tipo_operação.send_keys("HIBRIDA")  # Exemplo fixo, pode vir de dados
+    campo_tipo_operação.send_keys("TRAN")  # Exemplo fixo, pode vir de dados
     campo_tipo_operação.send_keys(Keys.ENTER)
     
     # Preencher horário de inicio com o horário atual
@@ -271,38 +265,74 @@ def preencher_sm(driver, dados):
     botao_horário_inicio.click()
     time.sleep(2)
 
-
-
     def preencher_placa_e_confirmar(placa_texto: str):
         placa = driver.find_element(By.ID, "txtVeiculo_Input")
         placa.clear()
         placa.send_keys(placa_texto)
-        time.sleep(3)
-        placa.send_keys(Keys.TAB)
-        time.sleep(3)
 
-        # Verifica se o span com a placa apareceu
+        try:
+            # Aguarda o popup correto da placa aparecer com pelo menos um item (li)
+            WebDriverWait(driver, 10).until(
+                lambda d: any(
+                    ul.find_elements(By.TAG_NAME, "li")
+                    for ul in d.find_elements(By.CSS_SELECTOR, "div.RadAutoCompleteBoxPopup ul.racList")
+                    if ul.is_displayed()
+                )
+            )
+        except TimeoutException:
+            raise Exception("A lista de placas não carregou a tempo.")
+
+        # Pressiona TAB após a lista aparecer
+        placa.send_keys(Keys.TAB)
+
+        # Aguarda até o token da placa aparecer
+        try:
+            WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, "span.racTextToken"))
+            )
+        except TimeoutException:
+            raise Exception("A placa não foi reconhecida após pressionar TAB.")
+
+        # Verifica se a placa reconhecida está correta
         spans = driver.find_elements(By.CSS_SELECTOR, "span.racTextToken")
         placas_encontradas = [span.text.strip().upper() for span in spans]
 
         if placa_texto.strip().upper() not in placas_encontradas:
-            raise Exception(f"Placa '{placa_texto}' não encontrada no sistema após o TAB.")
+            raise Exception(f"Placa '{placa_texto}' não encontrada no sistema.")
 
-        # Confirmar a placa
+        # Confirma a placa
         botao_confirmar_placa = driver.find_element(By.ID, "ctl00_MainContent_btnVinculoVeiculo")
         botao_confirmar_placa.click()
-        time.sleep(4)
 
 
     try:
         # Placa cavalo
         preencher_placa_e_confirmar(dados.get("placa_cavalo", ""))
 
-        # Carreta 1
+        # Espera o cavalo ser inserido na tabela de veículos
+        try:
+            WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.ID, "ctl00_MainContent_grdViewVeiculo_ctl00__0"))
+            )
+        except TimeoutException:
+            raise Exception("A primeira linha da tabela de veículos não apareceu. O veículo anterior pode não ter sido adicionado corretamente.")
+
+        time.sleep(0.5)
+        # Adiciona Carreta 1
         if dados.get("placa_carreta_1") and dados["placa_carreta_1"].strip():
+
             preencher_placa_e_confirmar(dados["placa_carreta_1"])
 
-        # Carreta 2
+        # Espera a segunda carreta ser inserida na tabela de veículos
+        try:
+            WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.ID, "ctl00_MainContent_grdViewVeiculo_ctl00__0"))
+            )
+        except TimeoutException:
+            raise Exception("A primeira linha da tabela de veículos não apareceu. O veículo anterior pode não ter sido adicionado corretamente.")
+
+        time.sleep(0.5)
+        # Adiciona Carreta 2
         if dados.get("placa_carreta_2") and dados["placa_carreta_2"].strip():
             preencher_placa_e_confirmar(dados["placa_carreta_2"])
 
@@ -310,61 +340,67 @@ def preencher_sm(driver, dados):
         print("Erro ao preencher a placa da carreta", e)
         raise Exception(f"Erro ao preencher a placa da carreta", e)
 
-
+    time.sleep(2)
     # Seleção da rota
     botao_rota_existente = driver.find_element(By.ID, "MainContent_rblTipoRota_1")
     botao_rota_existente.click()
-    
-    time.sleep(2)
-    botao_rota_cliente = driver.find_element(By.ID, "MainContent_rblRotaExistente_0")
-    botao_rota_cliente.click()
+    time.sleep(0.5)
+    # Espera até que o botão "rota cliente" esteja clicável
+    try:
+        botao_rota_cliente = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.ID, "MainContent_rblRotaExistente_0"))
+        )
+        botao_rota_cliente.click()
+    except TimeoutException:
+        raise Exception("O botão 'Rota Cliente' não ficou disponível a tempo.")
 
-    time.sleep(2)
-
+    time.sleep(0.5)
 
     try:
-        campo_rota = driver.find_element(By.ID, "ctl00_MainContent_rcbRota_Input")
-        seta_dropdown = driver.find_element(By.ID, "ctl00_MainContent_rcbRota_Arrow")
+        campo_rota = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.ID, "ctl00_MainContent_rcbRota_Input"))
+        )
+        campo_rota.click()
 
-        # Força clique com ActionChains para não fechar o dropdown sem querer
-        actions = ActionChains(driver)
-        actions.move_to_element(campo_rota).click().perform()
-        time.sleep(0.5)
-        actions.move_to_element(seta_dropdown).click().perform()
-        time.sleep(1)
-
-        # Aguarda o ul aparecer visivelmente
-        WebDriverWait(driver, 5).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, "ul.rcbList"))
+        # Espera até que as rotas estejam visíveis
+        WebDriverWait(driver, 15).until(
+            EC.presence_of_all_elements_located((By.CSS_SELECTOR, "ul.rcbList li"))
         )
 
-        # Tenta capturar as rotas várias vezes
-        rotas_extraidas = []
-        for i in range(10):  # tenta por até 5 segundos
-            rotas_extraidas = driver.execute_script("""
-                const lis = document.querySelectorAll('ul.rcbList li');
-                return Array.from(lis).map(li => li.textContent.trim()).filter(txt => txt);
-            """)
-            if rotas_extraidas:
-                break
-            time.sleep(0.5)
+        time.sleep(1)  # Pequeno delay para garantir que todas as opções renderizem
 
-        if not rotas_extraidas:
-            # Faz dump do DOM para debug
-            html_completo = driver.execute_script("return document.body.innerHTML")
-            with open("html_dump.html", "w", encoding="utf-8") as f:
-                f.write(html_completo)
-            print("❌ Nenhuma rota foi capturada. HTML salvo como html_dump.html")
-            raise Exception("Nenhuma rota foi capturada após aguardar.")
+        # Captura todas as rotas visíveis no dropdown
+        rotas_elementos = driver.find_elements(By.CSS_SELECTOR, "ul.rcbList li")
+        rotas_disponiveis = [rota.text.strip() for rota in rotas_elementos if rota.text.strip()]
 
-        print("✅ Rotas capturadas via JS:", rotas_extraidas)
-        dados["rotas_cadastradas_apisul"] = rotas_extraidas
+        if not rotas_disponiveis:
+            raise Exception("Nenhuma rota disponível foi encontrada.")
+
+        # Seleciona a primeira rota da lista
+        # Re-obtenha o campo antes de usar send_keys, pois ele pode ter sido "atualizado" pelo JS
+        campo_rota = driver.find_element(By.ID, "ctl00_MainContent_rcbRota_Input")
+        campo_rota.send_keys(Keys.DOWN)
+        campo_rota.send_keys(Keys.ENTER)
+        time.sleep(2)
+
+        # Captura o valor selecionado no campo de rota
+        campo_rota = driver.find_element(By.ID, "ctl00_MainContent_rcbRota_Input")
+
+        rota_selecionada = campo_rota.get_attribute("value").strip()
+        print("Rota selecionada:", rota_selecionada)
+
+        # Você poderá depois armazenar essa variável no banco de dados
+        dados["rota_selecionada"] = rota_selecionada
+
+        # Armazena todas as rotas no seu dicionário para atualizar depois
+        dados["rotas_cadastradas_apisul"] = rotas_disponiveis
+        print("Rotas disponíveis:", rotas_disponiveis)
+
 
     except Exception as e:
-        print("❌ Erro ao capturar as rotas:", e)
-        raise Exception(f"Erro ao capturar as rotas: {e}")
-
-        
+        print("❌ Erro ao selecionar rota:", e)
+        raise Exception(f"Erro ao selecionar rota: {e}")
+            
     try:
 
         botao_incluir_motorista = driver.find_element(By.ID, "ctl00_MainContent_btnVinculaMotorista")
@@ -377,7 +413,12 @@ def preencher_sm(driver, dados):
         time.sleep(1)
 
         campo_cpf_condutor = driver.find_element(By.ID, "ctl00_MainContent_modalPopupMotorista_C_tipoDeDocumento_txtDocumento")
+        campo_cpf_condutor.click()
+        time.sleep(0.5)
+        campo_cpf_condutor.clear()
+        time.sleep(0.5)
         campo_cpf_condutor.send_keys(dados["cpf_condutor"])
+
         time.sleep(0.5)
 
         botao_pesquisar_condutor = driver.find_element(By.ID, "ctl00_MainContent_modalPopupMotorista_C_btnPesquisarMotorista")
@@ -386,29 +427,136 @@ def preencher_sm(driver, dados):
 
         try:
             botao_adicionar_condutor = WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.ID, "ctl00_MainContent_modalPopupMotorista_C_grdViewMotoristaConsulta_ctl00_ctl04_btnSalvarMotoristaPrevia"))
+                EC.element_to_be_clickable((By.ID, "ctl00_MainContent_modalPopupMotorista_C_grdViewMotoristaConsulta_ctl00_ctl04_btnSalvarMotoristaPrevia"))
             )
+
             botao_adicionar_condutor.click()
         except Exception:
             raise Exception("Condutor não cadastrado na apisul")
         
-        time.sleep(3)
-        botao_confirma_condutor = driver.find_element(By.ID, "ctl00_MainContent_modalPopupMotorista_C_btnSalvarMotorista")
-        botao_confirma_condutor.click()
-        time.sleep(3)
+        # Espera aparecer a linha da tabela com o condutor inserido
+        try:
+            WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.ID, "ctl00_MainContent_modalPopupMotorista_C_grdViewMotoristaPrevia_ctl00__0"))
+            )
+        except Exception:
+            raise Exception("❌ A linha com o condutor não apareceu. O cadastro pode ter falhado.")
 
-        print("todos os dados")
-        print(dados)
+
+        try:
+            botao_confirma_condutor = WebDriverWait(driver, 10).until(
+                EC.element_to_be_clickable((By.ID, "ctl00_MainContent_modalPopupMotorista_C_btnSalvarMotorista"))
+            )
+            botao_confirma_condutor.click()
+            time.sleep(3)
+        except Exception:
+            raise Exception("❌ Erro ao clicar no botão de confirmar condutor.")
 
     except Exception as e:
         print("Erro ao inserir o condutor:", e)
         raise Exception(f"Erroa ao inserir o condutor:", e)
     
-    try:
-        botao_salvar_SMP = driver.find_element(By.ID, "ctl00_MainContent_btnNovo")
-        botao_salvar_SMP.click()
-    except Exception as e:
-        print("erro ao salvar SM:")
-        raise Exception(f"erro ao salvar SM:", e)
+
+
+
+
+
     
-    return
+    try:
+        driver.find_element(By.ID, "ctl00_MainContent_btnNovo").click()
+        print("📝 Clicou em Salvar SMP.")
+
+        timeout = 30
+        start_time = time.time()
+
+        sm_numero = None
+        notificacao_texto = None
+        erro_detectado = False
+
+        while time.time() - start_time < timeout:
+            time.sleep(1)
+
+            # 1. Notificação
+            try:
+                div_notificacao = driver.find_element(By.ID, "divNotificacao")
+                if div_notificacao.is_displayed():
+                    notif_text = driver.find_element(By.ID, "notifTexto").text.strip()
+                    print(f"📢 Notificação: {notif_text}")
+                    notificacao_texto = notif_text
+
+                    # Fecha se possível
+                    try:
+                        driver.find_element(By.ID, "btnCloseNotificacao").click()
+                    except:
+                        pass
+
+                    if "foi salva com sucesso" in notif_text:
+                        sm_numero = notif_text.split("número ")[-1].split(" ")[0]
+                        print(f"✅ SMP criada com sucesso: {sm_numero}")
+                        return sm_numero
+                    else:
+                        erro_detectado = True
+                        break  # erro detectado, sai do loop
+            except:
+                pass
+
+            # 2. Alertas tipo "PGV"
+            try:
+                alertas = driver.find_elements(By.CSS_SELECTOR, ".rwDialogPopup.radalert")
+                for alerta in alertas:
+                    if alerta.is_displayed():
+                        alerta_texto = alerta.text.strip()
+                        print(f"⚠️ Alerta PGV: {alerta_texto}")
+
+                        try:
+                            ok_btn = alerta.find_element(By.CLASS_NAME, "rwPopupButton")
+                            ok_btn.click()
+                            erro_detectado = True
+                            notificacao_texto = alerta_texto
+                        except:
+                            pass
+                        break
+            except:
+                pass
+
+            # 3. Checa se o número da SMP apareceu
+            try:
+                sm_label = driver.find_element(By.ID, "ctl00_MainContent_lblNumeroSM")
+                if sm_label.is_displayed() and sm_label.text.strip():
+                    sm_numero = sm_label.text.strip()
+                    print(f"✅ SMP detectada por label: {sm_numero}")
+                    return sm_numero
+            except:
+                pass
+
+
+            # 3. Confirmação tipo "Deseja continuar?" (radconfirm)
+            try:
+                confirmacoes = driver.find_elements(By.CSS_SELECTOR, ".rwDialogPopup.radconfirm")
+                for confirm in confirmacoes:
+                    if confirm.is_displayed():
+                        texto_confirm = confirm.text.strip()
+                        print(f"❓ Confirmação detectada: {texto_confirm}")
+
+                        try:
+                            ok_btns = confirm.find_elements(By.CLASS_NAME, "rwPopupButton")
+                            for btn in ok_btns:
+                                if "OK" in btn.text:
+                                    btn.click()
+                                    print("✅ Clique automático no botão OK da confirmação.")
+                                    break
+                        except Exception as e:
+                            print("⚠️ Erro ao clicar em OK na confirmação:", e)
+                        break  # sai do for
+            except:
+                pass
+
+        # Após loop, decide se erro ou timeout
+        if erro_detectado:
+            raise Exception(f"❌ Erro ao salvar SMP: {notificacao_texto or 'erro não especificado'}")
+
+        raise Exception("⏱️ Timeout: Nenhuma resposta ao tentar salvar SMP.")
+
+    except Exception as e:
+        print("❌ Erro final ao salvar SMP:", e)
+        raise

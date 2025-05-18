@@ -4,12 +4,21 @@ from sqlalchemy.orm import Session
 from typing import List
 import json
 import threading
-
+import traceback
+from fastapi import HTTPException
+from pydantic import BaseModel
 from utils.login import login_apisul
 from utils.prencher_sm import preencher_sm
 from utils.extract_cte import extrair_dados_do_cte_xml
 from database import SessionLocal
 from crud import criar_execucao, atualizar_status, buscar_execucao_por_id
+from pydantic import BaseModel
+from fastapi import Body
+from typing import List, Optional
+from crud import listar_execucoes
+from fastapi.encoders import jsonable_encoder
+
+from fastapi import Query
 
 app = FastAPI()
 
@@ -29,25 +38,47 @@ def get_db():
     finally:
         db.close()
 
-def processar_cte(execucao_id: int, dados_principal: dict, db: Session,  usuario: str, senha: str,):
 
+def processar_cte(execucao_id: int, dados_principal: dict, db: Session, usuario: str, senha: str):
     try:
+        atualizar_status(db, execucao_id, status="Solicitação em andamento")
         driver = login_apisul(usuario, senha)
         preencher_sm(driver, dados_principal)
 
-        atualizar_status(db, execucao_id, status="Sucesso", resultado=json.dumps(dados_principal))
-    except Exception as e:
-        atualizar_status(
-                db,
-                execucao_id,
-                status="Erro",
-                resultado=json.dumps(dados_principal),
-                erro=str(e)
-            )
+        # Dados opcionais (depois de preencher_sm)
+        remetente = dados_principal.get("remetente_cadastrado_apisul")
+        destinatario = dados_principal.get("destinatario_cadastrado_apisul")
+        rotas = dados_principal.get("rotas_cadastradas_apisul")
+        rota_atual = dados_principal.get("rota_selecionada")
 
-from pydantic import BaseModel
-from fastapi import Body
-from typing import List, Optional
+        atualizar_status(
+            db,
+            execucao_id,
+            status="Sucesso",
+            resultado=json.dumps(dados_principal),
+            remetente_cadastrado_apisul=remetente,
+            destinatario_cadastrado_apisul=destinatario,
+            rotas_cadastradas_apisul=rotas,
+            rota_selecionada = rota_atual
+        )
+    except Exception as e:
+        # Mesmo em caso de erro, extrai os dados do dicionário (se existirem)
+        remetente = dados_principal.get("remetente_cadastrado_apisul")
+        destinatario = dados_principal.get("destinatario_cadastrado_apisul")
+        rotas = dados_principal.get("rotas_cadastradas_apisul")
+        rota_atual = dados_principal.get("rota_selecionada")
+
+        atualizar_status(
+            db,
+            execucao_id,
+            status="Erro",
+            resultado=json.dumps(dados_principal),
+            erro=str(e),
+            remetente_cadastrado_apisul=remetente,
+            destinatario_cadastrado_apisul=destinatario,
+            rotas_cadastradas_apisul=rotas,
+            rota_selecionada = rota_atual
+        )
 
 class LoginData(BaseModel):
     usuario: str
@@ -80,12 +111,17 @@ class PayloadUpload(BaseModel):
 @app.post("/upload-xml/")
 async def upload_xml(payload: PayloadUpload = Body(...), db: Session = Depends(get_db)):
     try:
-        print("dados")
+
         dados_dict = payload.viagemData.dict()
         usuario = payload.login.usuario
         senha = payload.login.senha
 
+        print("criou execução")
+
+
         execucao = criar_execucao(db, dados_dict)
+
+        print("criou execução")
 
 
         thread = threading.Thread(target=processar_cte, args=(execucao.id, dados_dict, db, usuario, senha))
@@ -100,18 +136,17 @@ async def upload_xml(payload: PayloadUpload = Body(...), db: Session = Depends(g
     except Exception as e:
         return {"erro": f"Ocorreu um erro ao processar os dados: {str(e)}"}
 
-from crud import listar_execucoes
-from fastapi.encoders import jsonable_encoder
-
 @app.get("/execucoes/")
-def get_execucoes(db: Session = Depends(get_db)):
-    execucoes = listar_execucoes(db)
+def get_execucoes(
+    limite: int = Query(20, ge=1),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db)
+):
+    execucoes = listar_execucoes(db=db, limite=limite, offset=offset)
     return jsonable_encoder(execucoes)
 
 
-import traceback
-from fastapi import HTTPException
-from pydantic import BaseModel
+
 class ExecucaoId(BaseModel):
     id: int
 class PayloadReprocessar(BaseModel):
@@ -121,9 +156,6 @@ class PayloadReprocessar(BaseModel):
 @app.post("/reprocessar-execucao/")
 async def reprocessar_execucao(payload: PayloadReprocessar, db: Session = Depends(get_db)):
     try:
-        print("Payload recebido:", payload)
-        print("Execucao ID:", payload.execucao_id.id)
-        print("Login:", payload.login.usuario, payload.login.senha)
 
         id = payload.execucao_id.id  # <- agora é necessário acessar o campo `.id`
         usuario = payload.login.usuario
@@ -135,6 +167,11 @@ async def reprocessar_execucao(payload: PayloadReprocessar, db: Session = Depend
 
         if execucao.status != "Erro":
             raise HTTPException(status_code=400, detail="Execução não falhou, não é necessário reprocessar")
+
+        # Atualiza o status antes de iniciar o reprocessamento
+        execucao.status = "Solicitação em andamento"
+        db.commit()
+        db.refresh(execucao)
 
         try:
             dados_principal = json.loads(execucao.resultado)

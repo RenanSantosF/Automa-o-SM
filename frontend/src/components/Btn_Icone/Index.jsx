@@ -4,7 +4,7 @@ import { FaBeer } from 'react-icons/fa'; // Exemplo de ícone, você pode trocar
 const IconButton = ({ icon: Icon, onClick }) => {
   return (
     <button onClick={onClick} style={{ background: 'transparent', border: 'none', padding: '10px', cursor: 'pointer' }}>
-      <Icon color="#4f46e5" size={24} /> {/* Tamanho do ícone pode ser ajustado */}
+      <Icon color="#16a34a" size={24} /> {/* Tamanho do ícone pode ser ajustado */}
     </button>
   );
 };
