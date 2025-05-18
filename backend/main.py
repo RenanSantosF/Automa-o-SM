@@ -32,6 +32,19 @@ fila_processamento = queue.Queue()
 
 app = FastAPI()
 
+def worker_de_fila():
+    db = next(get_db())  # Reutiliza uma sessão do banco
+    while True:
+        execucao_id, dados, usuario, senha = fila_processamento.get()
+        try:
+            processar_cte(execucao_id, dados, db, usuario, senha)
+        except Exception as e:
+            print(f"Erro ao processar execução {execucao_id}: {e}")
+        finally:
+            fila_processamento.task_done()
+
+
+
 threading.Thread(target=worker_de_fila, daemon=True).start()
 
 
@@ -53,17 +66,6 @@ def get_db():
         yield db
     finally:
         db.close()
-
-def worker_de_fila():
-    db = next(get_db())  # Reutiliza uma sessão do banco
-    while True:
-        execucao_id, dados, usuario, senha = fila_processamento.get()
-        try:
-            processar_cte(execucao_id, dados, db, usuario, senha)
-        except Exception as e:
-            print(f"Erro ao processar execução {execucao_id}: {e}")
-        finally:
-            fila_processamento.task_done()
 
 
 
