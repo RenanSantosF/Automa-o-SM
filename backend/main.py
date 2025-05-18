@@ -49,6 +49,7 @@ def get_db():
 
 
 def processar_cte(execucao_id: int, dados_principal: dict, db: Session, usuario: str, senha: str):
+    driver = none
     try:
         atualizar_status(db, execucao_id, status="Solicitação em andamento")
         driver = login_apisul(usuario, senha)
