@@ -24,13 +24,12 @@ app = FastAPI()
 
 
 origins = [
-    "https://automacaosm.vercel.app",
-    "http://localhost:5173",  # para testes locais com Vite
+    "https://automacaosm.vercel.app",  # seu frontend no Vercel
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=origins,  # sem "*"
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
