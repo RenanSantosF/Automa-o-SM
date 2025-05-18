@@ -62,39 +62,27 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import NoSuchElementException, WebDriverException
 import tempfile
-import subprocess
+import uuid
+import os
+import shutil
 import time
-import platform
-import tempfile
-
-def chrome_ja_esta_rodando():
-    sistema = platform.system()
-    if sistema == "Windows":
-        try:
-            output = subprocess.check_output("tasklist", shell=True).decode()
-            return "chrome.exe" in output.lower()
-        except:
-            return False
-    elif sistema in ["Linux", "Darwin"]:  # macOS é Darwin
-        try:
-            output = subprocess.check_output(["ps", "aux"]).decode()
-            return "chrome" in output.lower()
-        except:
-            return False
-    return False
 
 def login_apisul(usuario, senha):
+    temp_user_data_dir = None
     try:
         options = webdriver.ChromeOptions()
         options.add_argument("--window-size=1920,1080")
         options.add_argument("--no-first-run")
         options.add_argument("--no-default-browser-check")
         options.add_argument("--disable-default-apps")
+        options.add_argument("--headless")
+        options.add_argument("--disable-gpu")
+        options.add_argument("--disable-software-rasterizer")
 
-        print("Sempre usando perfil temporário para evitar conflito com Chrome já aberto.")
-        temp_user_data_dir = tempfile.mkdtemp()
+        # Diretório único com UUID
+        temp_user_data_dir = os.path.join(tempfile.gettempdir(), "chrome-profile-" + str(uuid.uuid4()))
         options.add_argument(f"--user-data-dir={temp_user_data_dir}")
-
+        print(f"Usando perfil temporário: {temp_user_data_dir}")
 
         driver = webdriver.Chrome(options=options)
         driver.get("https://novoapisullog.apisul.com.br/Login")
@@ -119,3 +107,10 @@ def login_apisul(usuario, senha):
         raise Exception(f"Erro ao iniciar o navegador: {str(e)}")
     except Exception as e:
         raise Exception(f"Erro durante login: {str(e)}")
+    finally:
+        # Limpa diretório temporário DEPOIS que o navegador for fechado
+        if temp_user_data_dir and os.path.exists(temp_user_data_dir):
+            try:
+                shutil.rmtree(temp_user_data_dir, ignore_errors=True)
+            except Exception:
+                pass
