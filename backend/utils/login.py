@@ -65,6 +65,7 @@ import tempfile
 import subprocess
 import time
 import platform
+import tempfile3
 
 def chrome_ja_esta_rodando():
     sistema = platform.system()
@@ -90,12 +91,10 @@ def login_apisul(usuario, senha):
         options.add_argument("--no-default-browser-check")
         options.add_argument("--disable-default-apps")
 
-        if chrome_ja_esta_rodando():
-            print("Chrome já está em execução. Usando perfil temporário.")
-            temp_user_data_dir = tempfile.mkdtemp()
-            options.add_argument(f"--user-data-dir={temp_user_data_dir}")
-        else:
-            print("Chrome não está rodando. Usando perfil padrão.")
+        print("Sempre usando perfil temporário para evitar conflito com Chrome já aberto.")
+        temp_user_data_dir = tempfile.mkdtemp()
+        options.add_argument(f"--user-data-dir={temp_user_data_dir}")
+
 
         driver = webdriver.Chrome(options=options)
         driver.get("https://novoapisullog.apisul.com.br/Login")
