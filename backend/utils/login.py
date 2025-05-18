@@ -14,7 +14,7 @@ def login_apisul(usuario, senha):
     temp_user_data_dir = None
     try:
         options = webdriver.ChromeOptions()
-        options.add_argument("--headless=new")
+        options.add_argument("--headless")
         options.add_argument("--disable-gpu")
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
@@ -25,7 +25,8 @@ def login_apisul(usuario, senha):
         driver = webdriver.Chrome(options=options)
         driver.get("https://novoapisullog.apisul.com.br/Login")
 
-        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "txtUsuario")))
+        WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "txtUsuario")))
+
 
         time.sleep(2)
 
