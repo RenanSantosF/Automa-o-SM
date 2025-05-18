@@ -24,7 +24,7 @@ const ListaSM = () => {
     setCarregandoMais(true);
 
     try {
-      const response = await fetch(`http://automacaosm.vercel.app/execucoes/?limite=${LIMITE_POR_PAGINA}&offset=${offset}`);
+      const response = await fetch(`https://automa-o-sm.onrender.com/execucoes/?limite=${LIMITE_POR_PAGINA}&offset=${offset}`);
       const novasExecucoes = await response.json();
 
       // setExecucoes((prev) => [...prev, ...novasExecucoes]);
@@ -68,7 +68,7 @@ const ListaSM = () => {
     };
 
     try {
-      const response = await fetch(`http://automacaosm.vercel.app/reprocessar-execucao/`, {
+      const response = await fetch(`https://automa-o-sm.onrender.com/reprocessar-execucao/`, {
         method: "POST",
         headers: {
           "content-type": "application/json",
