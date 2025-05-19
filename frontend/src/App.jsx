@@ -5,7 +5,7 @@ import ListaSM from './components/Lista_smp/Index';
 import { useLogin } from './Contexts/LoginContext';
 import LoginModal from './components/LoginModal/LoginModal';
 import { IoLogOutOutline } from "react-icons/io5";
-
+const api = import.meta.env.VITE_API_URL;
 
 
 function App() {
@@ -15,7 +15,7 @@ function App() {
 
   const fetchExecucoes = async () => {
     try {
-      const response = await fetch('https://automa-o-sm.onrender.com/execucoes/');
+      const response = await fetch(`${api}/execucoes/`);
       const data = await response.json();
       setExecucoes(data);
     } catch (error) {
