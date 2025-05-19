@@ -149,7 +149,7 @@ const ListaSM = () => {
         </p>
       ) : (
         <>
-          <div className=" overflow-x-auto bg-white rounded-lg shadow-lg">
+          <div className=" overflow-x-auto bg-white rounded-sm shadow-lg">
             <table className="min-w-full table-auto border-collapse">
               <thead className="sticky top-0">
                 <tr className="bg-gray-100 text-center text-gray-700">

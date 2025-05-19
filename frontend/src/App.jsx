@@ -46,11 +46,11 @@ function App() {
     <>
       {!isAuthenticated && <LoginModal />}
       {isAuthenticated && (
-        <div className="p-16 w-full font-poppins">
-          <div className='flex justify-between'>
+        <div className="py-16 px-2 w-full font-poppins">
+          <div className='flex px-2 justify-between'>
             <button
               onClick={() => setMostrarFormulario(!mostrarFormulario)}
-              className={`cursor-pointer mb-3 px-6 py text-sm bg-green-600 text-white rounded-md hover:bg-green-700 transition duration-200`}
+              className={`cursor-pointer mb-3 px-6 py text-sm bg-green-600 text-white rounded-sm hover:bg-green-700 transition duration-200`}
             >
               {mostrarFormulario ? 'Fechar SMP' : 'Nova SMP'}
             </button>
@@ -59,7 +59,7 @@ function App() {
               <span className='text-white'>{userData.usuario}</span>
               <button
                 onClick={() => setIsAuthenticated(false)}
-                className="items-center gap-1 flex cursor-pointer mb-3 px-2 py-1 text-xs bg-green-200 text-gray-900 rounded-md hover:bg-green-300 transition duration-200"
+                className="items-center gap-1 flex cursor-pointer mb-3 px-2 py-1 text-xs bg-green-200 text-gray-900 rounded-sm hover:bg-green-300 transition duration-200"
               >
                 Sair
                 <IoLogOutOutline/>
@@ -73,7 +73,7 @@ function App() {
             {mostrarFormulario && <NovaSM onUploadSuccess={handleUploadSuccess} onClose={() => setMostrarFormulario(false)} />}
           </div>
 
-          <div className='flex-1 justify-center items-center flex overflow-auto'>
+          <div className='min-h-64 flex-1 justify-center items-center flex overflow-auto'>
             {loading && <Loader />}
             {error && <p className="text-red-500">{error}</p>}
             {!loading && !error && execucoes.length === 0 && (
