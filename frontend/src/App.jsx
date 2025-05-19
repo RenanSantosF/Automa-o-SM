@@ -73,7 +73,7 @@ function App() {
             {mostrarFormulario && <NovaSM onUploadSuccess={handleUploadSuccess} onClose={() => setMostrarFormulario(false)} />}
           </div>
 
-          <div className='flex-1 overflow-auto'>
+          <div className='flex-1 justify-center items-center flex overflow-auto'>
             {loading && <Loader />}
             {error && <p className="text-red-500">{error}</p>}
             {!loading && !error && execucoes.length === 0 && (

@@ -493,6 +493,7 @@ def preencher_sm(driver, dados):
                     if "foi salva com sucesso" in notif_text:
                         sm_numero = notif_text.split("número ")[-1].split(" ")[0]
                         print(f"✅ SMP criada com sucesso: {sm_numero}")
+                        dados["numero_smp"] = sm_numero
                         return sm_numero
                     else:
                         erro_detectado = True
@@ -525,7 +526,8 @@ def preencher_sm(driver, dados):
                 if sm_label.is_displayed() and sm_label.text.strip():
                     sm_numero = sm_label.text.strip()
                     print(f"✅ SMP detectada por label: {sm_numero}")
-                    return sm_numero
+                    dados["numero_smp"] = sm_numero
+                    return
             except:
                 pass
 

@@ -45,7 +45,8 @@ def atualizar_status(
         remetente_cadastrado_apisul: str = None,
         destinatario_cadastrado_apisul: str = None,
         rotas_cadastradas_apisul: list = None,
-        rota_selecionada: str = None
+        rota_selecionada: str = None,
+        numero_smp: str = None
     ):
     execucao = db.query(Execucao).filter(Execucao.id == execucao_id).first()
     if execucao:
@@ -65,6 +66,8 @@ def atualizar_status(
             execucao.rotas_cadastradas_apisul = rotas_cadastradas_apisul
         if rota_selecionada is not None:
             execucao.rota_selecionada = rota_selecionada
+        if numero_smp is not None:
+            execucao.numero_smp = numero_smp
 
         db.commit()
 

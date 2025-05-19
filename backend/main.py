@@ -65,7 +65,7 @@ origins = [
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,  # sem "*"
+    allow_origins=["*"],  # sem "*"
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -96,7 +96,7 @@ def processar_cte(execucao_id: int, dados_principal: dict, db: Session, usuario:
         destinatario = dados_principal.get("destinatario_cadastrado_apisul")
         rotas = dados_principal.get("rotas_cadastradas_apisul")
         rota_atual = dados_principal.get("rota_selecionada")
-
+        sm_numero = dados_principal.get("numero_smp")
         print("entrou em atualiza status")
         atualizar_status(
             db,
@@ -106,7 +106,9 @@ def processar_cte(execucao_id: int, dados_principal: dict, db: Session, usuario:
             remetente_cadastrado_apisul=remetente,
             destinatario_cadastrado_apisul=destinatario,
             rotas_cadastradas_apisul=rotas,
-            rota_selecionada = rota_atual
+            rota_selecionada = rota_atual,
+            numero_smp = sm_numero
+
         )
 
         print("finalizou atualiza status")
@@ -128,7 +130,8 @@ def processar_cte(execucao_id: int, dados_principal: dict, db: Session, usuario:
             remetente_cadastrado_apisul=remetente,
             destinatario_cadastrado_apisul=destinatario,
             rotas_cadastradas_apisul=rotas,
-            rota_selecionada = rota_atual
+            rota_selecionada = rota_atual,
+            numero_smp = sm_numero
         )
 
     finally:

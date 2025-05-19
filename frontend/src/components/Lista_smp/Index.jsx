@@ -67,7 +67,14 @@ const ListaSM = () => {
 
   const formatarData = (data) => {
     const dataObj = new Date(data);
-    return dataObj.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
+    return dataObj.toLocaleString("pt-BR", {
+      timeZone: "America/Sao_Paulo",
+      day: "2-digit",
+      month: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }).replace(',', '');
   };
 
   const recarregarExecucoes = async () => {
@@ -147,6 +154,7 @@ const ListaSM = () => {
               <thead className="sticky top-0">
                 <tr className="bg-gray-100 text-center text-gray-700">
                   <th className="px-4 py-2 text-sm font-bold">Data</th>
+                  <th className="px-4 py-2 text-sm font-bold">SMP</th>
                   <th className="px-4 py-2 text-sm font-bold">Status</th>
                   <th className="px-4 py-2 text-sm font-bold">Condutor</th>
                   <th className="px-4 py-2 text-sm font-bold">Cavalo</th>
@@ -166,6 +174,9 @@ const ListaSM = () => {
                   >
                     <td className="whitespace-nowrap px-4 py-1 text-sm text-gray-800">
                       {formatarData(exec.criado_em)}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-1 text-sm text-gray-800">
+                      {exec.numero_smp}
                     </td>
                     <td className="whitespace-nowrap px-4 py-1 text-sm flex items-center justify-center gap-2 text-gray-800">
                       {exec.status}
