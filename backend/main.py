@@ -82,6 +82,7 @@ def get_db():
 
 def processar_cte(execucao_id: int, dados_principal: dict, db: Session, usuario: str, senha: str):
     driver = None
+    sm_numero = None
     try:
         print("entrou em processar CTe atualizando status")
         atualizar_status(db, execucao_id, status="Solicitação em andamento")
