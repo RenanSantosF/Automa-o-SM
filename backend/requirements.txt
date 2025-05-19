@@ -8,3 +8,5 @@ python-dotenv
 selenium
 openrouteservice
 webdriver-manager
+alembic
+psycopg2-binary

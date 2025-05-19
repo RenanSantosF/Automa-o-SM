@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from models import Execucao
 import json
+from datetime import datetime
 
 def criar_execucao(db: Session, dados: dict):
     execucao = Execucao(
@@ -28,6 +29,13 @@ def criar_execucao(db: Session, dados: dict):
     return execucao
 
 
+def adicionar_evento(historico_atual, mensagem):
+    agora = datetime.now().strftime("%d/%m %H:%M")
+    evento = f"{agora} {mensagem}"
+    if not historico_atual:
+        return [evento]
+    return historico_atual + [evento]
+
 def atualizar_status(
         db: Session, 
         execucao_id: int, 
@@ -43,7 +51,12 @@ def atualizar_status(
     if execucao:
         execucao.status = status
         execucao.resultado = resultado
-        execucao.erro = erro
+        
+        
+        # Atualiza histórico
+        mensagem = "Erro: " + erro if erro else f"{status}"
+        execucao.historico = adicionar_evento(execucao.historico, mensagem)
+        
         if remetente_cadastrado_apisul is not None:
             execucao.remetente_cadastrado_apisul = remetente_cadastrado_apisul
         if destinatario_cadastrado_apisul is not None:

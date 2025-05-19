@@ -8,7 +8,7 @@ class Execucao(Base):
     id = Column(Integer, primary_key=True, index=True)
     status = Column(String, default="Solicitação em andamento")  # pendente, sucesso, erro
     resultado = Column(Text, nullable=True)
-    erro = Column(Text, nullable=True)
+    historico = Column(JSON, nullable=True, default=[])
     criado_em = Column(DateTime(timezone=True), server_default=func.now())
 
     # Novos campos

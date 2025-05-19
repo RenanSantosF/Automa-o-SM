@@ -152,10 +152,28 @@ const ListaSM = () => {
                     </td>
                     <td className="whitespace-nowrap px-4 py-1 text-sm flex items-center justify-center gap-2 text-gray-800">
                       {exec.status}
-                      <IconButton
-                        icon={CgDetailsMore}
-                        onClick={() => openModal(exec.erro)}
-                      />
+                        <IconButton
+                          icon={CgDetailsMore}
+                          onClick={() => {
+                            if (!Array.isArray(exec.historico) || exec.historico.length === 0) {
+                              openModal(<div>Sem histórico disponível</div>);
+                            } else {
+                              openModal(
+                                <div>
+                                  {exec.historico
+                                    .slice()
+                                    .reverse()
+                                    .map((item, i) => (
+                                      <div key={i} style={{ marginBottom: '10px' }}>
+                                        <div className="p-3">{item}</div>
+                                        <hr className="border-1 border-gray-300" />
+                                      </div>
+                                    ))}
+                                </div>
+                              );
+                            }
+                          }}
+                        />
                       {exec.status == "Erro" && (
                         <IconButton
                           icon={IoReload}

@@ -1,7 +1,7 @@
 import queue
 import threading
 import time
-from fastapi import FastAPI, UploadFile, File, Depends
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List
@@ -12,7 +12,6 @@ from fastapi import HTTPException
 from pydantic import BaseModel
 from utils.login import login_apisul
 from utils.prencher_sm import preencher_sm
-from utils.extract_cte import extrair_dados_do_cte_xml
 from database import SessionLocal
 from crud import criar_execucao, atualizar_status, buscar_execucao_por_id
 from pydantic import BaseModel
@@ -249,6 +248,10 @@ async def reprocessar_execucao(payload: PayloadReprocessar, db: Session = Depend
         }
 
     except Exception as e:
+        
+        execucao.status = "Erro"
+        db.commit()
+        db.refresh(execucao)
         print("Erro no reprocessamento:")
         traceback.print_exc()  # <--- isso aqui mostra o erro no terminal!
 
