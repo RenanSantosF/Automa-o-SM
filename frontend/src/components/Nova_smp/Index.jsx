@@ -8,7 +8,6 @@ import AlertaGNRE from "../Alerta_GNRE/AlertaGNRE";
 
 const api = import.meta.env.VITE_API_URL; // se for Vite
 
-
 const NovaSM = ({ onUploadSuccess, onClose }) => {
   const [modalConfirmacaoGNRE, setmodalConfirmacaoGNRE] = useState(false);
 
@@ -24,8 +23,6 @@ const NovaSM = ({ onUploadSuccess, onClose }) => {
     placa_carreta_1: "placa_carreta_1" in xmlData,
     placa_carreta_2: "placa_carreta_2" in xmlData,
   });
-  
-
 
   const parseXML = (xml) => {
     const parser = new DOMParser();
@@ -147,6 +144,7 @@ const NovaSM = ({ onUploadSuccess, onClose }) => {
           valor_total_carga: novaCargaTotal.toFixed(2),
         };
       });
+
       
       setPlacaCavaloBase(primeiraPlaca);
       setError(null);

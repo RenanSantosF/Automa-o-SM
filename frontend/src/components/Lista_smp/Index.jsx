@@ -5,10 +5,13 @@ import { IoReload } from "react-icons/io5";
 import Modal from "../Modal";
 import { useLogin } from "../../Contexts/LoginContext";
 import { IoReloadCircle } from "react-icons/io5";
+import Loader from "../loarder/Loader";
 
 const api = import.meta.env.VITE_API_URL;
 
 const ListaSM = () => {
+  const [loading, setLoading] = useState(false);
+
   const [execucoes, setExecucoes] = useState([]);
   const [offset, setOffset] = useState(0);
   const [carregandoMais, setCarregandoMais] = useState(false);
@@ -68,13 +71,17 @@ const ListaSM = () => {
   };
 
   const recarregarExecucoes = async () => {
+    setLoading(true);
     setExecucoes([]);
     setTemMais(true);
+    setOffset(0);
     await carregarMaisExecucoes(0); // força o offset inicial
+    setLoading(false);
   };
 
 
   const reprocessarExecucao = async (id) => {
+    setLoading(true);
     const payload = {
       execucao_id: {
         id: id,
@@ -97,13 +104,23 @@ const ListaSM = () => {
 
       await recarregarExecucoes();
       console.log("Reprocessamento iniciado com sucesso!");
+      setLoading(false);
     } catch (error) {
+      setLoading(false);
       console.log(`Erro ao reprocessar execução ${id}: ${error.message}`);
     }
   };
 
   return (
-    <div className="max-w-full mx-auto py-6">
+    <>
+
+
+    {loading ? (
+      <Loader />
+    ) : execucoes.length === 0 ? (
+      <p className="text-xl text-gray-500">Nenhuma execução registrada ainda.</p>
+    ) : (
+      <div className="max-w-full mx-auto py-6">
       <div className="w-full flex items-center">
         <h2 className="text-2xl font-semibold text-gray-300">
           Solicitações realizadas
@@ -248,6 +265,33 @@ const ListaSM = () => {
         </>
       )}
     </div>
+      // Seu código da tabela continua aqui...
+    )}
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    
+    </>
+
+    
+
+
+
+
+
+
+
+
   );
 };
 
