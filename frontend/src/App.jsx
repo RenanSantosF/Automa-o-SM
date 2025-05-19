@@ -1,12 +1,11 @@
-
 import { useState, useEffect } from 'react';
 import NovaSM from './components/Nova_smp/Index';
 import ListaSM from './components/Lista_smp/Index';
 import { useLogin } from './Contexts/LoginContext';
 import LoginModal from './components/LoginModal/LoginModal';
 import { IoLogOutOutline } from "react-icons/io5";
-const api = import.meta.env.VITE_API_URL;
 
+const api = import.meta.env.VITE_API_URL;
 
 function App() {
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
