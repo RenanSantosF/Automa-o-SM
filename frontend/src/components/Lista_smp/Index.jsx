@@ -6,6 +6,7 @@ import Modal from "../Modal";
 import { useLogin } from "../../Contexts/LoginContext";
 import { IoReloadCircle } from "react-icons/io5";
 import Loader from "../loarder/Loader";
+import { MdDelete } from "react-icons/md";
 
 const api = import.meta.env.VITE_API_URL;
 
@@ -54,6 +55,28 @@ const ListaSM = () => {
 
     setCarregandoMais(false);
   };
+
+  const deletarExecucao = async (id) => {
+    if (!confirm("Tem certeza que deseja deletar esta execução?")) return;
+
+    setLoading(true);
+    try {
+      const response = await fetch(`${api}/execucao/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Erro ao deletar execução");
+      }
+
+      // Remove do estado
+      setExecucoes((prev) => prev.filter((e) => e.id !== id));
+    } catch (error) {
+      console.error(`Erro ao deletar execução ${id}:`, error.message);
+    }
+    setLoading(false);
+  };
+
   
 
   const openModal = (content) => {
@@ -152,7 +175,9 @@ const ListaSM = () => {
           <div className=" overflow-x-auto bg-white rounded-sm shadow-lg">
             <table className="min-w-full table-auto border-collapse">
               <thead className="sticky top-0">
+
                 <tr className="bg-gray-100 text-center text-gray-700">
+                  <th className="px-2 py-2 text-sm font-bold">#</th> {/* Nova coluna */}
                   <th className="px-4 py-2 text-sm font-bold">Data</th>
                   <th className="px-4 py-2 text-sm font-bold">SMP</th>
                   <th className="px-4 py-2 text-sm font-bold">Status</th>
@@ -172,6 +197,14 @@ const ListaSM = () => {
                       index % 2 === 0 ? "bg-gray-50" : "bg-white"
                     } hover:bg-gray-200 transition duration-200 text-center`}
                   >
+                    <td className="px-2 py-1 text-center">
+                      <IconButton
+                        icon={MdDelete}
+                        color="#f87171"
+                        size={20}
+                        onClick={() => deletarExecucao(exec.id)}
+                      />
+                    </td>
                     <td className="whitespace-nowrap px-4 py-1 text-sm text-gray-800">
                       {formatarData(exec.criado_em)}
                     </td>

@@ -82,3 +82,12 @@ def listar_execucoes(db: Session, limite: int = 20, offset: int = 0):
 def buscar_execucao_por_id(db: Session, execucao_id: int):
     # Buscando a execução no banco pelo ID
     return db.query(Execucao).filter(Execucao.id == execucao_id).first()
+
+
+def deletar_execucao_por_id(db: Session, execucao_id: int) -> bool:
+    execucao = db.query(Execucao).filter(Execucao.id == execucao_id).first()
+    if execucao:
+        db.delete(execucao)
+        db.commit()
+        return True
+    return False

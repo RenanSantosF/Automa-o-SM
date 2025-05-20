@@ -13,7 +13,7 @@ from pydantic import BaseModel
 from utils.login import login_apisul
 from utils.prencher_sm import preencher_sm
 from database import SessionLocal
-from crud import criar_execucao, atualizar_status, buscar_execucao_por_id
+from crud import criar_execucao, atualizar_status, buscar_execucao_por_id, deletar_execucao_por_id
 from pydantic import BaseModel
 from fastapi import Body
 from typing import List, Optional
@@ -260,3 +260,12 @@ async def reprocessar_execucao(payload: PayloadReprocessar, db: Session = Depend
         traceback.print_exc()  # <--- isso aqui mostra o erro no terminal!
 
         raise HTTPException(status_code=500, detail=f"Ocorreu um erro ao tentar reprocessar: {str(e)}")
+    
+
+
+@app.delete("/execucao/{execucao_id}")
+def deletar_execucao(execucao_id: int, db: Session = Depends(get_db)):
+    sucesso = deletar_execucao_por_id(db, execucao_id)
+    if not sucesso:
+        raise HTTPException(status_code=404, detail="Execução não encontrada.")
+    return {"mensagem": f"Execução com ID {execucao_id} deletada com sucesso."}
