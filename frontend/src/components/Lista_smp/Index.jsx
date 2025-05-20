@@ -161,6 +161,7 @@ const ListaSM = () => {
           onClick={() => recarregarExecucoes()}
           color="#FFF"
           size={28}
+          tooltip="Recarregar lista"
         />
 
       </div>
@@ -175,9 +176,8 @@ const ListaSM = () => {
           <div className=" overflow-x-auto bg-white rounded-sm shadow-lg">
             <table className="min-w-full table-auto border-collapse">
               <thead className="sticky top-0">
-
                 <tr className="bg-gray-100 text-center text-gray-700">
-                  <th className="px-2 py-2 text-sm font-bold">#</th> {/* Nova coluna */}
+                  <th className="px-2 py-2 text-sm font-bold">#</th>
                   <th className="px-4 py-2 text-sm font-bold">Data</th>
                   <th className="px-4 py-2 text-sm font-bold">SMP</th>
                   <th className="px-4 py-2 text-sm font-bold">Status</th>
@@ -203,6 +203,7 @@ const ListaSM = () => {
                         color="#f87171"
                         size={20}
                         onClick={() => deletarExecucao(exec.id)}
+                        tooltip="Deletar"
                       />
                     </td>
                     <td className="whitespace-nowrap px-4 py-1 text-sm text-gray-800">
@@ -215,6 +216,7 @@ const ListaSM = () => {
                       {exec.status}
                         <IconButton
                           icon={CgDetailsMore}
+                          tooltip="Registro de alterações"
                           onClick={() => {
                             if (!Array.isArray(exec.historico) || exec.historico.length === 0) {
                               openModal(<div>Sem histórico disponível</div>);
@@ -239,6 +241,7 @@ const ListaSM = () => {
                         <IconButton
                           icon={IoReload}
                           onClick={() => reprocessarExecucao(exec.id)}
+                          tooltip="Reprocessar SMP"
                         />
                       )}
                     </td>
@@ -257,7 +260,6 @@ const ListaSM = () => {
                     <td className="whitespace-nowrap px-3 py-1 text-[12px]  text-gray-800">
                       R$ {exec.valor_total_carga?.toLocaleString("pt-BR")}
                     </td>
-
                     <td className="whitespace-nowrap px-3 py-1 text-[12px]  text-gray-800">
                       <select
                         className="text-[12px]  border border-gray-300 rounded px-2 py-1 text-sm"

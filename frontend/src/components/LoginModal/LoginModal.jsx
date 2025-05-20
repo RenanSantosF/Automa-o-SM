@@ -1,4 +1,3 @@
-// src/components/LoginModal/LoginModal.jsx
 import { useState } from 'react';
 import { useLogin } from '../../Contexts/LoginContext';
 
@@ -16,13 +15,21 @@ export default function LoginModal() {
     }
   };
 
+  const handleMonitorOnly = () => {
+    // Aqui você define como será tratado o login anônimo
+    login('', '');
+  };
+
   return (
     <div className="fixed inset-0 bg-black/4 flex justify-center items-center z-50">
       <form
         onSubmit={handleSubmit}
-        className=" p-6 rounded-lg shadow-md w-80 space-y-4"
+        className="p-6 rounded-lg shadow-md w-80 space-y-4 bg-[#3b3b3b] "
       >
-        <h2 className="text-xl font-semibold">Login Apisul</h2>
+        <div className='w-full flex justify-center'>
+          <h2 className="text-xl text-white font-semibold">Login Apisul</h2>
+        </div>
+        
         {error && <p className="text-red-500 text-sm">{error}</p>}
         <input
           type="text"
@@ -42,10 +49,21 @@ export default function LoginModal() {
         />
         <button
           type="submit"
-          className="w-full bg-green-600 text-white p-2 rounded hover:bg-green-700"
+          className="w-full bg-green-600 text-white p-2 rounded-xl hover:bg-green-700"
         >
           Entrar
         </button>
+        <div className='w-full flex justify-center'>
+          <button
+            type="button"
+            onClick={handleMonitorOnly}
+            className=" border text-gray-200 px-4 py-1 border-gray-200 rounded hover:text-white"
+          >
+            Vou apenas monitorar
+          </button>
+          
+        </div>
+
       </form>
     </div>
   );

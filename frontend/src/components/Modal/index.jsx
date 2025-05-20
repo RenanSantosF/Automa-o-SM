@@ -44,7 +44,14 @@ const Modal = ({ isOpen, onClose, content }) => {
               </button>
             </div>
             <div className="mt-4 max-w-full  text-gray-700">
-              <p className="break-words text-sm whitespace-normal">{content}</p>
+              {/* <p className="break-words text-sm whitespace-normal">{content}</p> */}
+              <div className="mt-4 max-w-full break-words text-gray-700 overflow-x-auto">
+                {typeof content === "string" ? (
+                  <p className="break-words text-sm whitespace-normal">{content}</p>
+                ) : (
+                  <div className="text-sm break-words whitespace-normal">{content}</div>
+                )}
+              </div>
 
             </div>
             <div className="mt-6 flex justify-end">

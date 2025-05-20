@@ -32,7 +32,7 @@ function App() {
       setExecucoes(data);
     } catch (error) {
       console.error('Erro ao buscar execucoes:', error);
-      setError('Erro ao buscar execuções. Tente novamente mais tarde.');
+      setError('Erro ao buscar execuções. Tente novamente.');
     } finally {
       setLoading(false);
     }
@@ -61,8 +61,8 @@ function App() {
                 onClick={() => setIsAuthenticated(false)}
                 className="items-center gap-1 flex cursor-pointer mb-3 px-2 py-1 text-xs bg-green-200 text-gray-900 rounded-sm hover:bg-green-300 transition duration-200"
               >
-                Sair
-                <IoLogOutOutline/>
+                {userData.usuario ? 'Sair' : 'Entrar'}
+                <IoLogOutOutline />
               </button>
             </div>
           </div>
