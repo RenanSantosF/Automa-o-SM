@@ -106,7 +106,7 @@ const Modal = ({ isOpen, onClose, content }) => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 50 }}
             transition={{ duration: 0.3 }}
-            className="relative z-10 flex-col bg-white rounded-lg p-6 w-3/4 max-h-80 overflow-y-auto custom-scroll"
+            className="relative z-10 flex-col bg-white rounded-lg p-6 w-3/4 max-h-11/12 overflow-y-auto custom-scroll"
             onClick={(e) => e.stopPropagation()} // Impede que o clique dentro feche
           >
             <div className="flex justify-between items-center">

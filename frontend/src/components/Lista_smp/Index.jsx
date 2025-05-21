@@ -7,6 +7,7 @@ import { useLogin } from "../../Contexts/LoginContext";
 import { IoReloadCircle } from "react-icons/io5";
 import Loader from "../loarder/Loader";
 import { MdDelete } from "react-icons/md";
+import { TbReport } from "react-icons/tb";
 
 const api = import.meta.env.VITE_API_URL;
 
@@ -140,6 +141,55 @@ const ListaSM = () => {
       console.log(`Erro ao reprocessar execução ${id}: ${error.message}`);
     }
   };
+  const formatarCNPJ = (cnpj) => {
+    if (!cnpj) return "";
+    return cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
+  };
+
+
+  const renderDetalhes = (exec) => {
+    return (
+<div className="text-sm text-gray-800">
+  <h2 className="text-2xl font-bold mb-6">Detalhes da Execução</h2>
+
+  <div className="bg-white rounded-2xl shadow p-6 mb-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-justify">
+      <p><span className="font-semibold text-green-600">SMP:</span> {exec.numero_smp}</p>
+      <p><span className="font-semibold text-green-600">Status:</span> {exec.status}</p>
+      <p><span className="font-semibold text-green-600">Data:</span> {formatarData(exec.criado_em)}</p>
+      <p><span className="font-semibold text-green-600">Valor Total:</span> R$ {exec.valor_total_carga?.toLocaleString("pt-BR")}</p>
+      <p><span className="font-semibold text-green-600">Condutor:</span> {exec.condutor}</p>
+      <p><span className="font-semibold text-green-600">CPF:</span> {exec.cpf_condutor}</p>
+      <p><span className="font-semibold text-green-600">Placa Cavalo:</span> {exec.placa_cavalo}</p>
+      {exec.placa_carreta_1 && <p><span className="font-semibold text-green-600">Carreta 1:</span> {exec.placa_carreta_1}</p>}
+      {exec.placa_carreta_2 && <p><span className="font-semibold text-green-600">Carreta 2:</span> {exec.placa_carreta_2}</p>}
+      <p><span className="font-semibold text-green-600">Origem:</span> {exec.local_origem}</p>
+      <p><span className="font-semibold text-green-600">Destino:</span> {exec.local_destino}</p>
+      <p className="sm:col-span-2"><span className="font-semibold text-green-600">Rota Selecionada:</span> {exec.rota_selecionada}</p>
+    </div>
+  </div>
+
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="bg-white rounded-2xl shadow p-6">
+      <h3 className="text-lg font-semibold mb-4">Remetente</h3>
+      <p className="text-justify"><span className="font-semibold text-green-600">Nome:</span> {exec.remetente_nome}</p>
+      <p className="text-justify"><span className="font-semibold text-green-600">CNPJ:</span> {formatarCNPJ(exec.remetente_cnpj)}</p>
+      <p className="text-justify"><span className="font-semibold text-green-600">Endereço:</span> {exec.remetente_endereco}</p>
+    </div>
+
+    <div className="bg-white rounded-2xl shadow p-6">
+      <h3 className="text-lg font-semiboldmb-4">Destinatário</h3>
+      <p className="text-justify"><span className="font-semibold text-green-600">Nome:</span> {exec.destinatario_nome}</p>
+      <p className="text-justify"><span className="font-semibold text-green-600">CNPJ:</span> {formatarCNPJ(exec.destinatario_cnpj)}</p>
+      <p className="text-justify"><span className="font-semibold text-green-600">Endereço:</span> {exec.destinatario_endereco}</p>
+    </div>
+  </div>
+</div>
+
+
+    );
+  };
+
 
   return (
     <>
@@ -177,7 +227,7 @@ const ListaSM = () => {
             <table className="min-w-full table-auto border-collapse">
               <thead className="sticky top-0">
                 <tr className="bg-gray-100 text-center text-gray-700">
-                  <th className="px-2 py-2 text-sm font-bold">#</th>
+                  <th className="px-2 py-2 text-sm font-bold">Ações</th>
                   <th className="px-4 py-2 text-sm font-bold">Data</th>
                   <th className="px-4 py-2 text-sm font-bold">SMP</th>
                   <th className="px-4 py-2 text-sm font-bold">Status</th>
@@ -197,13 +247,19 @@ const ListaSM = () => {
                       index % 2 === 0 ? "bg-gray-50" : "bg-white"
                     } hover:bg-gray-200 transition duration-200 text-center`}
                   >
-                    <td className="px-2 py-1 text-center">
+                    <td className="px-2 py-1 flex text-center">
                       <IconButton
                         icon={MdDelete}
                         color="#f87171"
                         size={20}
                         onClick={() => deletarExecucao(exec.id)}
                         tooltip="Deletar"
+                      />
+                      <IconButton
+                        icon={CgDetailsMore}
+                        size={20}
+                        onClick={() => openModal(renderDetalhes(exec))}
+                        tooltip="Detalhes"
                       />
                     </td>
                     <td className="whitespace-nowrap px-4 py-1 text-sm text-gray-800">
@@ -215,7 +271,7 @@ const ListaSM = () => {
                     <td className="whitespace-nowrap px-4 py-1 text-sm flex items-center justify-center gap-2 text-gray-800">
                       {exec.status}
                         <IconButton
-                          icon={CgDetailsMore}
+                          icon={TbReport}
                           tooltip="Registro de alterações"
                           onClick={() => {
                             if (!Array.isArray(exec.historico) || exec.historico.length === 0) {
@@ -311,33 +367,8 @@ const ListaSM = () => {
         </>
       )}
     </div>
-      // Seu código da tabela continua aqui...
     )}
-
-
-
-
-
-
-
-
-    
-
-    
-    
-    
-    
     </>
-
-    
-
-
-
-
-
-
-
-
   );
 };
 
