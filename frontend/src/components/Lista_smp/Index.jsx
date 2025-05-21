@@ -28,34 +28,42 @@ const ListaSM = () => {
 
   const [temMais, setTemMais] = useState(true); // <- novo estado
 
-  const carregarMaisExecucoes = async (offsetForcado = null) => {
-    setCarregandoMais(true);
+const carregarMaisExecucoes = async (offsetForcado = null) => {
+  setCarregandoMais(true);
 
-    const offsetReal = offsetForcado !== null ? offsetForcado : offset;
+  const offsetReal = offsetForcado !== null ? offsetForcado : offset;
+  console.log("carregarMaisExecucoes chamado com offsetReal:", offsetReal);
 
+  const url = `${api}/execucoes/?limite=${LIMITE_POR_PAGINA}&offset=${offsetReal}`;
+
+  try {
+    const response = await fetch(url);
+    const textoResposta = await response.text();
+
+    let novasExecucoes = [];
     try {
-      const response = await fetch(
-        `${api}/execucoes/?limite=${LIMITE_POR_PAGINA}&offset=${offsetReal}`
-      );
-      const novasExecucoes = await response.json();
-
-      setExecucoes((prev) => {
-        const idsExistentes = new Set(prev.map((e) => e.id));
-        const novasUnicas = novasExecucoes.filter((e) => !idsExistentes.has(e.id));
-        return offsetForcado !== null ? novasUnicas : [...prev, ...novasUnicas]; // ← resetar se for recarga
-      });
-
-      setOffset(offsetReal + LIMITE_POR_PAGINA);
-
-      if (novasExecucoes.length < LIMITE_POR_PAGINA) {
-        setTemMais(false);
-      }
-    } catch (error) {
-      console.error("Erro ao carregar execuções:", error);
+      novasExecucoes = JSON.parse(textoResposta);
+    } catch {
+      throw new Error("Resposta da API não é um JSON válido.");
     }
 
-    setCarregandoMais(false);
-  };
+setExecucoes((prev) => 
+  offsetReal === 0 ? novasExecucoes : [...prev, ...novasExecucoes.filter(e => !prev.some(p => p.id === e.id))]
+);
+
+    // Atualiza offset depois de adicionar
+    setOffset(offsetReal + LIMITE_POR_PAGINA);
+
+    if (novasExecucoes.length < LIMITE_POR_PAGINA) {
+      setTemMais(false);
+    }
+  } catch (error) {
+    console.error("Erro ao carregar execuções:", error);
+  }
+  setCarregandoMais(false);
+};
+
+
 
   const deletarExecucao = async (id) => {
     if (!confirm("Tem certeza que deseja deletar esta execução?")) return;
@@ -351,7 +359,7 @@ const ListaSM = () => {
           {temMais ? (
             <div className="flex justify-center mt-6">
               <button
-                onClick={carregarMaisExecucoes}
+                onClick={() => carregarMaisExecucoes()}
                 disabled={carregandoMais}
                 className="px-6 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 transition disabled:opacity-50"
               >

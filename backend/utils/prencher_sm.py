@@ -16,7 +16,9 @@ def formatar_cnpj(cnpj_str):
 
 def preencher_sm(driver, dados):
     driver.get("https://novoapisullog.apisul.com.br/SMP/0")
-    
+
+
+
     try:
         # Espera até que um elemento específico esteja presente no DOM (ex: o campo de login ou outro identificador confiável)
         WebDriverWait(driver, 20).until(
@@ -305,40 +307,88 @@ def preencher_sm(driver, dados):
         botao_confirmar_placa.click()
 
 
+    def tentar_preencher_placa(placa_texto: str, max_tentativas=3):
+        for tentativa in range(1, max_tentativas + 1):
+            try:
+                # Limpa e tenta preencher e confirmar
+                # (sua função já limpa, mas aqui limpamos de novo pra garantir)
+                campo_placa = driver.find_element(By.ID, "txtVeiculo_Input")
+                campo_placa.clear()
+
+                preencher_placa_e_confirmar(placa_texto)
+
+                # Espera a tabela atualizar, indicando que a placa foi adicionada
+                WebDriverWait(driver, 10).until(
+                    EC.presence_of_element_located((By.ID, "ctl00_MainContent_grdViewVeiculo_ctl00__0"))
+                )
+                # Se chegou aqui, sucesso!
+                print(f"Placa {placa_texto} inserida com sucesso na tentativa {tentativa}.")
+                return  # Sai da função ao conseguir
+
+            except Exception as e:
+                print(f"Tentativa {tentativa} falhou para a placa {placa_texto}: {e}")
+                if tentativa == max_tentativas:
+                    # Exauriu todas as tentativas, lança exceção pra tratar fora
+                    raise Exception(f"Falha ao inserir a placa {placa_texto} após {max_tentativas} tentativas.")
+                else:
+                    # Dá uma pequena pausa antes de tentar novamente
+                    time.sleep(1)
+
+
+
+    # try:
+    #     # Placa cavalo
+    #     preencher_placa_e_confirmar(dados.get("placa_cavalo", ""))
+
+    #     # Espera o cavalo ser inserido na tabela de veículos
+    #     try:
+    #         WebDriverWait(driver, 10).until(
+    #             EC.presence_of_element_located((By.ID, "ctl00_MainContent_grdViewVeiculo_ctl00__0"))
+    #         )
+    #     except TimeoutException:
+    #         raise Exception("A primeira linha da tabela de veículos não apareceu. O veículo anterior pode não ter sido adicionado corretamente.")
+
+    #     time.sleep(0.5)
+    #     # Adiciona Carreta 1
+    #     if dados.get("placa_carreta_1") and dados["placa_carreta_1"].strip():
+
+    #         preencher_placa_e_confirmar(dados["placa_carreta_1"])
+
+    #     # Espera a segunda carreta ser inserida na tabela de veículos
+    #     try:
+    #         WebDriverWait(driver, 10).until(
+    #             EC.presence_of_element_located((By.ID, "ctl00_MainContent_grdViewVeiculo_ctl00__0"))
+    #         )
+    #     except TimeoutException:
+    #         raise Exception("A primeira linha da tabela de veículos não apareceu. O veículo anterior pode não ter sido adicionado corretamente.")
+
+    #     time.sleep(0.5)
+    #     # Adiciona Carreta 2
+    #     if dados.get("placa_carreta_2") and dados["placa_carreta_2"].strip():
+    #         preencher_placa_e_confirmar(dados["placa_carreta_2"])
+
+    # except Exception as e:
+    #     print("Erro ao preencher a placa da carreta", e)
+    #     raise Exception(f"Erro ao preencher a placa da carreta", e)
+
+
+    
     try:
-        # Placa cavalo
-        preencher_placa_e_confirmar(dados.get("placa_cavalo", ""))
-
-        # Espera o cavalo ser inserido na tabela de veículos
-        try:
-            WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.ID, "ctl00_MainContent_grdViewVeiculo_ctl00__0"))
-            )
-        except TimeoutException:
-            raise Exception("A primeira linha da tabela de veículos não apareceu. O veículo anterior pode não ter sido adicionado corretamente.")
+        tentar_preencher_placa(dados.get("placa_cavalo", ""))
 
         time.sleep(0.5)
-        # Adiciona Carreta 1
+
         if dados.get("placa_carreta_1") and dados["placa_carreta_1"].strip():
-
-            preencher_placa_e_confirmar(dados["placa_carreta_1"])
-
-        # Espera a segunda carreta ser inserida na tabela de veículos
-        try:
-            WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.ID, "ctl00_MainContent_grdViewVeiculo_ctl00__0"))
-            )
-        except TimeoutException:
-            raise Exception("A primeira linha da tabela de veículos não apareceu. O veículo anterior pode não ter sido adicionado corretamente.")
+            tentar_preencher_placa(dados["placa_carreta_1"])
 
         time.sleep(0.5)
-        # Adiciona Carreta 2
+
         if dados.get("placa_carreta_2") and dados["placa_carreta_2"].strip():
-            preencher_placa_e_confirmar(dados["placa_carreta_2"])
+            tentar_preencher_placa(dados["placa_carreta_2"])
 
     except Exception as e:
-        print("Erro ao preencher a placa da carreta", e)
-        raise Exception(f"Erro ao preencher a placa da carreta", e)
+        print("Erro ao preencher a placa da carreta:", e)
+        raise
 
     time.sleep(2)
     # Seleção da rota
@@ -456,17 +506,11 @@ def preencher_sm(driver, dados):
         print("Erro ao inserir o condutor:", e)
         raise Exception(f"Erroa ao inserir o condutor:", e)
     
-
-
-
-
-
-    
     try:
         driver.find_element(By.ID, "ctl00_MainContent_btnNovo").click()
         print("📝 Clicou em Salvar SMP.")
 
-        timeout = 30
+        timeout = 40
         start_time = time.time()
 
         sm_numero = None
