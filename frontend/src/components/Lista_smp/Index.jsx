@@ -150,7 +150,7 @@ const ListaSM = () => {
   const renderDetalhes = (exec) => {
     return (
 <div className="text-sm text-gray-800">
-  <h2 className="text-2xl font-bold mb-6">Detalhes da Execução</h2>
+  <h2 className="text-2xl font-semibold mb-6">Detalhes</h2>
 
   <div className="bg-white rounded-2xl shadow p-6 mb-6">
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-justify">
@@ -171,14 +171,14 @@ const ListaSM = () => {
 
   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
     <div className="bg-white rounded-2xl shadow p-6">
-      <h3 className="text-lg font-semibold mb-4">Remetente</h3>
+      <h3 className="text-lg  mb-4">Remetente</h3>
       <p className="text-justify"><span className="font-semibold text-green-600">Nome:</span> {exec.remetente_nome}</p>
       <p className="text-justify"><span className="font-semibold text-green-600">CNPJ:</span> {formatarCNPJ(exec.remetente_cnpj)}</p>
       <p className="text-justify"><span className="font-semibold text-green-600">Endereço:</span> {exec.remetente_endereco}</p>
     </div>
 
     <div className="bg-white rounded-2xl shadow p-6">
-      <h3 className="text-lg font-semiboldmb-4">Destinatário</h3>
+      <h3 className="text-lg ">Destinatário</h3>
       <p className="text-justify"><span className="font-semibold text-green-600">Nome:</span> {exec.destinatario_nome}</p>
       <p className="text-justify"><span className="font-semibold text-green-600">CNPJ:</span> {formatarCNPJ(exec.destinatario_cnpj)}</p>
       <p className="text-justify"><span className="font-semibold text-green-600">Endereço:</span> {exec.destinatario_endereco}</p>
