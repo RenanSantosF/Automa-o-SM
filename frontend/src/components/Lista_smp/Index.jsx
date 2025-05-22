@@ -255,7 +255,7 @@ setExecucoes((prev) =>
                       index % 2 === 0 ? "bg-gray-50" : "bg-white"
                     } hover:bg-gray-200 transition duration-200 text-center`}
                   >
-                    <td className="px-2 py-1 flex text-center">
+                    <td className="px-2 flex items-center">
                       <IconButton
                         icon={MdDelete}
                         color="#f87171"
@@ -270,13 +270,13 @@ setExecucoes((prev) =>
                         tooltip="Detalhes"
                       />
                     </td>
-                    <td className="whitespace-nowrap px-4 py-1 text-sm text-gray-800">
+                    <td className="whitespace-nowrap px-4  text-sm text-gray-800">
                       {formatarData(exec.criado_em)}
                     </td>
-                    <td className="whitespace-nowrap px-4 py-1 text-sm text-gray-800">
+                    <td className="whitespace-nowrap px-4  text-sm text-gray-800">
                       {exec.numero_smp}
                     </td>
-                    <td className="whitespace-nowrap px-4 py-1 text-sm flex items-center justify-center gap-2 text-gray-800">
+                    <td className="whitespace-nowrap px-4 items-center  text-sm flex justify-center gap-2 text-gray-800">
                       {exec.status}
                         <IconButton
                           icon={TbReport}
@@ -309,24 +309,24 @@ setExecucoes((prev) =>
                         />
                       )}
                     </td>
-                    <td className="whitespace-nowrap px-3 py-1 text-[12px]  text-gray-800">
+                    <td className="whitespace-nowrap px-3  text-[12px]  text-gray-800">
                       {exec.condutor}
                     </td>
-                    <td className="whitespace-nowrap px-3 py-1 text-[12px]  text-gray-800">
+                    <td className="whitespace-nowrap px-3  text-[12px]  text-gray-800">
                       {exec.placa_cavalo}
                     </td>
-                    <td className="whitespace-nowrap px-3 py-1 text-[12px]  text-gray-800">
+                    <td className="whitespace-nowrap px-3  text-[12px]  text-gray-800">
                       {exec.local_origem}
                     </td>
-                    <td className="whitespace-nowrap px-3 py-1 text-[12px]  text-gray-800">
+                    <td className="whitespace-nowrap px-3  text-[12px]  text-gray-800">
                       {exec.local_destino}
                     </td>
-                    <td className="whitespace-nowrap px-3 py-1 text-[12px]  text-gray-800">
+                    <td className="whitespace-nowrap px-3  text-[12px]  text-gray-800">
                       R$ {exec.valor_total_carga?.toLocaleString("pt-BR")}
                     </td>
-                    <td className="whitespace-nowrap px-3 py-1 text-[12px]  text-gray-800">
+                    <td className="whitespace-nowrap px-3  text-[12px]  text-gray-800">
                       <select
-                        className="text-[12px]  border border-gray-300 rounded px-2 py-1 text-sm"
+                        className="text-[12px]  border border-gray-300 rounded px-2  text-sm"
                         value={exec.rota_selecionada || ""}
                         onChange={(e) => handleSelecionarRota(exec.id, e.target.value)}
                       >

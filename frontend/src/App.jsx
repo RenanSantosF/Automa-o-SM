@@ -49,8 +49,9 @@ function App() {
         <div className="py-16 px-2 w-full font-poppins">
           <div className='flex px-2 justify-between'>
             <button
+            disabled={!userData.usuario}
               onClick={() => setMostrarFormulario(!mostrarFormulario)}
-              className={`cursor-pointer mb-3 px-6 py text-sm bg-green-600 text-white rounded-sm hover:bg-green-700 transition duration-200`}
+              className={`cursor-pointer mb-3 px-6 py-2 text-sm ${!userData.usuario ? "bg-gray-400 " : "bg-green-600 hover:bg-green-700"}  text-white rounded-sm  transition duration-200`}
             >
               {mostrarFormulario ? 'Fechar SMP' : 'Nova SMP'}
             </button>

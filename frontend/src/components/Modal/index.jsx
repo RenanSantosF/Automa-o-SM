@@ -93,7 +93,7 @@ const Modal = ({ isOpen, onClose, content }) => {
     <div className="fixed inset-0 z-50 flex justify-center items-center">
       {/* Fundo escurecido */}
       <div
-        className="absolute inset-0 bg-black/10"
+        className="absolute inset-0 bg-black/5"
         onClick={onClose}
       />
 
