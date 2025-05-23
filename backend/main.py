@@ -21,6 +21,7 @@ from crud import listar_execucoes
 from fastapi.encoders import jsonable_encoder
 from dotenv import load_dotenv
 import os
+from utils.email import enviar_email, montar_assunto_corpo
 
 from models import Base
 from database import engine
@@ -112,6 +113,13 @@ def processar_cte(execucao_id: int, dados_principal: dict, db: Session, usuario:
 
         )
 
+        assunto, corpo = montar_assunto_corpo(dados_principal)
+        enviar_email(
+            destinatario="expedicao@dellmar.com.br",
+            assunto=assunto,
+            corpo=corpo
+        )
+
         print("finalizou atualiza status")
 
     except Exception as e:
@@ -133,6 +141,38 @@ def processar_cte(execucao_id: int, dados_principal: dict, db: Session, usuario:
             rotas_cadastradas_apisul=rotas,
             rota_selecionada = rota_atual,
             numero_smp = sm_numero
+        )
+
+        # Montar assunto e corpo para e-mail de erro
+        assunto_erro = f"[ERRO] - Erro ao criar SMP para {dados_principal.get('condutor')} - {dados_principal.get('placa_cavalo')}"
+        
+        corpo_erro = f"""
+        Encontramos um erro durante o processamento.
+
+        Erro: {str(e)}
+
+        Número SMP: {sm_numero or ''}
+
+        Detalhes:
+        - Condutor: {dados_principal.get("condutor")}
+        - CPF do condutor: {dados_principal.get("cpf_condutor")}
+        - Placa Cavalo: {dados_principal.get("placa_cavalo")}
+        - Placa Carreta 1: {dados_principal.get("placa_carreta_1")}
+        - Placa Carreta 2: {dados_principal.get("placa_carreta_2")}
+        - Valor Total da Carga: {dados_principal.get("valor_total_carga")}
+
+        - Local Origem: {dados_principal.get("local_origem")}
+        - Remetente: {dados_principal.get("remetente_nome")} - CNPJ: {dados_principal.get("remetente_cnpj")}
+
+        - Local Destino: {dados_principal.get("local_destino")}
+        - Destinatário: {dados_principal.get("destinatario_nome")} - CNPJ: {dados_principal.get("destinatario_cnpj")}
+        
+        """.strip()
+
+        enviar_email(
+            destinatario="expedicao@dellmar.com.br",
+            assunto=assunto_erro,
+            corpo=corpo_erro
         )
 
     finally:
