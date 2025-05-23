@@ -5,13 +5,12 @@ import os
 
 import json
 
-def montar_assunto_corpo(execucao):
-    sm_numero = execucao.numero_smp
-    dados = execucao
+def montar_assunto_corpo(execucao: dict):
+    sm_numero = execucao.get("numero_smp")
+    
+    assunto = f"[SUCESSO] - SMP {sm_numero or 'N/A'} criada para {execucao.get('condutor') or 'Condutor não informado'}"
 
-    assunto = f"[SUCESSO] - SMP {sm_numero or 'N/A'} criada para {dados.condutor or 'Condutor não informado'}"
-
-    valor_carga = f"R$ {dados.valor_total_carga:.2f}" if dados.valor_total_carga else "N/A"
+    valor_carga = f"R$ {execucao.get('valor_total_carga'):.2f}" if execucao.get("valor_total_carga") else "N/A"
 
     corpo = f"""
 SMP gerada com sucesso.
@@ -19,21 +18,17 @@ SMP gerada com sucesso.
 Número SMP: {sm_numero or 'N/A'}
 
 Detalhes da execução:
-- Condutor: {dados.condutor or 'N/A'}
-- CPF do condutor: {dados.cpf_condutor or 'N/A'}
-- Placa Cavalo: {dados.placa_cavalo or 'N/A'}
-- Placa Carreta 1: {dados.placa_carreta_1 or 'N/A'}
-- Placa Carreta 2: {dados.placa_carreta_2 or 'N/A'}
-- Local Origem: {dados.local_origem or 'N/A'}
-- Local Destino: {dados.local_destino or 'N/A'}
+- Condutor: {execucao.get('condutor') or 'N/A'}
+- CPF do condutor: {execucao.get('cpf_condutor') or 'N/A'}
+- Placa Cavalo: {execucao.get('placa_cavalo') or 'N/A'}
+- Placa Carreta 1: {execucao.get('placa_carreta_1') or 'N/A'}
+- Placa Carreta 2: {execucao.get('placa_carreta_2') or 'N/A'}
+- Local Origem: {execucao.get('local_origem') or 'N/A'}
+- Local Destino: {execucao.get('local_destino') or 'N/A'}
 - Valor Total da Carga: {valor_carga}
-
-Dados adicionais em JSON:
-{json.dumps(dados.__dict__, indent=2, ensure_ascii=False)}
 """.strip()
 
     return assunto, corpo
-
 
 def enviar_email(destinatario: str, assunto: str, corpo: str):
     remetente = os.getenv("EMAIL_REMETENTE")
