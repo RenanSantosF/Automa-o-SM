@@ -155,9 +155,9 @@ def preencher_sm(driver, dados):
     # Data estimada
     try:
         print("Insere data estimada")
-        data_estimada = calcular_data_entrega(dados["local_origem"], dados["local_destino"])
-        data_formatada = data_estimada.strftime("%d/%m/%Y %H:%M")
+        data_formatada = calcular_data_entrega(dados["local_origem"], dados["local_destino"])
         print("Previsão de entrega:", data_formatada)
+
 
         
         # Espera até que o campo esteja visível e habilitado
