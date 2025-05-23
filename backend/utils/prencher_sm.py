@@ -5,7 +5,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from utils.calcula_distancia import calcular_data_entrega
-from selenium.common.exceptions import TimeoutException, NoSuchElementException
+from selenium.common.exceptions import TimeoutException, StaleElementReferenceException, NoSuchElementException, ElementNotInteractableException
 
 def formatar_cnpj(cnpj_str):
     cnpj_str = ''.join(filter(str.isdigit, cnpj_str))  # Remove qualquer caractere não numérico
@@ -17,8 +17,6 @@ def formatar_cnpj(cnpj_str):
 def preencher_sm(driver, dados):
     driver.get("https://novoapisullog.apisul.com.br/SMP/0")
 
-
-
     try:
         # Espera até que um elemento específico esteja presente no DOM (ex: o campo de login ou outro identificador confiável)
         WebDriverWait(driver, 20).until(
@@ -28,6 +26,7 @@ def preencher_sm(driver, dados):
         print("Erro ao carregar a página:", e)
 
     try:
+        print("Iniciou vinculação de ponto de origem")
         vincular_ponto_origem = driver.find_element(By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl02_ctl00_lnkPontoExistente")
         vincular_ponto_origem.click()
 
@@ -40,6 +39,7 @@ def preencher_sm(driver, dados):
         raise Exception(f"Erro ao clicar em 'Vincular ponto origem': {e}")
 
     try:
+        print("Insere CNPJ de origem")
         cnpj_formatado = formatar_cnpj(dados["remetente_cnpj"])
         remetente_input = driver.find_element(By.ID, "rcbIdentificadorPonto_Input")
         remetente_input.clear()
@@ -53,6 +53,7 @@ def preencher_sm(driver, dados):
             print("Nenhum remetente encontrado (autocomplete_smp não apareceu).")
             raise Exception("Remetente não encontrado")
 
+        print("Seleciona ponto de origem")
         remetente_input.send_keys(Keys.DOWN)
         remetente_input.send_keys(Keys.ENTER)
         time.sleep(1)
@@ -69,6 +70,7 @@ def preencher_sm(driver, dados):
         botao_salvar_remetente = driver.find_element(
             By.NAME, "ctl00$MainContent$gridPontosVinculados$ctl00$ctl02$ctl02$btnSalvarPontoSMP"
         )
+        print("Clica em salvar remetente")
         botao_salvar_remetente.click()
 
     except Exception as e:
@@ -85,6 +87,7 @@ def preencher_sm(driver, dados):
 
         # Clica em vincular ponto pra colocar destino
         try:
+            
             vincular_ponto_destino = driver.find_element(By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl02_ctl00_lnkPontoExistente")
         
         except NoSuchElementException:
@@ -92,6 +95,7 @@ def preencher_sm(driver, dados):
         
 
         try:
+            print("clica em vincular ponto de destino")
             vincular_ponto_destino = driver.find_element(By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl02_ctl00_lnkPontoExistente")
             vincular_ponto_destino.click()
 
@@ -105,6 +109,7 @@ def preencher_sm(driver, dados):
 
         
         # Formata o CNPJ do destinatário
+        print("Insere CNPJ no ponto de destino")
         cnpj_formatado = formatar_cnpj(dados["destinatario_cnpj"])
 
         # Encontra o input do destinatário (é o mesmo ID do remetente)
@@ -122,6 +127,7 @@ def preencher_sm(driver, dados):
             raise Exception("Destinatário não encontrado")
 
         # Seleciona o item da lista
+        print("Seleciona destinatário")
         destinatario_input.send_keys(Keys.DOWN)
         destinatario_input.send_keys(Keys.ENTER)
         time.sleep(1)
@@ -137,6 +143,7 @@ def preencher_sm(driver, dados):
         dados["destinatario_cadastrado_apisul"] = nome_completo_destinatario_cadastrado
         print("Destinatário cadastrado na apisul:", nome_completo_destinatario_cadastrado)
 
+        print("Insere tempo de permanência")
         botao_tempo_permanencia = driver.find_element(By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl02_ctl02_txtTempoPermanencia_dateInput")
         botao_tempo_permanencia.send_keys("1100")
         time.sleep(0.5)
@@ -147,6 +154,7 @@ def preencher_sm(driver, dados):
 
     # Data estimada
     try:
+        print("Insere data estimada")
         data_estimada = calcular_data_entrega(dados["local_origem"], dados["local_destino"])
         data_formatada = data_estimada.strftime("%d/%m/%Y %H:%M")
         print("Previsão de entrega:", data_formatada)
@@ -160,7 +168,7 @@ def preencher_sm(driver, dados):
         # Garante que o campo está realmente interativo
         campo_data_entrega.click()
         time.sleep(1)
-        print("Daaata formatadaa")
+        print("Data formatada")
         print(data_formatada)
         campo_data_entrega.send_keys(data_formatada)
         time.sleep(1)
@@ -173,6 +181,8 @@ def preencher_sm(driver, dados):
     time.sleep(0.5)
 
     try:
+
+        print("Insere tipo do ponto")
         campo_tipo_do_ponto = driver.find_element(By.ID, "cmbTipoPontoSMP_Input")
         campo_tipo_do_ponto.send_keys("ENTREGA")    
         campo_tipo_do_ponto.send_keys(Keys.ENTER)
@@ -185,7 +195,9 @@ def preencher_sm(driver, dados):
     try:
 
         time.sleep(1)
-        botao_salvar_destinatario = driver.find_element(By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl02_ctl02_btnSalvarPontoSMP")
+        print("Salva destinatário")
+        # Espera até que o botão esteja clicável
+        botao_salvar_destinatario = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl02_ctl02_btnSalvarPontoSMP")))
         botao_salvar_destinatario.click()
     except Exception as e:
         print("Erro ao salvar o destinatário:", e)
@@ -207,6 +219,7 @@ def preencher_sm(driver, dados):
         
         botao_extender_ponto.click()
 
+        print("Adiciona projeto")
         botao_adicionar_projeto = WebDriverWait(driver, 15).until(
             EC.element_to_be_clickable((By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl09_Detail21_ctl02_ctl00_InitInsertButton"))
         )
@@ -244,8 +257,23 @@ def preencher_sm(driver, dados):
         campo_valor_carga.send_keys(Keys.TAB)
         time.sleep(0.5)
 
-        botao_salvar_projeto = driver.find_element(By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl09_Detail21_ctl02_ctl02_btnSalvarProjeto")
-        botao_salvar_projeto.click()
+        # print("Salva projeto")
+        # botao_salvar_projeto = driver.find_element(By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl09_Detail21_ctl02_ctl02_btnSalvarProjeto")
+        # botao_salvar_projeto.click()
+
+        for tentativa in range(3):
+            try:
+                botao_salvar_projeto = WebDriverWait(driver, 10).until(
+                    EC.element_to_be_clickable((By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl09_Detail21_ctl02_ctl02_btnSalvarProjeto"))
+                )
+                botao_salvar_projeto.click()
+                break  # clicou com sucesso, sai do loop
+            except StaleElementReferenceException:
+                print(f"Tentativa {tentativa+1} falhou por StaleElementReferenceException. Tentando novamente...")
+                time.sleep(1)
+        else:
+            raise Exception("Não foi possível clicar no botão de salvar projeto devido a StaleElementReferenceException.")
+
     except Exception as e:
         print("Erro ao salvar o projeto:", e)
         raise Exception(f"Erro ao salvar o projeto:", e)
@@ -267,6 +295,7 @@ def preencher_sm(driver, dados):
     botao_horário_inicio.click()
     time.sleep(2)
 
+    print("Inicia preenchimento de placa")
     def preencher_placa_e_confirmar(placa_texto: str):
         placa = driver.find_element(By.ID, "txtVeiculo_Input")
         placa.clear()
@@ -333,56 +362,21 @@ def preencher_sm(driver, dados):
                 else:
                     # Dá uma pequena pausa antes de tentar novamente
                     time.sleep(1)
-
-
-
-    # try:
-    #     # Placa cavalo
-    #     preencher_placa_e_confirmar(dados.get("placa_cavalo", ""))
-
-    #     # Espera o cavalo ser inserido na tabela de veículos
-    #     try:
-    #         WebDriverWait(driver, 10).until(
-    #             EC.presence_of_element_located((By.ID, "ctl00_MainContent_grdViewVeiculo_ctl00__0"))
-    #         )
-    #     except TimeoutException:
-    #         raise Exception("A primeira linha da tabela de veículos não apareceu. O veículo anterior pode não ter sido adicionado corretamente.")
-
-    #     time.sleep(0.5)
-    #     # Adiciona Carreta 1
-    #     if dados.get("placa_carreta_1") and dados["placa_carreta_1"].strip():
-
-    #         preencher_placa_e_confirmar(dados["placa_carreta_1"])
-
-    #     # Espera a segunda carreta ser inserida na tabela de veículos
-    #     try:
-    #         WebDriverWait(driver, 10).until(
-    #             EC.presence_of_element_located((By.ID, "ctl00_MainContent_grdViewVeiculo_ctl00__0"))
-    #         )
-    #     except TimeoutException:
-    #         raise Exception("A primeira linha da tabela de veículos não apareceu. O veículo anterior pode não ter sido adicionado corretamente.")
-
-    #     time.sleep(0.5)
-    #     # Adiciona Carreta 2
-    #     if dados.get("placa_carreta_2") and dados["placa_carreta_2"].strip():
-    #         preencher_placa_e_confirmar(dados["placa_carreta_2"])
-
-    # except Exception as e:
-    #     print("Erro ao preencher a placa da carreta", e)
-    #     raise Exception(f"Erro ao preencher a placa da carreta", e)
-
-
     
     try:
+
+        print("Inserindo placa cavalo")
         tentar_preencher_placa(dados.get("placa_cavalo", ""))
 
         time.sleep(0.5)
 
+        print("Inserindo placa carreta")
         if dados.get("placa_carreta_1") and dados["placa_carreta_1"].strip():
             tentar_preencher_placa(dados["placa_carreta_1"])
 
         time.sleep(0.5)
 
+        print("Inserindo placa carreta 2")
         if dados.get("placa_carreta_2") and dados["placa_carreta_2"].strip():
             tentar_preencher_placa(dados["placa_carreta_2"])
 
@@ -392,6 +386,7 @@ def preencher_sm(driver, dados):
 
     time.sleep(2)
     # Seleção da rota
+    print("Adicionando rota")
     botao_rota_existente = driver.find_element(By.ID, "MainContent_rblTipoRota_1")
     botao_rota_existente.click()
     time.sleep(0.5)
@@ -453,6 +448,7 @@ def preencher_sm(driver, dados):
             
     try:
 
+        print("Incluindo motorista")
         botao_incluir_motorista = driver.find_element(By.ID, "ctl00_MainContent_btnVinculaMotorista")
         botao_incluir_motorista.click()
         time.sleep(1)
@@ -494,6 +490,7 @@ def preencher_sm(driver, dados):
 
 
         try:
+            print("Salvando dados do motorista")
             botao_confirma_condutor = WebDriverWait(driver, 10).until(
                 EC.element_to_be_clickable((By.ID, "ctl00_MainContent_modalPopupMotorista_C_btnSalvarMotorista"))
             )
@@ -506,9 +503,43 @@ def preencher_sm(driver, dados):
         print("Erro ao inserir o condutor:", e)
         raise Exception(f"Erroa ao inserir o condutor:", e)
     
+
+
+
+    def clicar_com_seguranca(driver, by, valor, timeout=10, scroll=True, tentativas=3, delay_entre_tentativas=1.5):
+        ultima_excecao = None
+
+        for tentativa in range(tentativas):
+            try:
+                print(f"🖱️ Tentando clicar no elemento: {valor} (tentativa {tentativa + 1})")
+
+                elemento = WebDriverWait(driver, timeout).until(
+                    EC.element_to_be_clickable((by, valor))
+                )
+
+                if scroll:
+                    driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", elemento)
+                    time.sleep(0.3)
+
+                try:
+                    elemento.click()
+                except ElementNotInteractableException:
+                    driver.execute_script("arguments[0].click();", elemento)
+
+                print(f"✅ Clique bem-sucedido no elemento: {valor}")
+                return  # sucesso, sai da função
+
+            except Exception as e:
+                ultima_excecao = e
+                print(f"⚠️ Falha ao clicar no elemento: {valor} (tentativa {tentativa + 1})")
+                time.sleep(delay_entre_tentativas)
+
+        # Se chegou aqui, todas as tentativas falharam
+        raise Exception(f"❌ Falha ao clicar no elemento '{valor}' após {tentativas} tentativas. Último erro: {ultima_excecao}")
+
+    
     try:
-        driver.find_element(By.ID, "ctl00_MainContent_btnNovo").click()
-        print("📝 Clicou em Salvar SMP.")
+        clicar_com_seguranca(driver, By.ID, "ctl00_MainContent_btnNovo")
 
         timeout = 40
         start_time = time.time()
@@ -574,7 +605,6 @@ def preencher_sm(driver, dados):
                     return
             except:
                 pass
-
 
             # 3. Confirmação tipo "Deseja continuar?" (radconfirm)
             try:

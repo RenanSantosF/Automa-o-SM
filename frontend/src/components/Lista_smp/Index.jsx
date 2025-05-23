@@ -118,6 +118,12 @@ setExecucoes((prev) =>
     setLoading(false);
   };
 
+  const prioridadeStatus = {
+    "Solicitação em andamento": 0,
+    "Erro": 1,
+    "Sucesso": 2,
+  };
+
 
   const reprocessarExecucao = async (id) => {
     setLoading(true);
@@ -153,6 +159,12 @@ setExecucoes((prev) =>
     if (!cnpj) return "";
     return cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
   };
+
+  const execucoesOrdenadas = [...execucoes].sort((a, b) => {
+  const pa = prioridadeStatus[a.status] ?? 99; // 99 se não encontrado para colocar no fim
+  const pb = prioridadeStatus[b.status] ?? 99;
+  return pa - pb;
+});
 
 
   const renderDetalhes = (exec) => {
@@ -248,7 +260,7 @@ setExecucoes((prev) =>
                 </tr>
               </thead>
               <tbody>
-                {execucoes.map((exec, index) => (
+                {execucoesOrdenadas.map((exec, index) => (
                   <tr
                     key={exec.id}
                     className={`${
