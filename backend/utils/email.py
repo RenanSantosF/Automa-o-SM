@@ -10,7 +10,7 @@ def montar_assunto_corpo(execucao: dict):
     
     assunto = f"[SUCESSO] - SMP {sm_numero or 'N/A'} criada para {execucao.get('condutor') or 'Condutor não informado'}"
 
-    valor_carga = f"R$ {execucao.get('valor_total_carga'):.2f}" if execucao.get("valor_total_carga") else "N/A"
+    valor_carga = f"R$ {execucao.get('valor_total_carga')}" if execucao.get("valor_total_carga") else "N/A"
 
     corpo = f"""
 SMP gerada com sucesso.
