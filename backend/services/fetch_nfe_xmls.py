@@ -5,8 +5,11 @@ from models import NFe
 from utils.email import enviar_email_com_anexos
 from sqlalchemy.orm import Session
 from utils.status import salvar_status
+from typing import List
 
-async def buscar_e_enviar_nfes(db: Session, chaves: list[str], email_destino: str, pasta_temporaria: str = "temp_xmls"):
+
+async def buscar_e_enviar_nfes(db: Session, chaves: List[str], email_destino: str, pasta_temporaria: str = "temp_xmls"):
+
     os.makedirs(pasta_temporaria, exist_ok=True)
 
     nfes = db.query(NFe).filter(
