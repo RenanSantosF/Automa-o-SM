@@ -20,7 +20,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(routes_upload.router, prefix="/api")
-app.include_router(routes_execucoes.router, prefix="/api")
-app.include_router(routes_importar_nfe.router, prefix="/api")
-app.include_router(routes_status_importa_nfe.router, prefix="/api")
+app.include_router(routes_upload.router)
+app.include_router(routes_execucoes.router)
+app.include_router(routes_importar_nfe.router)
+app.include_router(routes_status_importa_nfe.router)
