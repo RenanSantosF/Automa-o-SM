@@ -10,3 +10,4 @@ openrouteservice
 webdriver-manager
 alembic
 psycopg2-binary
+httpx

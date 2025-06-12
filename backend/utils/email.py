@@ -1,52 +1,33 @@
 import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
+from email.message import EmailMessage
 import os
 
-import json
-
-def montar_assunto_corpo(execucao: dict):
-    sm_numero = execucao.get("numero_smp")
-    
-    assunto = f"[SUCESSO] - SMP {sm_numero or 'N/A'} criada para {execucao.get('condutor') or 'Condutor não informado'}"
-
-    valor_carga = f"R$ {execucao.get('valor_total_carga')}" if execucao.get("valor_total_carga") else "N/A"
-
-    corpo = f"""
-SMP gerada com sucesso.
-
-Número SMP: {sm_numero or 'N/A'}
-
-Detalhes da execução:
-- Condutor: {execucao.get('condutor') or 'N/A'}
-- CPF do condutor: {execucao.get('cpf_condutor') or 'N/A'}
-- Placa Cavalo: {execucao.get('placa_cavalo') or 'N/A'}
-- Placa Carreta 1: {execucao.get('placa_carreta_1') or 'N/A'}
-- Placa Carreta 2: {execucao.get('placa_carreta_2') or 'N/A'}
-- Local Origem: {execucao.get('local_origem') or 'N/A'}
-- Local Destino: {execucao.get('local_destino') or 'N/A'}
-- Valor Total da Carga: {valor_carga}
-""".strip()
-
-    return assunto, corpo
-
-def enviar_email(destinatario: str, assunto: str, corpo: str):
-    remetente = os.getenv("EMAIL_REMETENTE")
-    senha = os.getenv("EMAIL_SENHA")
-    smtp_server = os.getenv("SMTP_SERVER", "smtp.gmail.com")
-    smtp_port = int(os.getenv("SMTP_PORT", 587))
-
-    msg = MIMEMultipart()
-    msg['From'] = remetente
-    msg['To'] = destinatario
-    msg['Subject'] = assunto
-
-    msg.attach(MIMEText(corpo, 'plain'))
-
+def enviar_email_com_anexos(destinatario, arquivos, assunto="NF-es em XML", corpo="Segue em anexo os arquivos XML"):
     try:
-        with smtplib.SMTP(smtp_server, smtp_port) as server:
-            server.starttls()
-            server.login(remetente, senha)
-            server.send_message(msg)
+        print(os.getenv("EMAIL_REMETENTE"))
+        print(os.getenv("EMAIL_SENHA"))
+        print(os.getenv("SMTP_SERVER"))
+        print(os.getenv("SMTP_PORT"))
+
+        msg = EmailMessage()
+        msg["Subject"] = assunto
+        msg["From"] = os.getenv("EMAIL_REMETENTE")
+        msg["To"] = destinatario
+        msg.set_content(corpo)
+
+        for caminho in arquivos:
+            with open(caminho, "rb") as f:
+                nome = os.path.basename(caminho)
+                msg.add_attachment(f.read(), maintype="application", subtype="xml", filename=nome)
+
+        with smtplib.SMTP(os.getenv("SMTP_SERVER"), int(os.getenv("SMTP_PORT"))) as smtp:
+            smtp.ehlo()
+            smtp.starttls()
+            smtp.login(os.getenv("EMAIL_REMETENTE"), os.getenv("EMAIL_SENHA"))
+            smtp.send_message(msg)
+
+
+        print(f"E-mail enviado para {destinatario} com {len(arquivos)} arquivos.")
+
     except Exception as e:
-        print(f"Erro ao enviar e-mail: {e}")
+        print(f"[ERRO] Falha ao enviar e-mail: {e}")

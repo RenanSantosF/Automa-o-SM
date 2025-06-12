@@ -1,6 +1,7 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, Float, JSON
+from sqlalchemy import Column,Boolean, ForeignKey, Integer, String, Text, DateTime, Float, JSON
 from sqlalchemy.sql import func
 from database import Base  # ou como você estiver importando sua base declarativa
+from sqlalchemy.orm import relationship
 
 class Execucao(Base):
     __tablename__ = "execucoes"
@@ -34,3 +35,28 @@ class Execucao(Base):
     id_smp = Column(String, nullable=True)
     numero_smp = Column(String, nullable=True)
     rota_selecionada = Column(String, nullable=True)
+
+
+
+
+
+
+class CTe(Base):
+    __tablename__ = "ctes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    nome = Column(String, nullable=False)
+    xml = Column(Text, nullable=False)
+
+    notas = relationship("NFe", back_populates="cte", cascade="all, delete-orphan")
+
+
+class NFe(Base):
+    __tablename__ = "nfes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    chave = Column(String, index=True)  
+    cte_id = Column(Integer, ForeignKey("ctes.id"), nullable=False)
+    baixado = Column(Boolean, default=False)
+
+    cte = relationship("CTe", back_populates="notas")

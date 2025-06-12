@@ -59,7 +59,7 @@ export default function LoginModal() {
             onClick={handleMonitorOnly}
             className=" border text-gray-200 px-4 py-1 border-gray-200 rounded hover:text-white"
           >
-            Vou apenas monitorar
+            Pular
           </button>
           
         </div>
