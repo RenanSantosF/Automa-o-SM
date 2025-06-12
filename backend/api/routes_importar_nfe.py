@@ -38,6 +38,6 @@ async def importar_ctes(ctes: list[CTeCreate], db: Session = Depends(get_db)):
     print("Chaves que serão processadas:", chaves)
 
     # Aqui usamos await pois buscar_e_enviar_nfes é async
-    await buscar_e_enviar_nfes(db, chaves, "renan_ferreira.es@outlook.com", "./temp_nfes")
+    await buscar_e_enviar_nfes(db, chaves, "nfs@dellmar.com.br", "./temp_nfes")
 
     return {"status": "Importado e enviado com sucesso"}
