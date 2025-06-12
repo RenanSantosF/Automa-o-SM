@@ -8,8 +8,12 @@ from utils.status import salvar_status
 from typing import List
 
 
-async def buscar_e_enviar_nfes(db: Session, chaves: List[str], email_destino: str, pasta_temporaria: str = "temp_xmls"):
-
+async def buscar_e_enviar_nfes(
+    db: Session,
+    chaves: List[str],
+    email_destino: str,
+    pasta_temporaria: str = "temp_xmls"
+):
     os.makedirs(pasta_temporaria, exist_ok=True)
 
     nfes = db.query(NFe).filter(
@@ -39,6 +43,18 @@ async def buscar_e_enviar_nfes(db: Session, chaves: List[str], email_destino: st
     MAX_TENTATIVAS = 3
 
     async with httpx.AsyncClient(timeout=30) as client:
+
+        async def post_com_retry(url: str) -> httpx.Response:
+            for tentativa in range(MAX_TENTATIVAS):
+                resp = await client.post(url, headers=HEADERS, content="{}")
+                if resp.status_code == 400:
+                    print(f"[ERRO] Bad Request (400) para {url}, tentativa {tentativa + 1}/{MAX_TENTATIVAS}")
+                    await asyncio.sleep(6 ** tentativa)
+                else:
+                    resp.raise_for_status()
+                    return resp
+            raise Exception(f"Falha definitiva após {MAX_TENTATIVAS} tentativas em {url}")
+
         for idx, nfe in enumerate(nfes, start=1):
             chave = nfe.chave.strip()
             if len(chave) != 44:
@@ -51,18 +67,6 @@ async def buscar_e_enviar_nfes(db: Session, chaves: List[str], email_destino: st
 
                 url_consulta = f"https://ws.meudanfe.com/api/v1/get/nfe/data/MEUDANFE/{chave}"
                 url_xml = f"https://ws.meudanfe.com/api/v1/get/nfe/xml/{chave}"
-
-                # Função para fazer POST com tentativas e backoff
-                async def post_com_retry(url):
-                    for tentativa in range(MAX_TENTATIVAS):
-                        resp = await client.post(url, headers=HEADERS, content="{}")
-                        if resp.status_code == 400:
-                            print(f"[ERRO] Bad Request (400) para {chave}, tentativa {tentativa+1}/{MAX_TENTATIVAS}")
-                            await asyncio.sleep(6 ** tentativa)
-                        else:
-                            resp.raise_for_status()
-                            return resp
-                    raise Exception(f"Falha definitiva para {chave} após {MAX_TENTATIVAS} tentativas em {url}")
 
                 resp_consulta = await post_com_retry(url_consulta)
 
@@ -93,7 +97,6 @@ async def buscar_e_enviar_nfes(db: Session, chaves: List[str], email_destino: st
 
             except Exception as e:
                 salvar_status(chave, idx, len(nfes), f"Erro ao processar chave {chave}: {str(e)}")
-
                 print(f"[ERRO] Erro ao processar chave {chave}: {e}")
 
             await asyncio.sleep(8)  # espera entre requisições para não estourar limite
