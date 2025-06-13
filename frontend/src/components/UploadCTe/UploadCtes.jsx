@@ -17,7 +17,10 @@ const UploadCtes = () => {
 
     const isCte =
       xmlDoc.getElementsByTagName("CTe").length > 0 ||
-      xmlDoc.getElementsByTagName("cteProc").length > 0;
+      xmlDoc.getElementsByTagName("cteProc").length > 0 ||
+      xmlDoc.getElementsByTagName("cteSimpProc").length > 0 ||
+      xmlDoc.getElementsByTagName("CTeSimp").length > 0
+       
 
     if (!isCte) {
       throw new Error(`Arquivo ${fileName} não é um CT-e.`);
@@ -26,9 +29,19 @@ const UploadCtes = () => {
     const ns = "http://www.portalfiscal.inf.br/cte";
     const infNFeTags = xmlDoc.getElementsByTagNameNS(ns, "infNFe");
 
+    function extrairChave(el, ns) {
+      const nomesPossiveis = ["chNFe", "chave"];
+      for (const nome of nomesPossiveis) {
+        const encontrado = el.getElementsByTagNameNS(ns, nome)[0];
+        if (encontrado?.textContent) return encontrado.textContent;
+      }
+      return "";
+    }
+
     const chaves = Array.from(infNFeTags)
-      .map((el) => el.getElementsByTagNameNS(ns, "chave")[0]?.textContent || "")
+      .map(el => extrairChave(el, ns))
       .filter(Boolean);
+
 
     console.log(`Arquivo: ${fileName}`, chaves);
     return chaves;
