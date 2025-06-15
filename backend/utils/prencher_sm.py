@@ -75,7 +75,7 @@ def preencher_sm(driver, dados):
 
     except Exception as e:
         print("Erro ao preencher remetente:", e)
-        raise Exception(f"Erro ao preencher remetente: {e}", e)
+        return "__REINICIAR__"
 
     try:
 
@@ -278,7 +278,7 @@ def preencher_sm(driver, dados):
 
     except Exception as e:
         print("Erro ao salvar o projeto:", e)
-        raise Exception(f"Erro ao salvar o projeto:", e)
+        return "__REINICIAR__"
 
     time.sleep(2)
 
@@ -296,104 +296,6 @@ def preencher_sm(driver, dados):
     botao_horário_inicio = driver.find_element(By.ID, "MainContent_btnAdicionarHorario")
     botao_horário_inicio.click()
     time.sleep(2)
-
-
-
-
-
-
-
-
-
-
-    # print("Inicia preenchimento de placa")
-    # def preencher_placa_e_confirmar(placa_texto: str):
-    #     placa = driver.find_element(By.ID, "txtVeiculo_Input")
-    #     placa.clear()
-    #     placa.send_keys(placa_texto)
-
-    #     try:
-    #         # Aguarda o popup correto da placa aparecer com pelo menos um item (li)
-    #         WebDriverWait(driver, 10).until(
-    #             lambda d: any(
-    #                 ul.find_elements(By.TAG_NAME, "li")
-    #                 for ul in d.find_elements(By.CSS_SELECTOR, "div.RadAutoCompleteBoxPopup ul.racList")
-    #                 if ul.is_displayed()
-    #             )
-    #         )
-    #     except TimeoutException:
-    #         raise Exception("A lista de placas não carregou a tempo.")
-
-    #     # Pressiona TAB após a lista aparecer
-    #     placa.send_keys(Keys.TAB)
-
-    #     # Aguarda até o token da placa aparecer
-    #     try:
-    #         WebDriverWait(driver, 10).until(
-    #             EC.presence_of_element_located((By.CSS_SELECTOR, "span.racTextToken"))
-    #         )
-    #     except TimeoutException:
-    #         raise Exception("A placa não foi reconhecida após pressionar TAB.")
-
-    #     # Verifica se a placa reconhecida está correta
-    #     spans = driver.find_elements(By.CSS_SELECTOR, "span.racTextToken")
-    #     placas_encontradas = [span.text.strip().upper() for span in spans]
-
-    #     if placa_texto.strip().upper() not in placas_encontradas:
-    #         raise Exception(f"Placa '{placa_texto}' não encontrada no sistema.")
-
-    #     # Confirma a placa
-    #     botao_confirmar_placa = driver.find_element(By.ID, "ctl00_MainContent_btnVinculoVeiculo")
-    #     botao_confirmar_placa.click()
-
-
-    # def tentar_preencher_placa(placa_texto: str, max_tentativas=3):
-    #     for tentativa in range(1, max_tentativas + 1):
-    #         try:
-    #             # Limpa e tenta preencher e confirmar
-    #             # (sua função já limpa, mas aqui limpamos de novo pra garantir)
-    #             campo_placa = driver.find_element(By.ID, "txtVeiculo_Input")
-    #             campo_placa.clear()
-
-    #             preencher_placa_e_confirmar(placa_texto)
-
-    #             # Espera a tabela atualizar, indicando que a placa foi adicionada
-    #             WebDriverWait(driver, 10).until(
-    #                 EC.presence_of_element_located((By.ID, "ctl00_MainContent_grdViewVeiculo_ctl00__0"))
-    #             )
-    #             # Se chegou aqui, sucesso!
-    #             print(f"Placa {placa_texto} inserida com sucesso na tentativa {tentativa}.")
-    #             return  # Sai da função ao conseguir
-
-    #         except Exception as e:
-    #             print(f"Tentativa {tentativa} falhou para a placa {placa_texto}: {e}")
-    #             if tentativa == max_tentativas:
-    #                 # Exauriu todas as tentativas, lança exceção pra tratar fora
-    #                 raise Exception(f"Falha ao inserir a placa {placa_texto} após {max_tentativas} tentativas.")
-    #             else:
-    #                 # Dá uma pequena pausa antes de tentar novamente
-    #                 time.sleep(1)
-    
-    # try:
-
-    #     print("Inserindo placa cavalo")
-    #     tentar_preencher_placa(dados.get("placa_cavalo", ""))
-
-    #     time.sleep(0.5)
-
-    #     print("Inserindo placa carreta")
-    #     if dados.get("placa_carreta_1") and dados["placa_carreta_1"].strip():
-    #         tentar_preencher_placa(dados["placa_carreta_1"])
-
-    #     time.sleep(0.5)
-
-    #     print("Inserindo placa carreta 2")
-    #     if dados.get("placa_carreta_2") and dados["placa_carreta_2"].strip():
-    #         tentar_preencher_placa(dados["placa_carreta_2"])
-
-    # except Exception as e:
-    #     print("Erro ao preencher a placa da carreta:", e)
-    #     raise
 
     print("Inicia preenchimento de placa")
 
