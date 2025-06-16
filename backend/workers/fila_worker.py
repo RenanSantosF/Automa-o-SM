@@ -18,3 +18,4 @@ def worker():
             fila_processamento.task_done()
 
 threading.Thread(target=worker, daemon=True).start()
+

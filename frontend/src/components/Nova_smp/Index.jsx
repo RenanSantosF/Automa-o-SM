@@ -9,8 +9,59 @@ import AlertaGNRE from "../Alerta_GNRE/AlertaGNRE";
 const api = import.meta.env.VITE_API_URL; // se for Vite
 
 const NovaSM = ({ onUploadSuccess, onClose }) => {
-  const [modalConfirmacaoGNRE, setmodalConfirmacaoGNRE] = useState(false);
+  const filiaisDellmar = [
+    {
+      nome: "DELLMAR TRANSPORTES LTDA - VIANA",
+      cnpj: "13254104000174"
+    },
+    {
+      nome: "DELLMAR TRANSPORTES LTDA - CONCEICAO DO JACUIPE",
+      cnpj: "13254104000760"
+    },
+    {
+      nome: "DELLMAR TRANSPORTES LTDA - PINDAMONHANGABA",
+      cnpj: "13254104000255"
+    }
+  ];
 
+  const filtrarSugestoes = (input) => {
+    return filiaisDellmar.filter((f) =>
+      f.nome.toLowerCase().includes(input.toLowerCase())
+    );
+  };
+
+  const handleRemetenteChange = (value) => {
+    handleChange("remetente_nome", value);
+    const sugestoes = filtrarSugestoes(value);
+    setSugestoesRemetente(sugestoes);
+
+    const filialSelecionada = sugestoes.find(s => s.nome.toLowerCase() === value.toLowerCase());
+    if (filialSelecionada) {
+      setXmlData(prev => ({
+        ...prev,
+        remetente_cnpj: filialSelecionada.cnpj
+      }));
+    }
+  };
+
+  const handleDestinatarioChange = (value) => {
+    handleChange("destinatario_nome", value);
+    const sugestoes = filtrarSugestoes(value);
+    setSugestoesDestinatario(sugestoes);
+
+    const filialSelecionada = sugestoes.find(s => s.nome.toLowerCase() === value.toLowerCase());
+    if (filialSelecionada) {
+      setXmlData(prev => ({
+        ...prev,
+        destinatario_cnpj: filialSelecionada.cnpj
+      }));
+    }
+  };
+
+  const [sugestoesRemetente, setSugestoesRemetente] = useState([]);
+  const [sugestoesDestinatario, setSugestoesDestinatario] = useState([]);
+
+  const [modalConfirmacaoGNRE, setmodalConfirmacaoGNRE] = useState(false);
   const [files, setFiles] = useState([]);
   const [resposta, setResposta] = useState(null);
   const [xmlData, setXmlData] = useState({});
@@ -24,53 +75,222 @@ const NovaSM = ({ onUploadSuccess, onClose }) => {
     placa_carreta_2: "placa_carreta_2" in xmlData,
   });
 
-    const parseXML = (xml) => {
-    const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(xml, "text/xml");
-    const ns = "http://www.portalfiscal.inf.br/cte";
+  // const parseXML = (xml) => {
 
-    const getTagText = (tag, scope = xmlDoc) =>
-      scope.getElementsByTagNameNS(ns, tag)[0]?.textContent || "";
+  //   const parser = new DOMParser();
+  //   const xmlDoc = parser.parseFromString(xml, "text/xml");
+  //   const ns = "http://www.portalfiscal.inf.br/cte";
 
-    const getObsCont = (campo) =>
-      Array.from(xmlDoc.getElementsByTagNameNS(ns, "ObsCont"))
-        .find(el => el.getAttribute("xCampo") === campo)
-        ?.getElementsByTagNameNS(ns, "xTexto")[0]?.textContent || "";
+  //   const getTagText = (tag, scope = xmlDoc) =>
+  //     scope.getElementsByTagNameNS(ns, tag)[0]?.textContent || "";
 
-    // Prioridade: exped > rem
-    const remetente =
-      xmlDoc.getElementsByTagNameNS(ns, "exped")[0] ||
-      xmlDoc.getElementsByTagNameNS(ns, "rem")[0];
+  //   const getObsCont = (campo) =>
+  //     Array.from(xmlDoc.getElementsByTagNameNS(ns, "ObsCont"))
+  //       .find(el => el.getAttribute("xCampo") === campo)
+  //       ?.getElementsByTagNameNS(ns, "xTexto")[0]?.textContent || "";
 
-    // Prioridade: receb > dest
-    const destinatario =
-      xmlDoc.getElementsByTagNameNS(ns, "receb")[0] ||
-      xmlDoc.getElementsByTagNameNS(ns, "dest")[0];
+  //   // Prioridade: exped > rem
+  //   const remetente =
+  //     xmlDoc.getElementsByTagNameNS(ns, "exped")[0] ||
+  //     xmlDoc.getElementsByTagNameNS(ns, "rem")[0];
+
+  //   // Prioridade: receb > dest
+  //   const destinatario =
+  //     xmlDoc.getElementsByTagNameNS(ns, "receb")[0] ||
+  //     xmlDoc.getElementsByTagNameNS(ns, "dest")[0];
+
+  //   return {
+  //     condutor: getObsCont("motorista"),
+  //     cpf_condutor: getObsCont("cpf_motorista"),
+  //     valor_total_carga: getTagText("vCarga"),
+  //     placa_cavalo: getObsCont("placa") || "", 
+  //     ...(getObsCont("placa2") && { placa_carreta_1: getObsCont("placa2") }),
+  //     ...(getObsCont("placa3") && { placa_carreta_2: getObsCont("placa3") }),
+
+  //     local_origem: `${getTagText("xMunIni")} - ${getTagText("UFIni")}`,
+  //     local_destino: `${getTagText("xMunFim")} - ${getTagText("UFFim")}`,
+
+  //     remetente_nome: remetente ? getTagText("xNome", remetente) : "",
+  //     remetente_cnpj: remetente ? getTagText("CNPJ", remetente) : "",
+  //     remetente_endereco: remetente ? getTagText("xLgr", remetente) : "",
+
+  //     destinatario_nome: destinatario ? getTagText("xNome", destinatario) : "",
+  //     destinatario_cnpj: destinatario ? getTagText("CNPJ", destinatario) : "",
+  //     destinatario_endereco: destinatario ? getTagText("xLgr", destinatario) : "",
+
+  //     remetente_cadastrado_apisul: null,
+  //     destinatario_cadastrado_apisul: null,
+  //     rotas_cadastradas_apisul: []
+  //   };
+  // };
+
+  
+  const parseXML = (xml) => {
+  const parser = new DOMParser();
+  const xmlDoc = parser.parseFromString(xml, "text/xml");
+
+  console.log(xml);
+
+  // Tentar detectar se é MDF-e baseado no nome da tag, ignorando namespace
+  const isMDFe = Array.from(xmlDoc.getElementsByTagName("*")).some(el => el.localName === "infMDFe");
+
+  // Definir namespace padrão - mas como fallback, buscar também sem namespace
+  const nsMDFe = "http://www.portalfiscal.inf.br/mdfe";
+  const nsCTe = "http://www.portalfiscal.inf.br/cte";
+
+  // Função que busca tag ignorando namespace, retorna primeira ocorrência
+  const getTagTextAnyNS = (tag, scope = xmlDoc) => {
+    const el = Array.from(scope.getElementsByTagName("*")).find(e => e.localName === tag);
+    return el?.textContent || "";
+  };
+
+  // Função que busca tag em namespace e se não achar tenta sem namespace
+  const getTagText = (tag, scope = xmlDoc) => {
+    let el = scope.getElementsByTagNameNS(nsMDFe, tag)[0] || scope.getElementsByTagNameNS(nsCTe, tag)[0];
+    if (!el) {
+      // tenta ignorar namespace
+      el = Array.from(scope.getElementsByTagName("*")).find(e => e.localName === tag);
+    }
+    return el?.textContent || "";
+  };
+
+  // Função para buscar ObsCont igual, com fallback sem namespace
+  const getObsCont = (campo) => {
+    // Busca com namespace MDF-e
+    let obs = Array.from(xmlDoc.getElementsByTagNameNS(nsMDFe, "ObsCont"))
+      .find(el => el.getAttribute("xCampo") === campo);
+
+    if (!obs) {
+      // fallback ignorando namespace
+      obs = Array.from(xmlDoc.getElementsByTagName("ObsCont"))
+        .find(el => el.getAttribute("xCampo") === campo);
+    }
+
+    if (!obs) return "";
+
+    // Buscar xTexto dentro de ObsCont
+    let xTexto = obs.getElementsByTagNameNS(nsMDFe, "xTexto")[0];
+    if (!xTexto) {
+      xTexto = obs.getElementsByTagName("xTexto")[0];
+    }
+
+    return xTexto?.textContent || "";
+  };
+
+  if (isMDFe) {
+    console.log("É um MDF-e");
+
+    // Buscar infModal flexível
+    let infModal = xmlDoc.getElementsByTagNameNS(nsMDFe, "infModal")[0];
+    if (!infModal) {
+      infModal = Array.from(xmlDoc.getElementsByTagName("*")).find(el => el.localName === "infModal");
+    }
+    if (!infModal) {
+      console.warn("Tag <infModal> não encontrada!");
+      return null;
+    }
+
+    // Buscar rodo flexível
+    let rodo = infModal.getElementsByTagNameNS(nsMDFe, "rodo")[0];
+    if (!rodo) {
+      rodo = Array.from(infModal.getElementsByTagName("*")).find(el => el.localName === "rodo");
+    }
+    if (!rodo) {
+      console.warn("Tag <rodo> não encontrada!");
+      return null;
+    }
+
+    // veicTracao flexível
+    let veicTracao = rodo.getElementsByTagNameNS(nsMDFe, "veicTracao")[0];
+    if (!veicTracao) {
+      veicTracao = Array.from(rodo.getElementsByTagName("*")).find(el => el.localName === "veicTracao");
+    }
+
+    // condutor flexível
+    let condutor = veicTracao?.getElementsByTagNameNS(nsMDFe, "condutor")[0];
+    if (!condutor) {
+      condutor = veicTracao?.getElementsByTagName("condutor")[0];
+    }
+
+    const motorista_nome = condutor?.getElementsByTagNameNS(nsMDFe, "xNome")[0]?.textContent
+      || condutor?.getElementsByTagName("xNome")[0]?.textContent
+      || "";
+
+    const motorista_cpf = condutor?.getElementsByTagNameNS(nsMDFe, "CPF")[0]?.textContent
+      || condutor?.getElementsByTagName("CPF")[0]?.textContent
+      || "";
+
+    const placa_cavalo = veicTracao?.getElementsByTagNameNS(nsMDFe, "placa")[0]?.textContent
+      || veicTracao?.getElementsByTagName("placa")[0]?.textContent
+      || "";
+
+    // veicReboque (plural)
+    let veicReboque = rodo.getElementsByTagNameNS(nsMDFe, "veicReboque");
+    if (!veicReboque || veicReboque.length === 0) {
+      veicReboque = rodo.getElementsByTagName("veicReboque");
+    }
+
+    const carretas = [];
+    if (veicReboque) {
+      for (let i = 0; i < veicReboque.length; i++) {
+        const placa =
+          veicReboque[i].getElementsByTagNameNS(nsMDFe, "placa")[0]?.textContent
+          || veicReboque[i].getElementsByTagName("placa")[0]?.textContent;
+
+        if (placa) carretas.push(placa);
+      }
+    }
 
     return {
-      condutor: getObsCont("motorista"),
-      cpf_condutor: getObsCont("cpf_motorista"),
-      valor_total_carga: getTagText("vCarga"),
-      placa_cavalo: getObsCont("placa") || "", 
-      ...(getObsCont("placa2") && { placa_carreta_1: getObsCont("placa2") }),
-      ...(getObsCont("placa3") && { placa_carreta_2: getObsCont("placa3") }),
-
-      local_origem: `${getTagText("xMunIni")} - ${getTagText("UFIni")}`,
-      local_destino: `${getTagText("xMunFim")} - ${getTagText("UFFim")}`,
-
-      remetente_nome: remetente ? getTagText("xNome", remetente) : "",
-      remetente_cnpj: remetente ? getTagText("CNPJ", remetente) : "",
-      remetente_endereco: remetente ? getTagText("xLgr", remetente) : "",
-
-      destinatario_nome: destinatario ? getTagText("xNome", destinatario) : "",
-      destinatario_cnpj: destinatario ? getTagText("CNPJ", destinatario) : "",
-      destinatario_endereco: destinatario ? getTagText("xLgr", destinatario) : "",
+      condutor: motorista_nome,
+      cpf_condutor: motorista_cpf,
+      placa_cavalo,
+      ...(carretas[0] && { placa_carreta_1: carretas[0] }),
+      ...(carretas[1] && { placa_carreta_2: carretas[1] }),
 
       remetente_cadastrado_apisul: null,
       destinatario_cadastrado_apisul: null,
       rotas_cadastradas_apisul: []
     };
+  }
+
+  // Para CTe, tentar flexível também
+  const remetente =
+    xmlDoc.getElementsByTagNameNS(nsCTe, "exped")[0] ||
+    xmlDoc.getElementsByTagNameNS(nsCTe, "rem")[0] ||
+    Array.from(xmlDoc.getElementsByTagName("*")).find(el => el.localName === "exped" || el.localName === "rem");
+
+  const destinatario =
+    xmlDoc.getElementsByTagNameNS(nsCTe, "receb")[0] ||
+    xmlDoc.getElementsByTagNameNS(nsCTe, "dest")[0] ||
+    Array.from(xmlDoc.getElementsByTagName("*")).find(el => el.localName === "receb" || el.localName === "dest");
+
+  return {
+    condutor: getObsCont("motorista"),
+    cpf_condutor: getObsCont("cpf_motorista"),
+    valor_total_carga: getTagText("vCarga"),
+    placa_cavalo: getObsCont("placa") || "",
+
+    ...(getObsCont("placa2") && { placa_carreta_1: getObsCont("placa2") }),
+    ...(getObsCont("placa3") && { placa_carreta_2: getObsCont("placa3") }),
+
+    local_origem: `${getTagText("xMunIni")} - ${getTagText("UFIni")}`,
+    local_destino: `${getTagText("xMunFim")} - ${getTagText("UFFim")}`,
+
+    remetente_nome: remetente ? getTagText("xNome", remetente) : "",
+    remetente_cnpj: remetente ? getTagText("CNPJ", remetente) : "",
+    remetente_endereco: remetente ? getTagText("xLgr", remetente) : "",
+
+    destinatario_nome: destinatario ? getTagText("xNome", destinatario) : "",
+    destinatario_cnpj: destinatario ? getTagText("CNPJ", destinatario) : "",
+    destinatario_endereco: destinatario ? getTagText("xLgr", destinatario) : "",
+
+    remetente_cadastrado_apisul: null,
+    destinatario_cadastrado_apisul: null,
+    rotas_cadastradas_apisul: []
   };
+};
+
 
 
   const handleChange = (field, value) => {
@@ -133,10 +353,10 @@ const NovaSM = ({ onUploadSuccess, onClose }) => {
       const algumaSemPlaca = placas.some(p => !p);
       const algumaComPlaca = placas.some(p => !!p);
 
-      if (!todasIguais || (algumaComPlaca && algumaSemPlaca)) {
-        setError("Os XMLs devem ter a mesma placa ou todos sem placa. O upload não pode ser feito.");
-        return;
-      }
+      // if (!todasIguais || (algumaComPlaca && algumaSemPlaca)) {
+      //   setError("Os XMLs devem ter a mesma placa ou todos sem placa. O upload não pode ser feito.");
+      //   return;
+      // }
 
       // Tudo OK, pode adicionar
       setFiles(prev => [...prev, ...successes.map(s => s.file)]);
@@ -342,13 +562,81 @@ const NovaSM = ({ onUploadSuccess, onClose }) => {
               }).format(Number(xmlData.valor_total_carga || 0))}
             </p>
 
+{/* Remetente Nome */}
+<div className="relative my-6">
+  <Input
+    value={xmlData.remetente_nome || ""}
+    type="text"
+    placeholder="Remetente"
+    onChange={(e) => handleRemetenteChange(e.target.value)}
+  />
+  {sugestoesRemetente.length > 0 && (
+    <ul className="absolute z-10 bg-white border rounded w-full shadow">
+      {sugestoesRemetente.map((sugestao) => (
+        <li
+          key={sugestao.cnpj}
+          className="px-3 py-1 hover:bg-gray-100 cursor-pointer"
+          onClick={() => {
+            handleRemetenteChange(sugestao.nome);
+            setXmlData(prev => ({ ...prev, remetente_cnpj: sugestao.cnpj }));
+            setSugestoesRemetente([]);
+          }}
+        >
+          {sugestao.nome}
+        </li>
+      ))}
+    </ul>
+  )}
+</div>
 
-            <p><strong>Local Origem:</strong> {xmlData.local_origem}</p>
-            <p><strong>Local Destino:</strong> {xmlData.local_destino}</p>
-            <p><strong>Remetente Nome:</strong> {xmlData.remetente_nome}</p>
-            <p><strong>Remetente CNPJ:</strong> {xmlData.remetente_cnpj}</p>
-            <p><strong>Destinatário Nome:</strong> {xmlData.destinatario_nome}</p>
-            <p><strong>Destinatário CNPJ:</strong> {xmlData.destinatario_cnpj}</p>
+{/* Remetente CNPJ */}
+<Input
+  value={xmlData.remetente_cnpj || ""}
+  type="text"
+  placeholder="CNPJ Remetente"
+  onChange={(e) =>
+    handleChange("remetente_cnpj", e.target.value.replace(/\D/g, ""))
+  }
+/>
+
+{/* Destinatário Nome */}
+<div className="relative my-6">
+  <Input
+    value={xmlData.destinatario_nome || ""}
+    type="text"
+    placeholder="Destinatário"
+    onChange={(e) => handleDestinatarioChange(e.target.value)}
+  />
+  {sugestoesDestinatario.length > 0 && (
+    <ul className="absolute z-10 bg-white border rounded w-full shadow">
+      {sugestoesDestinatario.map((sugestao) => (
+        <li
+          key={sugestao.cnpj}
+          className="px-3 py-1 hover:bg-gray-100 cursor-pointer"
+          onClick={() => {
+            handleDestinatarioChange(sugestao.nome);
+            setXmlData(prev => ({ ...prev, destinatario_cnpj: sugestao.cnpj }));
+            setSugestoesDestinatario([]);
+          }}
+        >
+          {sugestao.nome}
+        </li>
+      ))}
+    </ul>
+  )}
+</div>
+
+{/* Destinatário CNPJ */}
+<Input
+  value={xmlData.destinatario_cnpj || ""}
+  type="text"
+  
+  placeholder="CNPJ Destinatário"
+  onChange={(e) =>
+    handleChange("destinatario_cnpj", e.target.value.replace(/\D/g, ""))
+  }
+/>
+
           </div>
         )}
 

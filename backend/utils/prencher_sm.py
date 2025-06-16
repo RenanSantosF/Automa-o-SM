@@ -6,6 +6,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from utils.calcula_distancia import calcular_data_entrega
 from selenium.common.exceptions import TimeoutException, StaleElementReferenceException, NoSuchElementException, ElementNotInteractableException
+from utils.exceptions import ReiniciarProcessoException
 
 def formatar_cnpj(cnpj_str):
     cnpj_str = ''.join(filter(str.isdigit, cnpj_str))  # Remove qualquer caractere não numérico
@@ -73,9 +74,10 @@ def preencher_sm(driver, dados):
         print("Clica em salvar remetente")
         botao_salvar_remetente.click()
 
-    except Exception as e:
-        print("Erro ao preencher remetente:", e)
-        return "__REINICIAR__"
+    except TimeoutException as e:
+        print("Erro desconhecido ao preencher remetente", e)
+        raise ReiniciarProcessoException("Erro desconhecido ao preencher remetente") from e
+        
 
     try:
 
@@ -147,9 +149,12 @@ def preencher_sm(driver, dados):
         botao_tempo_permanencia = driver.find_element(By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl02_ctl02_txtTempoPermanencia_dateInput")
         botao_tempo_permanencia.send_keys("1100")
         time.sleep(0.5)
-    except Exception as e:
-        print("Erro ao preencher destino:", e)
-        raise Exception(f"Erro ao preencher destino:", e)
+    # except Exception as e:
+    #     print("Erro ao preencher destino:", e)
+    #     raise Exception(f"Erro ao preencher destino: {e}")
+    except TimeoutException as e:
+        print("Erro desconhecido ao preencher destino:", e)
+        raise ReiniciarProcessoException("Erro desconhecido ao preencher destino") from e
         
 
     # Data estimada
@@ -276,9 +281,14 @@ def preencher_sm(driver, dados):
         else:
             raise Exception("Não foi possível clicar no botão de salvar projeto devido a StaleElementReferenceException.")
 
-    except Exception as e:
-        print("Erro ao salvar o projeto:", e)
-        return "__REINICIAR__"
+    # except Exception as e:
+    #     print("Erro ao salvar o projeto:", e)
+    #     return "__REINICIAR__"
+
+    except TimeoutException as e:
+        print("Erro desconhecido ao preencher projeto", e)
+        raise ReiniciarProcessoException("Erro desconhecido ao preencher projeto") from e
+        
 
     time.sleep(2)
 
