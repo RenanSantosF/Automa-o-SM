@@ -74,56 +74,6 @@ const NovaSM = ({ onUploadSuccess, onClose }) => {
     placa_carreta_1: "placa_carreta_1" in xmlData,
     placa_carreta_2: "placa_carreta_2" in xmlData,
   });
-
-  // const parseXML = (xml) => {
-
-  //   const parser = new DOMParser();
-  //   const xmlDoc = parser.parseFromString(xml, "text/xml");
-  //   const ns = "http://www.portalfiscal.inf.br/cte";
-
-  //   const getTagText = (tag, scope = xmlDoc) =>
-  //     scope.getElementsByTagNameNS(ns, tag)[0]?.textContent || "";
-
-  //   const getObsCont = (campo) =>
-  //     Array.from(xmlDoc.getElementsByTagNameNS(ns, "ObsCont"))
-  //       .find(el => el.getAttribute("xCampo") === campo)
-  //       ?.getElementsByTagNameNS(ns, "xTexto")[0]?.textContent || "";
-
-  //   // Prioridade: exped > rem
-  //   const remetente =
-  //     xmlDoc.getElementsByTagNameNS(ns, "exped")[0] ||
-  //     xmlDoc.getElementsByTagNameNS(ns, "rem")[0];
-
-  //   // Prioridade: receb > dest
-  //   const destinatario =
-  //     xmlDoc.getElementsByTagNameNS(ns, "receb")[0] ||
-  //     xmlDoc.getElementsByTagNameNS(ns, "dest")[0];
-
-  //   return {
-  //     condutor: getObsCont("motorista"),
-  //     cpf_condutor: getObsCont("cpf_motorista"),
-  //     valor_total_carga: getTagText("vCarga"),
-  //     placa_cavalo: getObsCont("placa") || "", 
-  //     ...(getObsCont("placa2") && { placa_carreta_1: getObsCont("placa2") }),
-  //     ...(getObsCont("placa3") && { placa_carreta_2: getObsCont("placa3") }),
-
-  //     local_origem: `${getTagText("xMunIni")} - ${getTagText("UFIni")}`,
-  //     local_destino: `${getTagText("xMunFim")} - ${getTagText("UFFim")}`,
-
-  //     remetente_nome: remetente ? getTagText("xNome", remetente) : "",
-  //     remetente_cnpj: remetente ? getTagText("CNPJ", remetente) : "",
-  //     remetente_endereco: remetente ? getTagText("xLgr", remetente) : "",
-
-  //     destinatario_nome: destinatario ? getTagText("xNome", destinatario) : "",
-  //     destinatario_cnpj: destinatario ? getTagText("CNPJ", destinatario) : "",
-  //     destinatario_endereco: destinatario ? getTagText("xLgr", destinatario) : "",
-
-  //     remetente_cadastrado_apisul: null,
-  //     destinatario_cadastrado_apisul: null,
-  //     rotas_cadastradas_apisul: []
-  //   };
-  // };
-
   
   const parseXML = (xml) => {
   const parser = new DOMParser();
