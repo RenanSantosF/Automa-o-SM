@@ -17,5 +17,6 @@ def worker():
             db.close()
             fila_processamento.task_done()
 
-threading.Thread(target=worker, daemon=True).start()
-
+# Cria 2 workers (threads) que consomem a fila simultaneamente
+for _ in range(3):
+    threading.Thread(target=worker, daemon=True).start()
