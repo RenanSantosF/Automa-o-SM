@@ -208,87 +208,200 @@ def preencher_sm(driver, dados):
         print("Erro ao salvar o destinatário:", e)
         raise Exception(f"Erro ao salvar o destinatário:", e)
     
-    try:
+    # try:
 
-        #Verifica se o destinatário foi informado antes de adicionar projeto
+    #     #Verifica se o destinatário foi informado antes de adicionar projeto
+    #     WebDriverWait(driver, 15).until(
+    #         EC.presence_of_element_located((By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00__1"))
+    #     )
+    #     time.sleep(0.5)
+
+    #     # Adicionar projeto
+    #     try:
+    #         botao_extender_ponto = driver.find_element(By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl07_GECBtnExpandColumn")
+    #     except NoSuchElementException:
+    #         raise Exception("Destinatário não cadastrado")
+        
+    #     botao_extender_ponto.click()
+
+    #     print("Adiciona projeto")
+    #     botao_adicionar_projeto = WebDriverWait(driver, 15).until(
+    #         EC.element_to_be_clickable((By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl09_Detail21_ctl02_ctl00_InitInsertButton"))
+    #     )
+
+    #     time.sleep(0.5) 
+        
+    #     botao_adicionar_projeto.click()
+
+    #     time.sleep(0.5) 
+
+    #     # Espera até o campo de tipo de projeto estar pronto para interação
+    #     campo_tipo_projeto = WebDriverWait(driver, 15).until(
+    #         EC.element_to_be_clickable((By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl09_Detail21_ctl02_ctl02_rcbProjeto_Input"))
+    #     )
+
+    #     time.sleep(0.5) 
+
+    #     # Preenche os dados do projeto
+    #     campo_tipo_projeto.send_keys("DELLMAR - ESPECIFICAS")
+    #     time.sleep(0.5)    
+    #     campo_tipo_projeto.send_keys(Keys.ENTER)
+    #     time.sleep(0.5)
+    #     campo_tipo_carga = driver.find_element(By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl09_Detail21_ctl02_ctl02_rcbTipoCarga_Input")
+    #     campo_tipo_carga.send_keys("DIVERSOS")   
+    #     time.sleep(0.5) 
+    #     campo_tipo_carga.send_keys(Keys.ENTER)
+    #     time.sleep(0.5)
+
+    #     campo_valor_carga = driver.find_element(By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl09_Detail21_ctl02_ctl02_rntxtValorCarga")
+    #     valor_str = dados["valor_total_carga"]
+    #     # Garante que é um número float válido mesmo se vier com vírgula
+    #     valor_float = float(valor_str.replace(",", "."))
+
+    #     # Agora formata no padrão do site (com vírgula como separador decimal)
+    #     valor_formatado = f"{valor_float:,.2f}".replace(".", ",")
+    #     print(valor_formatado)
+
+    #     campo_valor_carga.clear()
+    #     campo_valor_carga.send_keys(valor_formatado)
+    #     time.sleep(0.5)
+    #     campo_valor_carga.send_keys(Keys.TAB)
+    #     time.sleep(0.5)
+
+    #     for tentativa in range(3):
+    #         try:
+    #             botao_salvar_projeto = WebDriverWait(driver, 10).until(
+    #                 EC.element_to_be_clickable((By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl09_Detail21_ctl02_ctl02_btnSalvarProjeto"))
+    #             )
+    #             botao_salvar_projeto.click()
+    #             break  # clicou com sucesso, sai do loop
+    #         except StaleElementReferenceException:
+    #             print(f"Tentativa {tentativa+1} falhou por StaleElementReferenceException. Tentando novamente...")
+    #             time.sleep(1)
+    #     else:
+    #         raise ReiniciarProcessoException("Não foi possível clicar no botão de salvar projeto devido a StaleElementReferenceException.")
+
+    # except TimeoutException as e:
+    #     print("Erro desconhecido ao preencher projeto", e)
+    #     raise ReiniciarProcessoException("Erro desconhecido ao preencher projeto") from e
+        
+    try:
+        # Verifica se o destinatário foi informado antes de adicionar projeto
         WebDriverWait(driver, 15).until(
             EC.presence_of_element_located((By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00__1"))
         )
         time.sleep(0.5)
 
-        # Adicionar projeto
+        # Expande o ponto
         try:
-            botao_extender_ponto = driver.find_element(By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl07_GECBtnExpandColumn")
+            botao_extender_ponto = driver.find_element(
+                By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl07_GECBtnExpandColumn"
+            )
         except NoSuchElementException:
             raise Exception("Destinatário não cadastrado")
-        
+
         botao_extender_ponto.click()
 
         print("Adiciona projeto")
-        botao_adicionar_projeto = WebDriverWait(driver, 15).until(
-            EC.element_to_be_clickable((By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl09_Detail21_ctl02_ctl00_InitInsertButton"))
-        )
 
-        time.sleep(0.5) 
-        
-        botao_adicionar_projeto.click()
+        # Clicar no botão adicionar projeto com tentativa
+        for tentativa in range(3):
+            try:
+                botao_adicionar_projeto = WebDriverWait(driver, 15).until(
+                    EC.element_to_be_clickable((
+                        By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl09_Detail21_ctl02_ctl00_InitInsertButton"
+                    ))
+                )
+                botao_adicionar_projeto.click()
+                break
+            except (StaleElementReferenceException, TimeoutException) as e:
+                print(f"Tentativa {tentativa+1} de clicar no botão adicionar projeto falhou: {e}")
+                time.sleep(1)
+        else:
+            raise ReiniciarProcessoException("Não foi possível clicar no botão de adicionar projeto.")
 
-        time.sleep(0.5) 
-
-        # Espera até o campo de tipo de projeto estar pronto para interação
-        campo_tipo_projeto = WebDriverWait(driver, 15).until(
-            EC.element_to_be_clickable((By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl09_Detail21_ctl02_ctl02_rcbProjeto_Input"))
-        )
-
-        time.sleep(0.5) 
-
-        # Preenche os dados do projeto
-        campo_tipo_projeto.send_keys("DELLMAR - ESPECIFICAS")
-        time.sleep(0.5)    
-        campo_tipo_projeto.send_keys(Keys.ENTER)
-        time.sleep(0.5)
-        campo_tipo_carga = driver.find_element(By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl09_Detail21_ctl02_ctl02_rcbTipoCarga_Input")
-        campo_tipo_carga.send_keys("DIVERSOS")   
-        time.sleep(0.5) 
-        campo_tipo_carga.send_keys(Keys.ENTER)
         time.sleep(0.5)
 
-        campo_valor_carga = driver.find_element(By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl09_Detail21_ctl02_ctl02_rntxtValorCarga")
-        valor_str = dados["valor_total_carga"]
-        # Garante que é um número float válido mesmo se vier com vírgula
-        valor_float = float(valor_str.replace(",", "."))
+        # Preencher tipo de projeto
+        for tentativa in range(3):
+            try:
+                campo_tipo_projeto = WebDriverWait(driver, 15).until(
+                    EC.element_to_be_clickable((
+                        By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl09_Detail21_ctl02_ctl02_rcbProjeto_Input"
+                    ))
+                )
+                campo_tipo_projeto.send_keys("DELLMAR - ESPECIFICAS")
+                time.sleep(0.5)
+                campo_tipo_projeto.send_keys(Keys.ENTER)
+                time.sleep(0.5)
+                break
+            except (StaleElementReferenceException, TimeoutException) as e:
+                print(f"Tentativa {tentativa+1} de preencher tipo de projeto falhou: {e}")
+                time.sleep(1)
+        else:
+            raise ReiniciarProcessoException("Falha ao preencher o tipo de projeto.")
 
-        # Agora formata no padrão do site (com vírgula como separador decimal)
-        valor_formatado = f"{valor_float:,.2f}".replace(".", ",")
-        print(valor_formatado)
+        # Tipo de carga
+        for tentativa in range(3):
+            try:
+                campo_tipo_carga = driver.find_element(
+                    By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl09_Detail21_ctl02_ctl02_rcbTipoCarga_Input"
+                )
+                campo_tipo_carga.send_keys("DIVERSOS")
+                time.sleep(0.5)
+                campo_tipo_carga.send_keys(Keys.ENTER)
+                time.sleep(0.5)
+                break
+            except (StaleElementReferenceException, TimeoutException) as e:
+                print(f"Tentativa {tentativa+1} de preencher tipo de carga falhou: {e}")
+                time.sleep(1)
+        else:
+            raise ReiniciarProcessoException("Falha ao preencher o tipo de carga.")
 
-        campo_valor_carga.clear()
-        campo_valor_carga.send_keys(valor_formatado)
-        time.sleep(0.5)
-        campo_valor_carga.send_keys(Keys.TAB)
-        time.sleep(0.5)
+        # Valor da carga
+        for tentativa in range(3):
+            try:
+                campo_valor_carga = driver.find_element(
+                    By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl09_Detail21_ctl02_ctl02_rntxtValorCarga"
+                )
+                valor_str = dados["valor_total_carga"]
+                valor_float = float(valor_str.replace(",", "."))
+                valor_formatado = f"{valor_float:,.2f}".replace(".", ",")
 
+                print(valor_formatado)
+
+                campo_valor_carga.clear()
+                campo_valor_carga.send_keys(valor_formatado)
+                time.sleep(0.5)
+                campo_valor_carga.send_keys(Keys.TAB)
+                time.sleep(0.5)
+                break
+            except (StaleElementReferenceException, TimeoutException) as e:
+                print(f"Tentativa {tentativa+1} de preencher valor da carga falhou: {e}")
+                time.sleep(1)
+        else:
+            raise ReiniciarProcessoException("Falha ao preencher o valor da carga.")
+
+        # Clicar no botão salvar projeto
         for tentativa in range(3):
             try:
                 botao_salvar_projeto = WebDriverWait(driver, 10).until(
-                    EC.element_to_be_clickable((By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl09_Detail21_ctl02_ctl02_btnSalvarProjeto"))
+                    EC.element_to_be_clickable((
+                        By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl09_Detail21_ctl02_ctl02_btnSalvarProjeto"
+                    ))
                 )
                 botao_salvar_projeto.click()
-                break  # clicou com sucesso, sai do loop
-            except StaleElementReferenceException:
-                print(f"Tentativa {tentativa+1} falhou por StaleElementReferenceException. Tentando novamente...")
+                break
+            except StaleElementReferenceException as e:
+                print(f"Tentativa {tentativa+1} de clicar em salvar projeto falhou por stale: {e}")
                 time.sleep(1)
         else:
-            raise Exception("Não foi possível clicar no botão de salvar projeto devido a StaleElementReferenceException.")
-
-    # except Exception as e:
-    #     print("Erro ao salvar o projeto:", e)
-    #     return "__REINICIAR__"
+            raise ReiniciarProcessoException("Não foi possível clicar no botão de salvar projeto.")
 
     except TimeoutException as e:
-        print("Erro desconhecido ao preencher projeto", e)
-        raise ReiniciarProcessoException("Erro desconhecido ao preencher projeto") from e
-        
+        print("Erro de timeout ao preencher projeto:", e)
+        raise ReiniciarProcessoException("Erro de timeout ao preencher projeto") from e
+
 
     time.sleep(2)
 
