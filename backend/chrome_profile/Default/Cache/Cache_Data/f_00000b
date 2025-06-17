@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="pt" class="js-focus-visible" data-js-focus-visible="">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="description" content="TERMO DE USO - ApisulLog 2.0">
+  <meta name="author" content="PrivacyTools">
+  <meta name="robots" content="noindex, nofollow">
+  <title>TERMO DE USO - ApisulLog 2.0</title>
+  <link href="https://cdn.privacytools.com.br/css/css2" rel="stylesheet">
+  <link href="https://cdn.privacytools.com.br/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css'>
+<style type="text/css">
+
+* {
+    user-select: auto
+}
+
+@font-face {
+    font-weight: 400;
+    font-style: normal;
+    font-family: 'Inter-Loom';
+    src: url('https://cdn.loom.com/assets/fonts/inter/Inter-UI-Regular.woff2') format('woff2');
+}
+@font-face {
+    font-weight: 400;
+    font-style: italic;
+    font-family: 'Inter-Loom';
+    src: url('https://cdn.loom.com/assets/fonts/inter/Inter-UI-Italic.woff2') format('woff2');
+}
+@font-face {
+    font-weight: 500;
+    font-style: normal;
+    font-family: 'Inter-Loom';
+    src: url('https://cdn.loom.com/assets/fonts/inter/Inter-UI-Medium.woff2') format('woff2');
+}
+@font-face {
+    font-weight: 500;
+    font-style: italic;
+    font-family: 'Inter-Loom';
+    src: url('https://cdn.loom.com/assets/fonts/inter/Inter-UI-MediumItalic.woff2') format('woff2');
+}
+@font-face {
+    font-weight: 700;
+    font-style: normal;
+    font-family: 'Inter-Loom';
+    src: url('https://cdn.loom.com/assets/fonts/inter/Inter-UI-Bold.woff2') format('woff2');
+}
+@font-face {
+    font-weight: 700;
+    font-style: italic;
+    font-family: 'Inter-Loom';
+    src: url('https://cdn.loom.com/assets/fonts/inter/Inter-UI-BoldItalic.woff2') format('woff2');
+}
+@font-face {
+    font-weight: 900;
+    font-style: normal;
+    font-family: 'Inter-Loom';
+    src: url('https://cdn.loom.com/assets/fonts/inter/Inter-UI-Black.woff2') format('woff2');
+}
+@font-face {
+    font-weight: 900;
+    font-style: italic;
+    font-family: 'Inter-Loom';
+    src: url('https://cdn.loom.com/assets/fonts/inter/Inter-UI-BlackItalic.woff2') format('woff2');
+}
+</style>
+<script type="text/javascript">
+function close_info(){
+ $( "#doc-info" ).toggle();
+  var x = document.getElementById("close-info");
+  if (x.innerHTML === "i") {
+    x.innerHTML = "X";
+  } else {
+    x.innerHTML = "i";
+  }
+
+  }
+</script>
+</head>
+<body class="">
+
+
+  <!-- Page Content -->
+  <div class="container-fluid policy-body">
+
+    <div class="row">
+
+      <!-- Post Content Column -->
+      <div class="col-lg-12">
+
+            <div class="logo" ><a href="https://www.apisul.com.br"><img src="https://cdn.privacytools.com.br/public_api/assets/dbf8eb69-fbf7-4378-9ac5-35776527744c/website/9D37C69FFEF55A47114DD55ABF7A5CA7.png"></img></a></div>
+
+        <!-- Title -->
+        <h1>TERMO DE USO - ApisulLog 2.0</h1>
+
+      <h2 class="h2-principal">Última atualização: 22 de novembro de 2021 <span id="close-info" onclick="close_info()" title="Mais informações">i</span></h2>
+      <div id="doc-info">
+        <table>
+          <tr>
+            <th>
+                <svg style="vertical-align: text-top" width="15px" height="15px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512H418.3c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304H178.3z"/></svg>
+                Autor
+            </th>
+            <td><a href="https://www.apisul.com.br" target="_blank"  rel="ugc,nofollow">Grupo APISUL</a></td>
+          </tr>
+          <tr>
+            <th>
+                <svg style="vertical-align: text-top" width="15px" height="15px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M96 32V64H48C21.5 64 0 85.5 0 112v48H448V112c0-26.5-21.5-48-48-48H352V32c0-17.7-14.3-32-32-32s-32 14.3-32 32V64H160V32c0-17.7-14.3-32-32-32S96 14.3 96 32zM448 192H0V464c0 26.5 21.5 48 48 48H400c26.5 0 48-21.5 48-48V192z"/></svg>
+                Atualizada em
+            </th>
+            <td>22/11/2021 15:12</td>
+          </tr>
+          <tr>
+            <th>
+                <svg style="vertical-align: text-top" width="15px" height="15px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M80 104a24 24 0 1 0 0-48 24 24 0 1 0 0 48zm80-24c0 32.8-19.7 61-48 73.3v87.8c18.8-10.9 40.7-17.1 64-17.1h96c35.3 0 64-28.7 64-64v-6.7C307.7 141 288 112.8 288 80c0-44.2 35.8-80 80-80s80 35.8 80 80c0 32.8-19.7 61-48 73.3V160c0 70.7-57.3 128-128 128H176c-35.3 0-64 28.7-64 64v6.7c28.3 12.3 48 40.5 48 73.3c0 44.2-35.8 80-80 80s-80-35.8-80-80c0-32.8 19.7-61 48-73.3V352 153.3C19.7 141 0 112.8 0 80C0 35.8 35.8 0 80 0s80 35.8 80 80zm232 0a24 24 0 1 0 -48 0 24 24 0 1 0 48 0zM80 456a24 24 0 1 0 0-48 24 24 0 1 0 0 48z"/></svg>
+                Versão
+            </th>
+            <td>
+                1.1
+              </td>
+          </tr>
+          <tr>
+            <th>
+                <svg style="vertical-align: text-top" width="15px" height="15px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M144 144v48H304V144c0-44.2-35.8-80-80-80s-80 35.8-80 80zM80 192V144C80 64.5 144.5 0 224 0s144 64.5 144 144v48h16c35.3 0 64 28.7 64 64V448c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V256c0-35.3 28.7-64 64-64H80z"/></svg>
+                Assinatura digital
+            </th>
+            <td>4C91CB81277E3476177EE06E268F38B548D5DAC80CC820F1837395372955D740</td>
+          </tr>
+        </table>
+      </div>
+
+        <!-- Post Content -->
+         <style type="text/css">
+* {
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+}
+html {
+  font-family: 'Roboto', open sans, sans-serif;
+}
+.policy-body {
+  margin: 2.5em auto 20px auto;
+  width: 90%;
+  max-width: 1000px;
+}
+.logo {
+  width: 100%;
+  padding-top: 70px;
+  text-align: center;
+  background-image: url("../img/back-logo.svg");
+  background-position: bottom center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  border-bottom: 1px solid #EFEEEE;
+}
+.logo a {
+  display: block;
+  margin-bottom: -75px;
+}
+.logo img {
+  max-width: 45%;
+  max-height: 150px;
+  padding: 20px;
+  -webkit-border-radius: 10px;
+  -moz-border-radius: 10px;
+  border-radius: 10px;
+  border: 1px solid #EFEEEE;
+  background-color: #fff;
+}
+h3, h4 {
+  font-weight: 600;
+  padding-left: 0.2em;
+  padding-right: 0.2em;
+  color: #000000;
+  margin: 0;
+}
+h1 {
+  text-align: center;
+  font-size: 40px;
+  font-weight: 600;
+  margin-top: 130px;
+  margin-bottom: 20px;
+}
+h2 {
+  font-size: 20px;
+  font-weight: 7000;
+  color: #000000;
+  margin-bottom: 0;
+  margin-top: 0;
+}
+h2.h2-principal {
+  font-size: 18px;
+  font-weight: normal;
+  color: #686868;
+  text-align: center;
+  margin-bottom: 0;
+}
+h3 {
+  font-size: 20.8px;
+}
+h4 {
+  font-size: 16.8px;
+}
+p {
+  padding-left: 0.2em;
+  padding-right: 0.2em;
+  font-size: 14.8px;
+  margin-top: 0;
+  margin-bottom: 1rem;
+  text-align: justify;
+}
+#doc-info {
+  display: none;
+  width: 490px; /* alterar */
+  margin: auto;
+  margin-top: 60px;
+  margin-bottom: 70px;
+  -webkit-border-radius: 10px;
+  -moz-border-radius: 10px;
+  border-radius: 10px;
+  -webkit-box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.07);
+  -moz-box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.07);
+  box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.07);
+}
+#doc-info table td {
+  max-width: 60%;
+  word-break: break-word;
+}
+#doc-info table th {
+  width: 40%;
+  vertical-align: top;
+}
+@media screen and (max-width: 600px) {
+  #doc-info {
+    width: 98%;
+    margin-left: 1%;
+    margin-right: 1%;
+    left: 0px;
+  }
+  #doc-info select {
+    margin-bottom: 5px;
+  }
+}
+
+footer {
+  width: 100%;
+  bottom: 0px;
+  padding:20px;
+}
+footer a{
+    position:fixed;
+}
+.bg-color {
+  background-color: #274897
+}
+.consentMode > .policy-body {
+  margin-bottom: 140px;
+}
+.logo img {
+  max-width: 80%;
+}
+body .navbar {
+  display: none !important;
+}
+/* Alterar - novo estilo */
+.btn2p {
+  color: #686868;
+  font-weight: bold;
+  background-color: #ffffff;
+  border: 1px solid #eeeeee !important;
+  margin-right: 10px;
+  display: inline-block;
+  width: auto;
+  -webkit-border-radius: 7px;
+  -moz-border-radius: 7px;
+  border-radius: 7px;
+  border: 0px;
+  padding: 5px 15px;
+  cursor: pointer;
+}
+#doc-info select {
+  margin-right: 5px;
+}
+/* Alterar - novo estilo */
+.btn2p:hover {
+  color: #000000;
+}
+#close-info {
+  display: inline-block;
+  vertical-align: inherit;
+  text-align: center;
+  width: 20px;
+  height: 20px;
+  color: #274897;
+  background-color: #ffffff;
+  font-weight: bold;
+  font-size: 13px;
+  border: 2px solid #274897;
+  -webkit-border-radius: 50%;
+  -moz-border-radius: 50%;
+  border-radius: 50%;
+  -webkit-box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.07);
+  -moz-box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.07);
+  box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.07);
+  cursor: pointer;
+}
+#close-info-modal {
+  display: block;
+  vertical-align: inherit;
+  text-align: center;
+  width: 34px;
+  height: 34px;
+  color: #707070;
+  background-color: #ffffff;
+  font-weight: bold;
+  font-size: 20px;
+  border: 1px solid #E4E4E4;
+  -webkit-border-radius: 50%;
+  -moz-border-radius: 50%;
+  border-radius: 50%;
+  -webkit-box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.07);
+  -moz-box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.07);
+  box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.07);
+  cursor: pointer;
+  position: absolute;
+  right: 15px;
+}
+/* fim dos estilos que estavam na página */
+p {
+  margin: 0 0 0;
+}
+.margin-col {
+  border-right: 1px solid #EFEEEE;
+}
+ins {
+  background: lightgreen;
+  text-decoration: none;
+}
+.old-text ins {
+  display: none;
+}
+del {
+  background: pink;
+}
+.new-text del {
+  display: none;
+}
+.card {
+  background: #fff;
+  border-radius: 3px;
+  margin: 1rem;
+  padding: 2rem;
+}
+.card .card {
+  margin: 0;
+  flex: 1 0 0;
+}
+.row {
+  display: flex;
+  justify-content: space-between;
+  margin-right: -8px;
+}
+.col {
+  display: flex;
+  flex: 1 0 0;
+  flex-direction: column;
+  margin-right: 8px;
+}
+/* Estilos modal de comparação */
+* {
+  box-sizing: border-box;
+}
+.modal {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  overflow: hidden;
+}
+.modal-dialog {
+  position: fixed;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+}
+.modal-content {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.modal-body h1 {
+	margin-top: 0px;
+}
+.modal-header {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 60px;
+  padding: 10px;
+  border: 0;
+}
+.modal-header .col {
+  text-align: center;
+  display: inline-block;
+}
+.modal-header .btn {
+  color: #686868;
+  background-color: #ffffff;
+  border: 1px solid #eeeeee !important;
+  margin-right: 10px;
+  display: inline-block;
+  width: auto;
+  -webkit-border-radius: 7px;
+  -moz-border-radius: 7px;
+  border-radius: 7px;
+  border: 0px;
+  cursor: default !important;
+}
+.modal-body {
+  position: absolute;
+  top: 60px;
+  bottom: 0px;
+  width: 100%;
+  overflow: auto;
+}
+.modal-footer {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 60px;
+  padding: 10px;
+  background: #f1f3f5;
+}
+.btn {
+  height: 40px;
+  border-radius: 0;
+  // focus
+  &:focus, &:active, &:active:focus {
+    box-shadow: none;
+    outline: none;
+  }
+}
+.btn-modal {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-top: -20px;
+  margin-left: -100px;
+  width: 200px;
+}
+.btn-primary, .btn-primary:hover, .btn-primary:focus, .btn-primary:active {
+  font-weight: 300;
+  font-size: 1.6rem;
+  color: #fff;
+  color: lighten(#484b5b, 20%);
+  color: #fff;
+  text-align: center;
+  background: #60cc69;
+  border: 1px solid #36a940;
+  border-bottom: 3px solid #36a940;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  // active
+  &:active {
+    border-bottom: 1px solid #36a940;
+  }
+}
+.btn-default, .btn-default:hover, .btn-default:focus, .btn-default:active {
+  font-weight: 300;
+  font-size: 1.6rem;
+  color: #fff;
+  text-align: center;
+  background: darken(#dcdfe4, 10%);
+  border: 1px solid darken(#dcdfe4, 20%);
+  border-bottom: 3px solid darken(#dcdfe4, 20%);
+  // active
+  &:active {
+    border-bottom: 1px solid darken(#dcdfe4, 20%);
+  }
+}
+.btn-secondary, .btn-secondary:hover, .btn-secondary:focus, .btn-secondary:active {
+  color: #cc7272;
+  background: transparent;
+  border: 0;
+}
+@media screen and (max-width: 736px) {
+	.modal-header .btn-ver1{
+	background-color: #274897;
+    color: #ffffff;
+	}
+  .col-right {
+    display: none;
+  }
+  .margin-col {
+    border: 0px;
+  }
+  .modal-body .card {
+    padding: 0px;
+  }
+  .modal-body .row, .modal-body .col {
+    padding: 0px;
+    margin: 0px;
+  }
+  .modal-body h1 {
+    margin-top: 60px;
+  }
+}
+/* Banner de consentimento */
+#privacytools-bar {
+	display:block;
+	position:fixed;
+	bottom: 10px;
+	height:auto;
+	background-color: #ffffff;
+	padding:20px;
+	-webkit-border-radius: 10px;
+	-moz-border-radius: 10px;
+	border-radius: 10px;
+	-webkit-box-shadow: 0px 2px 5px 4px rgba(0,0,0,0.07);
+	-moz-box-shadow: 0px 2px 5px 4px rgba(0,0,0,0.07);
+	box-shadow: 0px 2px 5px 4px rgba(0,0,0,0.07);
+	z-index: 999;
+
+
+	/* Bar com largura fixa (Recomendado) */
+	margin-left: 50%;
+	width: 970px; /* Aqui vai sempre a largura total do banner */
+	left: -485px; /* Aqui vai sempre a metade da largura total do banner */
+
+	/* Bar com largura full, para funcionar tem que comentar o bloco acima e descomentar este
+	width: 98%;
+	margin-left: 1%;
+	margin-right: 1%;
+	*/
+}
+@media screen and (max-width: 1000px) {
+  #privacytools-bar {
+    width: 98%;
+	margin-left: 1%;
+	margin-right: 1%;
+	left: 0px;
+  }
+}
+#privacytools-bar p{
+	margin:0px;
+}
+#privacytools-bar .cookie-icon {
+	background-image: url("img/biscuit.svg");
+	display: block;
+	position: absolute;
+	text-indent: -200px;
+	overflow: hidden;
+	width: 30px;
+	height: 30px;
+	margin-top: -5px;
+}
+#privacytools-bar .consent-text, #privacytools-bar .consent-buttons{
+	display: inline-block;
+}
+#privacytools-bar .consent-text{
+	width: 65%;
+	margin: 0px;
+	padding-left: 35px;
+}
+#privacytools-bar .consent-buttons{
+	width: 100%;
+    min-width: 300px;
+    margin: 0 auto;
+    text-align: center;
+}
+#privacytools-bar .consent-buttons .btn1, #privacytools-bar .consent-buttons .btn2, #privacytools-bar .consent-buttons .btn-edit{
+	display: inline-block;
+	width: auto;
+	-webkit-border-radius: 7px;
+	-moz-border-radius: 7px;
+	border-radius: 7px;
+	border: 0px;
+	padding: 10px 20px;
+	cursor: pointer;
+}
+#privacytools-bar .consent-buttons .btn1{
+	color: #ffffff;
+	background-color: #274897;
+}
+#privacytools-bar .consent-buttons .btn1:hover{
+	background: rgb(39,72,151);
+    background: linear-gradient(190deg, rgba(39,72,151,1) 0%, rgba(40,81,183,1) 100%);
+}
+#privacytools-bar .consent-buttons .btn2{
+	color: #686868;
+	background-color: #ffffff;
+	border: 1px solid #eeeeee;
+	margin-right: 10px;
+}
+#privacytools-bar .consent-buttons .btn2:hover{
+	color: #000000;
+	}
+#privacytools-bar .consent-buttons .btn-edit {
+    -webkit-border-radius: 7px;
+    -webkit-border-top-left-radius: 0px;
+    -webkit-border-bottom-left-radius: 0px;
+    -moz-border-radius: 7px;
+    -moz-border-radius-topleft: 0px;
+    -moz-border-radius-bottomleft: 0px;
+    border-radius: 7px;
+    border-top-left-radius: 0px;
+    border-bottom-left-radius: 0px;
+    margin-left: -10px;
+    border-left: 1px solid #fff;
+    background-image: url(img/edit.svg);
+    background-repeat: no-repeat;
+    background-position: center center;
+	background-color: #274897;
+    text-indent: -200px;
+    overflow: hidden;
+}
+#privacytools-bar .consent-buttons .btn-edit:hover {
+	background-image: url("img/edit.svg"), linear-gradient(190deg, rgba(39,72,151,1) 0%, rgba(40,81,183,1) 100%);
+}
+#privacytools-bar #close_bar{
+    display: inline-block;
+    position: absolute;
+    text-align: center;
+    width: 30px;
+    vertical-align: middle;
+    height: 30px;
+    padding-top: 3px;
+    color: #707070;
+    background-color: #ffffff;
+    font-weight: bold;
+    font-size: 15px;
+    border: 1px solid #eeeeee;
+    -webkit-border-radius: 50%;
+    -moz-border-radius: 50%;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 1000;
+    right: 10px;
+    margin-top: -10px;
+}
+#privacytools-bar-close{
+	display:none;
+	position:fixed;
+	bottom: 10px;
+	left: 0px;
+	height:auto;
+	background-color: #ffffff;
+	padding:10px;
+	-webkit-border-top-right-radius: 10px;
+	-webkit-border-bottom-right-radius: 10px;
+	-moz-border-radius-topright: 10px;
+	-moz-border-radius-bottomright: 10px;
+	border-top-right-radius: 10px;
+	border-bottom-right-radius: 10px;
+	-webkit-box-shadow: 0px 2px 5px 4px rgba(0,0,0,0.07);
+	-moz-box-shadow: 0px 2px 5px 4px rgba(0,0,0,0.07);
+	box-shadow: 0px 2px 5px 4px rgba(0,0,0,0.07);
+	z-index: 999;
+}
+	#privacytools-bar-close .cookie-icon{
+	background-image: url("img/biscuit.svg");
+	display: block;
+	text-indent: -200px;
+	overflow: hidden;
+	width: 30px;
+	height: 30px;
+	cursor: pointer;
+}
+@media screen and (max-width: 946px) {
+  #privacytools-bar .consent-buttons {
+	  margin-top: 10px;
+	  text-align: center;
+  }
+  #privacytools-bar .consent-text, #privacytools-bar .consent-buttons {
+	  width: 100%;
+  }
+}
+#button-compare{
+    display:none;
+}
+</style><p>Os presentes Termos e Condi&ccedil;&otilde;es Gerais de Uso (&ldquo;Termos&rdquo;) reger&atilde;o todos os servi&ccedil;os e intermedia&ccedil;&otilde;es comerciais realizadas atrav&eacute;s do portal <strong>https://novoapisullog.apisul.com.br/Login</strong> (&ldquo;Site&rdquo;), plataforma e aplicativo <strong>ApisulMob</strong> de titularidade da MULTISAT GERENCIAMENTO DE RISCOS LTDA,&nbsp;pessoa jur&iacute;dica de direito privado, inscrita no CNPJ/MF sob n&ordm;. 15.697.602/0002-06, sediada &agrave; Pereira Franco 347, na cidade de Porto Alegre/RS, doravante denominada &ldquo;Apisul&rdquo;.</p>
+<p>Aqui voc&ecirc; encontrar&aacute; informa&ccedil;&otilde;es importantes sobre como desfrutar da melhor experi&ecirc;ncia no uso do site, plataforma e aplicativo, assim como sobre os servi&ccedil;os prestados no ambiente eletr&ocirc;nico e quando da aquisi&ccedil;&atilde;o de produtos. Sempre que acessar, navegar ou utilizar o nosso site, plataforma e aplicativo, voc&ecirc; estar&aacute; se comprometendo a respeitar estes Termos.</p>
+<p>A Apisul poder&aacute; a qualquer momento alterar os presentes Termos, e as altera&ccedil;&otilde;es entrar&atilde;o em vigor quando realizada a divulga&ccedil;&atilde;o da nova vers&atilde;o. Voc&ecirc; ser&aacute; comunicado previamente acerca da alguma altera&ccedil;&atilde;o substancial, podendo decidir se continuar&aacute; ou n&atilde;o a utilizar o nosso site, plataforma e aplicativo. O aceite nos novos Termos ser&aacute; considerado como novo consentimento &agrave;s disposi&ccedil;&otilde;es contidas no documento.</p>
+<p>Voc&ecirc; dever&aacute; ler e certificar-se de haver entendido e aceito todas as condi&ccedil;&otilde;es estabelecidas nos presentes Termos<strong>. </strong>Em caso de d&uacute;vidas, entre em contato com o nosso time de produtos pelo e-mail celula.produtos@apisul.com.br .</p>
+<p>&nbsp;</p>
+<p><strong>DEFINI&Ccedil;&Otilde;ES</strong></p>
+<p>A fim de descomplicar a sua leitura, apresentamos algumas defini&ccedil;&otilde;es &uacute;teis e necess&aacute;rias:</p>
+<ol>
+<li>Site: <strong>https://novoapisullog.apisul.com.br/Login </strong></li>
+<li>Aplicativo: <strong>ApisulMob</strong>,<strong> </strong>dispon&iacute;vel para Android; &nbsp;</li>
+<li>&ldquo;Cliente/Usu&aacute;rio&rdquo; significa toda pessoa f&iacute;sica apta a acessar o nosso site, plataforma ou aplicativo e usufruir nossos Servi&ccedil;os;</li>
+<li>&ldquo;Cadastro&rdquo; &eacute; o que permite a identifica&ccedil;&atilde;o e qualifica&ccedil;&atilde;o do Cliente/Usu&aacute;rio para acesso ao site/plataforma, para usufruir de nossos servi&ccedil;os;</li>
+<li>&ldquo;Contrato&rdquo; significa um acordo por escrito firmado sob os presentes Termos para o fornecimento de Licen&ccedil;as ou a presta&ccedil;&atilde;o de Servi&ccedil;os entre a Apisul e a Empresa. Um Contrato de Servi&ccedil;os descrever&aacute; os Servi&ccedil;os, condi&ccedil;&otilde;es e produtos;</li>
+<li>&ldquo;Licen&ccedil;as&rdquo; significa a permiss&atilde;o concedida pela Apisul ao Cliente/Usu&aacute;rio para uso do site, plataforma ou aplicativo;</li>
+<li>&ldquo;Licenciador&rdquo; significa a entidade legal propriet&aacute;ria dos Direitos de Propriedade Intelectual concedidos nas Licen&ccedil;as, com autoridade para definir o Acordo de Servi&ccedil;o (&ldquo;SLA&rdquo;), os Termos do Produto (&ldquo;PT&rdquo;) ou demais termos e condi&ccedil;&otilde;es para o uso das Licen&ccedil;as.</li>
+</ol>
+<p>A n&atilde;o ser quando acordado por escrito pela Apisul, todas as Licen&ccedil;as e Servi&ccedil;os ser&atilde;o fornecidos conforme os presentes Termos, excluindo quaisquer outros termos e condi&ccedil;&otilde;es definidos ou referenciados em qualquer documento ou outra comunica&ccedil;&atilde;o usada pela Empresa anteriormente ao Contrato ou em sua conclus&atilde;o. Estes Termos ser&atilde;o aplic&aacute;veis a cada Contrato.</p>
+<p><a id="Topicos" name="Topicos"></a>Com o intuito de facilitar a compreens&atilde;o dos nossos Termos, dividimos da seguinte forma:</p>
+<ol>
+<li><strong> </strong><a href="#1"><strong>Objeto</strong></a></li>
+<li><strong> </strong><a href="#2"><strong>Informa&ccedil;&otilde;es de Cadastro</strong></a></li>
+<li><strong> </strong><a href="#3"><strong>Nossos Servi&ccedil;os e Produtos Auxiliares</strong></a></li>
+<li><strong> </strong><a href="#4"><strong>Pol&iacute;tica de Privacidade</strong></a></li>
+<li><strong> </strong><a href="#5"><strong>Direito de propriedade intelectual</strong></a></li>
+<li><strong> </strong><a href="#6"><strong>Coment&aacute;rios e feedback dos Clientes/Usu&aacute;rios</strong></a></li>
+<li><strong> </strong><a href="#7"><strong>Disposi&ccedil;&otilde;es Gerais</strong></a></li>
+</ol>
+<p><strong><a id="1" name="1"></a>1. </strong><strong>Objeto</strong></p>
+<p>1.1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; O objeto destes Termos &eacute; estabelecer as regras e condi&ccedil;&otilde;es para utiliza&ccedil;&atilde;o do site <strong>https://novoapisullog.apisul.com.br/Login</strong>, plataforma ou aplicativo <strong>ApisulMob.</strong></p>
+<p>1.2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; O site, plataforma ou aplicativo tem como fun&ccedil;&otilde;es: Gerenciamento log&iacute;stico e risco de viagens monitoradas. <a href="#Topicos"><big><strong>⇪</strong></big></a></p>
+<p>&nbsp;</p>
+<p><strong><a id="2" name="2"></a>2. Informa&ccedil;&otilde;es de Cadastro</strong></p>
+<p>2.1.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Para usar o site, plataforma ou aplicativo, voc&ecirc; deve ter pelo menos 18 (dezoito) anos de idade, pois ele n&atilde;o &eacute; direcionado a crian&ccedil;as e adolescentes. Se voc&ecirc; for menor, n&atilde;o tente usar ou fornecer dados pessoais, pois se os identificarmos excluiremos o mais r&aacute;pido poss&iacute;vel.</p>
+<p>2.2.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Para utilizar nossos Produtos e Servi&ccedil;os atrav&eacute;s do site, plataforma ou aplicativo, ser&aacute; realizado um Cadastro com seus dados, conforme previsto em contrato firmado com a Apisul.<br />2.2.1. Ao fornecer as informa&ccedil;&otilde;es para Cadastro, voc&ecirc; declara ser civilmente capaz e que os dados fornecidos s&atilde;o exatos, precisos e verdadeiros, assumindo o compromisso de atualiz&aacute;-los caso haja alguma altera&ccedil;&atilde;o.<br />2.2.2. Voc&ecirc; ser&aacute; o &uacute;nico e exclusivo respons&aacute;vel pela veracidade das informa&ccedil;&otilde;es disponibilizadas, por todas as atividades realizadas na sua conta e concorda em resguardar e manter a seguran&ccedil;a e confidencialidade do login e senha.</p>
+<p>2.3. Tamb&eacute;m &eacute; poss&iacute;vel coletarmos dados de sua localiza&ccedil;&atilde;o enquanto estiver no uso do site, plataforma ou aplicativo, atrav&eacute;s do sinal de GPS.</p>
+<p>2.4. Somente haver&aacute; um Cadastro por CPF e toda e qualquer tentativa de fraude ou caso seja identificada a exist&ecirc;ncia de cadastros duplicados, por qualquer motivo, autorizar&aacute; a Apisul a suspender um ou todos os Cadastros, independentemente de notifica&ccedil;&atilde;o pr&eacute;via.</p>
+<p>2.5. Sem preju&iacute;zo ao disposto acima, a Apisul reserva-se o direito de utilizar todos os meios v&aacute;lidos e poss&iacute;veis para identificar seus Clientes/Usu&aacute;rios, bem como de solicitar dados adicionais e documento de identifica&ccedil;&atilde;o v&aacute;lido que julgue ser pertinente, a fim de confirmar a identidade.</p>
+<p>2.6. O cadastro apenas ser&aacute; confirmado e considerado v&aacute;lido caso voc&ecirc; forne&ccedil;a informa&ccedil;&otilde;es exatas e precisas. Uma vez confirmado voc&ecirc; poder&aacute; utilizar todos os servi&ccedil;os que lhe forem disponibilizados.</p>
+<p>2.6.1&nbsp;&nbsp;&nbsp;&nbsp; O acesso a sua conta &eacute; pessoal e n&atilde;o deve ser compartilhado. As informa&ccedil;&otilde;es armazenadas na sua conta de usu&aacute;rio s&atilde;o confidenciais, sendo importante que sua senha fique restrita a voc&ecirc;.</p>
+<p>2.6.2. A senha definida no momento do Cadastro poder&aacute; ser alterada a qualquer momento pelos Clientes/Usu&aacute;rios.</p>
+<p>2.6.3. A Apisul poder&aacute; alterar a senha ap&oacute;s tempo de inatividade e bloquear em caso de suspeita de uso n&atilde;o autorizado.</p>
+<p>2.7. Voc&ecirc; deve avisar imediatamente a Apisul de qualquer suspeita ou uso n&atilde;o autorizado ou suspeito de sua conta.</p>
+<p>2.8. A Apisul poder&aacute;, a qualquer tempo e por qualquer motivo, suspender ou cancelar o acesso ao site, plataforma ou aplicativo, em situa&ccedil;&otilde;es como, mas n&atilde;o se limitando:</p>
+<p style="padding-left: 40px;">(I). por descumprimento, fraude, a&ccedil;&otilde;es ilegais ou viola&ccedil;&atilde;o do presente Termo ou da Pol&iacute;tica de Privacidade;</p>
+<p style="padding-left: 40px;">(II). para o cumprimento de ordem judicial, obriga&ccedil;&atilde;o legal ou requerimento legal de autoridade competente;</p>
+<p style="padding-left: 40px;">(III). por modifica&ccedil;&atilde;o e/ou desativa&ccedil;&atilde;o do site, plataforma, aplicativo e servi&ccedil;os ofertados;</p>
+<p style="padding-left: 40px;">(IV). em raz&atilde;o da descontinuidade do desenvolvimento e fornecimento do site, plataforma ou aplicativo;</p>
+<p style="padding-left: 40px;">(V). por for&ccedil;a maior, caso fortuito ou por incidentes e quest&otilde;es de seguran&ccedil;a;</p>
+<p style="padding-left: 40px;">(VI). por inatividade da conta por um per&iacute;odo de tempo superior a 1 (um) ano;</p>
+<p style="padding-left: 40px;">(VII). ao uso inadequado do site, plataforma ou aplicativo, a crit&eacute;rio da Apisul.&nbsp;</p>
+<p>2.9. Havendo a suspens&atilde;o da conta, seu acesso ao sistema ser&aacute; bloqueado e voc&ecirc; ser&aacute; comunicado atrav&eacute;s do e-mail cadastrado para sanar a viola&ccedil;&atilde;o. A solu&ccedil;&atilde;o da controv&eacute;rsia e op&ccedil;&atilde;o pelo desbloqueio e reativa&ccedil;&atilde;o do Cliente/Usu&aacute;rio ser&aacute; avaliada pela Apisul, n&atilde;o havendo qualquer direito de indeniza&ccedil;&atilde;o ou ressarcimento ao Cliente/Usu&aacute;rio.</p>
+<p>2.9.1. Eventual suspens&atilde;o da sua conta n&atilde;o prejudicar&aacute; as suas obriga&ccedil;&otilde;es, em especial obriga&ccedil;&otilde;es financeiras, podendo a Apisul realizar toda e qualquer cobran&ccedil;a devida para a regulariza&ccedil;&atilde;o das obriga&ccedil;&otilde;es.</p>
+<p>2.10. Voc&ecirc; ser&aacute; comunicado caso haja suspeita de utiliza&ccedil;&atilde;o indevida ou incorreta, ressalvadas as hip&oacute;teses que essa comunica&ccedil;&atilde;o prejudicar toda e qualquer forma de investiga&ccedil;&atilde;o ou apura&ccedil;&atilde;o movida pela ou a pedido da Apisul. <strong><a href="#Topicos"><big>⇪</big></a></strong></p>
+<p>&nbsp;</p>
+<p><strong><a id="3" name="3"></a>3. Nossos Servi&ccedil;os e Produtos Auxiliares</strong></p>
+<p><strong>3.1.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </strong>A Plataforma Apisullog/Integra 2.0 foi projetada para eliminar a complexidade de processos operacionais e gerar dados consolidados, levando a capacidade de gest&atilde;o log&iacute;stica e gerenciamento de risco para um novo n&iacute;vel.</p>
+<p>Sistema baseado na valida&ccedil;&atilde;o de cada viagem a ser monitorada, garantindo que todas as regras exigidas pelo gerenciamento de riscos estejam ativas (sensores, atuadores, per&iacute;odos de rodagem e descanso, &aacute;reas de risco, pontos permitidos e proibidos, rotas a serem utilizadas, etc.).</p>
+<p>Caracter&iacute;sticas:</p>
+<ul>
+<li>Re&uacute;ne as principais tecnologias de rastreamento;</li>
+<li>Realiza o controle de jornada independente da tecnologia;</li>
+<li>Aplica&ccedil;&atilde;o das regras de Gerenciamento de Risco autom&aacute;tica na aceita&ccedil;&atilde;o da Solicita&ccedil;&atilde;o de Monitoramento;</li>
+<li>An&aacute;lise de sensores e atuadores exigidos pelo GR.</li>
+</ul>
+<p><strong>3.2.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Suas obriga&ccedil;&otilde;es</strong></p>
+<p>3.2.1. Voc&ecirc; &eacute; respons&aacute;vel por manter a seguran&ccedil;a e zelar pelo sigilo das informa&ccedil;&otilde;es de acesso &agrave; sua Conta, n&atilde;o fornecendo-os a pessoas n&atilde;o autorizadas e comprometendo-se a notificar imediatamente a Apisul em caso de acesso ou uso n&atilde;o autorizado do site, plataforma ou aplicativo por meio de sua Conta. Voc&ecirc; reconhece ser respons&aacute;vel por todas as opera&ccedil;&otilde;es efetuadas em sua Conta e por quaisquer danos que sofrer ou que sejam provocados &agrave; Apisul por terceiros que acessem o site, plataforma ou aplicativo atrav&eacute;s dela.</p>
+<p>&zwj;3.2.2. &Eacute; de sua responsabilidade, tamb&eacute;m, obter acesso &agrave; conex&atilde;o com a Internet, bem como por instalar o Aplicativo e manter seu dispositivo adequado ao correto funcionamento do sistema. A Apisul n&atilde;o se responsabiliza por quaisquer dificuldades t&eacute;cnicas do USU&Aacute;RIO na utiliza&ccedil;&atilde;o de seu dispositivo m&oacute;vel ou pelo mau funcionamento dos Servi&ccedil;os decorrentes de falhas de conex&atilde;o com a Internet. Caso voc&ecirc; acesse o Aplicativo atrav&eacute;s de conex&atilde;o por redes de dados m&oacute;veis, a sua operadora poder&aacute; cobrar taxas e encargos pelo uso da rede de dados m&oacute;veis, sendo de sua exclusiva responsabilidade o pagamento por quaisquer uma delas.</p>
+<p>&zwj;<strong>3.3 Pr&aacute;ticas Proibidas ao Usu&aacute;rio </strong></p>
+<p>&zwj;3.3.1. Ao cadastrar-se e utilizar os Servi&ccedil;os da Apisul, o USU&Aacute;RIO obriga-se a exercer somente o direito de uso do site, plataforma ou aplicativo e n&atilde;o de sua propriedade, sendo-lhe proibido:</p>
+<p style="padding-left: 40px;"><strong>(I).</strong> violar direitos de autor, marca registrada ou a propriedade da Apisul bem como reproduzir, modificar, distribuir, transferir, comercializar, exibir, doar, veicular, transmitir ou, de qualquer outro modo, explorar os Servi&ccedil;os, exceto da forma expressamente permitida pelos presentes Termos de Uso;</p>
+<p style="padding-left: 40px;"><strong>(II).</strong> criar ou o enviar a partir do site, plataforma e aplicativo quaisquer v&iacute;rus, worms ou cavalos de Tr&oacute;ia nos sistemas operacionais, redes ou equipamentos de terceiros ou da Apisul, bem como a praticar de ataques de nega&ccedil;&atilde;o de servi&ccedil;o (Deny of Service) e realizar qualquer atividade relacionada ao hacking, incluindo, mas n&atilde;o se limitando a fazer ou lan&ccedil;ar programas, scripts ou usar rob&ocirc;, spider, scraper ou qualquer outro meio automatizado para a obten&ccedil;&atilde;o de dados ou de parte dos Servi&ccedil;os da Apisul, ou de sobrecarregar ou prejudicar indevidamente as funcionalidade do sistema;</p>
+<p style="padding-left: 40px;"><strong>(III).</strong> descompilar, realizar engenharia reversa, desmontar, conectar, espelhar ou recortar qualquer parte dos Servi&ccedil;os, tentar obter acesso n&atilde;o autorizado a estes ou prejudicar quaisquer aspectos destes ou seus sistemas ou redes correlatas;</p>
+<p style="padding-left: 40px;"><strong>(IV). </strong>armazenar, publicar, exibir, transmitir, vender, anunciar ou tornar dispon&iacute;veis quaisquer materiais correlacionados &agrave; pornografia infantil, fato que ser&aacute; notificado &agrave;s autoridades competentes pela Apisul caso ocorra; e</p>
+<p style="padding-left: 40px;"><strong>(V).</strong> praticar quaisquer outras condutas em desconformidade com os presentes Termos de Uso, com a legisla&ccedil;&atilde;o vigente ou que n&atilde;o estejam de acordo com os princ&iacute;pios &eacute;ticos e morais, com a boa-f&eacute; e bons costumes.</p>
+<p>&zwj;3.3.2 Em sendo constatadas quaisquer ilegalidades pela Apisul, ser&atilde;o comunicadas as autoridades competentes, sendo de sua integral e exclusiva responsabilidade responder por todas as consequ&ecirc;ncias de sua conduta ilegal.</p>
+<p>&zwj;<strong>3.4 Nossas Obriga&ccedil;&otilde;es</strong></p>
+<p>&zwj;3.4.1. A Apisul obriga-se a fornecer e manter o seu acesso ao site, plataforma ou aplicativo, bem como manter todos os dados gerados durante sua utiliza&ccedil;&atilde;o e vinculados &agrave; sua Conta, enquanto for utilizado. Caso voc&ecirc; encerre o uso do site, plataforma e aplicativo, seus dados ser&atilde;o armazenados pela Apisul pelo per&iacute;odo de 06 (seis) meses, conforme determina a Lei 12.965/2014 (Marco Civil da Internet).</p>
+<p>&zwj;<strong>&zwj;3.5 RECURSO DE GEOLOCALIZA&Ccedil;&Atilde;O (&ldquo;GPS&rdquo;)</strong></p>
+<p>&zwj;3.5.1. A Apisul possibilita a integra&ccedil;&atilde;o de seu Aplicativo Apisulmob com sistema de GPS, sendo que sua ativa&ccedil;&atilde;o permitir&aacute; que sua localiza&ccedil;&atilde;o seja coletada<strong> </strong>durante os processos de:</p>
+<ul>
+<li>Monitoria de viagem;</li>
+<li>Gest&atilde;o de Abastecimento;</li>
+<li>Solicita&ccedil;&atilde;o de Agendamento;</li>
+<li>Check in e Comprovante de Entrega.</li>
+</ul>
+<p>&zwj;3.5.2 Caso voc&ecirc; n&atilde;o deseje ativar o GPS em seu dispositivo m&oacute;vel, isto n&atilde;o impedir&aacute; o uso do Aplicativo ApisulMob, contudo, seu acesso &agrave;s funcionalidades poder&aacute; ser restrito e tal decis&atilde;o poder&aacute; acarretar na recusa ou desist&ecirc;ncia da contrata&ccedil;&atilde;o de seus Servi&ccedil;os.</p>
+<p>&zwj;3.5.3. A Apisul n&atilde;o se responsabiliza por quaisquer dos servi&ccedil;os disponibilizados pelos sistemas integrados e n&atilde;o prestados diretamente por ela, sendo de responsabilidade exclusiva do USU&Aacute;RIO quaisquer danos ou preju&iacute;zos decorrentes da utiliza&ccedil;&atilde;o destes servi&ccedil;os.</p>
+<p>&zwj;<strong>3.6 Garantias dos Servi&ccedil;os e Limita&ccedil;&atilde;o da Responsabilidade da Apisul</strong></p>
+<p>&zwj;3.6.1. Todos os Servi&ccedil;os da Apisul s&atilde;o fornecidos no estado em que se encontram, sem garantias ou condi&ccedil;&otilde;es. A Apisul n&atilde;o garante que o site, plataforma ou aplicativo estar&atilde;o dispon&iacute;veis ininterruptamente ou que estar&atilde;o livres de erros, os quais ser&atilde;o oportunamente corrigidos e solucionados. N&atilde;o poder&aacute; ser responsabilizada a Apisul por quaisquer danos, preju&iacute;zos ou perdas que voc&ecirc; eventualmente suportar em virtude de qualquer interrup&ccedil;&atilde;o no funcionamento dos mesmos.</p>
+<p>&zwj;3.6.2 Em caso de suspens&atilde;o do site, plataforma ou aplicativo por problemas e/ou falhas de acesso &agrave; Internet, interven&ccedil;&atilde;o de hackers, v&iacute;rus outros softwares maliciosos no sistema ou no servidor, em decorr&ecirc;ncia de caso fortuito ou for&ccedil;a maior, ou qualquer problema que a Apisul n&atilde;o tenha controle, n&atilde;o ser&aacute; devida por esta qualquer indeniza&ccedil;&atilde;o, sendo certo que t&atilde;o logo a situa&ccedil;&atilde;o seja normalizada, a utiliza&ccedil;&atilde;o do site, plataforma ou aplicativo ter&aacute; prosseguimento.</p>
+<p>&zwj;3.6.3 &Eacute; de sua responsabilidade assegurar e manter seguro o ambiente de seu dispositivo de acesso ao site, plataforma ou aplicativo, utilizando ferramentas de preven&ccedil;&atilde;o de riscos eletr&ocirc;nicos, como antiv&iacute;rus e firewall, bem como softwares e sistemas operacionais atualizados e eficientes para seu completo funcionamento.</p>
+<p>&zwj;&zwj;3.6.4. Em nenhuma circunst&acirc;ncia ser&aacute; respons&aacute;vel, expressa ou tacitamente, a Apisul, seus administradores ou funcion&aacute;rios:</p>
+<ul>
+<li>(I). por lucros cessantes ou por qualquer outro dano e/ou preju&iacute;zo decorrentes da sua conduta;</li>
+<li>(II). pelo uso indevido das informa&ccedil;&otilde;es disponibilizadas, para quaisquer que sejam os fins, feito por qualquer usu&aacute;rio, sendo de sua inteira responsabilidade as eventuais les&otilde;es a direito pr&oacute;prio ou de terceiros, causadas ou n&atilde;o pelo uso inadequado ou pelo acesso n&atilde;o autorizados ao sistema atrav&eacute;s de sua Conta; e</li>
+<li>(III). por quaisquer danos diretos ou indiretos, especiais, incidentais ou de consequ&ecirc;ncia, perdas ou despesas oriundas da falha de sistemas integrados de localiza&ccedil;&atilde;o, de falha de conex&atilde;o de smartphones com operadoras de telefonia m&oacute;vel e/ou com rela&ccedil;&atilde;o &agrave; qualquer falha de desempenho, erro, omiss&atilde;o, interrup&ccedil;&atilde;o, defeito ou demora na opera&ccedil;&atilde;o ou transmiss&atilde;o, v&iacute;rus ou falha da linha ou do sistema, isentando-se a Apisul de eventuais danos, perdas ou despesas. <strong><a href="#Topicos"><big>⇪</big></a></strong></li>
+</ul>
+<p>&zwj;<br /><strong><a id="4" name="4"></a>4. </strong><strong>Pol&iacute;tica de Privacidade</strong></p>
+<p>4.1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Preocupamo-nos profundamente com a confidencialidade e integridade das informa&ccedil;&otilde;es que s&atilde;o compartilhadas conosco e nossa Pol&iacute;tica de Privacidade define como coletamos e processamos dados sobre voc&ecirc;.</p>
+<p>4.2.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Voc&ecirc; pode ver nossa Pol&iacute;tica de Privacidade clicando <a href="https://dpo.privacytools.com.br/policy-view/jldEvzMdl/1/política-de%C2%A0privacidade/pt_BR?s=1634929349147" target="_blank" rel="noopener">aqui</a>.<strong> </strong>Ela &eacute; parte integrante destes Termos; &eacute; fundamental que voc&ecirc; a leia e a compreenda. <strong><a href="#Topicos"><big>⇪</big></a></strong></p>
+<p>&nbsp;</p>
+<p><strong><a id="5" name="5"></a>5. Direito de propriedade intelectual</strong></p>
+<p>5.1. Os presentes Termos e os Servi&ccedil;os, softwares, site, plataforma e aplicativo disponibilizados pela Apisul s&atilde;o regidos, principalmente, pelas disposi&ccedil;&otilde;es da Lei, ficando os infratores sujeitos &agrave;s penas dos crimes previstos, sem preju&iacute;zo da responsabilidade civil pelos danos eventualmente causados por qualquer viola&ccedil;&atilde;o aos direitos decorrentes da propriedade da Apisul ou de seus parceiros comerciais, incluindo, mas n&atilde;o se limitando, o acesso de terceiros n&atilde;o autorizados.</p>
+<p>5.2. Todos os direitos relativos ao site, plataforma ou aplicativo, bem como as suas funcionalidades, s&atilde;o de titularidade da Apisul, inclusive, mas n&atilde;o se limitando ao que diz respeito a todos os direitos de propriedade intelectual relacionados aos seus textos, imagens, gr&aacute;ficos, marcas, layouts, logotipo, c&oacute;digos e bases de dados. Salvo pr&eacute;via e expressa autoriza&ccedil;&atilde;o da Apisul, &eacute; expressamente proibida a utiliza&ccedil;&atilde;o indevida de qualquer conte&uacute;do ou marcas apresentadas no sistema Apisul, bem como a realiza&ccedil;&atilde;o das condutas previstas no item 3.3.1.</p>
+<p>&zwj;5.3. &Eacute; vedado qualquer procedimento que implique engenharia reversa, desmontagem, tradu&ccedil;&atilde;o, adapta&ccedil;&atilde;o e/ou modifica&ccedil;&atilde;o do site, plataforma e aplicativo, ou qualquer outra conduta que possibilite o acesso ao seu c&oacute;digo fonte, assim como de seus componentes, bem como qualquer altera&ccedil;&atilde;o n&atilde;o autorizada pela Apisul, ou mesmo de suas funcionalidades.<strong> <a href="#Topicos"><big>⇪</big></a></strong></p>
+<p>&nbsp;</p>
+<p><strong><a id="6" name="6"></a>6. Coment&aacute;rios</strong><strong> e feedback dos Clientes/Usu&aacute;rios</strong></p>
+<p>6.1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Ao usar o site, plataforma ou aplicativo, voc&ecirc; concorda em n&atilde;o fazer coment&aacute;rios que possam ser difamat&oacute;rios ou considerados ofensivos, tampouco enganosos, para si, para a Apisul ou para outros usu&aacute;rios. Voc&ecirc; concorda em assumir a responsabilidade pelo conte&uacute;do dos coment&aacute;rios que fizer.</p>
+<p>6.2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Fica facultado &agrave; Apisul monitorar, editar ou remover o conte&uacute;do e os coment&aacute;rios que consideramos il&iacute;citos, ofensivos, amea&ccedil;adores, difamat&oacute;rios, pornogr&aacute;ficos, obscenos ou de qualquer outra forma censur&aacute;veis ​​ou que violem a propriedade intelectual de qualquer parte ou estes Termos de Uso.</p>
+<p>6.3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Voc&ecirc; concorda que seus coment&aacute;rios n&atilde;o violar&atilde;o nenhum direito da Apisul ou de terceiros, incluindo direitos autorais, marca comercial, privacidade ou outro direito de propriedade pessoal ou intelectual. Voc&ecirc; &eacute; o &uacute;nico respons&aacute;vel por quaisquer coment&aacute;rios que fizer e por sua precis&atilde;o. N&atilde;o nos responsabilizamos por quaisquer coment&aacute;rios postados por voc&ecirc; ou por terceiros. <strong><a href="#Topicos"><big>⇪</big></a></strong></p>
+<p>&nbsp;</p>
+<p><strong><a id="7" name="7"></a>7. Disposi&ccedil;&otilde;es Gerais</strong></p>
+<p>7.1. A Apisul det&eacute;m todos os direitos necess&aacute;rios &agrave; explora&ccedil;&atilde;o do site, plataforma ou aplicativo e os direitos sobre a apar&ecirc;ncia, design, funcionalidade e todos os demais aspectos, sendo que tais direitos n&atilde;o poder&atilde;o ser utilizados, reproduzidos e/ou copiados sem sua expressa autoriza&ccedil;&atilde;o.</p>
+<p>7.2. Ocasionalmente o site, plataforma ou aplicativo poder&aacute; disponibilizar links de acesso a sites de empresas terceiras, relacionadas ou n&atilde;o &agrave; Apisul. Destacamos que n&atilde;o somos respons&aacute;veis por examinar o conte&uacute;do desses sites e nem por eventuais ofertas de quaisquer dessas empresas. Cabe a voc&ecirc; analisar, sempre, as pol&iacute;ticas de privacidade e condi&ccedil;&otilde;es de uso destes terceiros.</p>
+<p>7.3. As Partes declaram e concordam que o aceite destes Termos ser&aacute; efetuado em formato eletr&ocirc;nico.</p>
+<p>7.4. A Apisul se reserva no direito de, a qualquer momento e a seu exclusivo crit&eacute;rio, descontinuar, suspender, terminar ou alterar a forma de acesso ao site, plataforma ou aplicativo, per&iacute;odo de disponibilidade e equipamentos necess&aacute;rios ao acesso e/ou utiliza&ccedil;&atilde;o do mesmo, sem necessidade de pr&eacute;via notifica&ccedil;&atilde;o aos cientes.</p>
+<p>7.5 Eventual omiss&atilde;o ou atraso de qualquer das partes em exigir o cumprimento de qualquer termo ou condi&ccedil;&atilde;o dos presentes Termos pela outra parte, ou em exercer qualquer direito, prerrogativa ou recurso aqui previsto, n&atilde;o constituir&aacute; nova&ccedil;&atilde;o nem implicar&aacute; ren&uacute;ncia da possibilidade futura de exigir o cumprimento de tal termo, condi&ccedil;&atilde;o, direito, prerrogativa ou recurso.</p>
+<p>7.6. Os presentes Termos, bem como os direitos e obriga&ccedil;&otilde;es nele previstos, ser&atilde;o regidos e interpretados pelas leis do Brasil. &nbsp;Para dirimir qualquer lit&iacute;gio proveniente dos presentes Termos as partes elegem o foro da Comarca de Porto Alegre/RS, renunciando a qualquer outro por mais privilegiado que seja. <strong><a href="#Topicos"><big>⇪</big></a></strong></p>
+<p>&nbsp;</p>
+
+  <style type="text/css">
+    .logo{
+        background-color: #00456e !important;
+    }
+    h1{
+        color: #000000 !important;
+    }
+    .bg-color,footer{
+        background-color: #00456e !important;
+    }
+    .text-white,footer{
+        color: #000000 !important;
+    }
+  </style>
+
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer  >
+    <div class="container">
+      <p class="m-0 text-center text-white">&copy; APISUL GERENCIAMENTO DE RISCOS LTDA</p>
+      <a href="https://www.privacytools.com.br" target="_blank" rel="dofollow" title="LGPD da PrivacyTools">Sistema para LGPD</a>
+    </div>
+  </footer>
+
+  <!-- Bootstrap core JavaScript -->
+  <script src="https://cdn.privacytools.com.br/vendor/jquery/jquery.min.js"></script>
+  <script src="https://cdn.privacytools.com.br/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+
+
+</body>
+
+</html>

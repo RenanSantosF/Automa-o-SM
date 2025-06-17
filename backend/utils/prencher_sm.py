@@ -26,33 +26,78 @@ def preencher_sm(driver, dados):
     except Exception as e:
         print("Erro ao carregar a página:", e)
 
+    # try:
+    #     print("Iniciou vinculação de ponto de origem")
+    #     vincular_ponto_origem = driver.find_element(By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl02_ctl00_lnkPontoExistente")
+    #     vincular_ponto_origem.click()
+
+    #     # Espera até o elemento com ID 'rcbIdentificadorPonto_Input' estar presente no DOM e visível
+    #     WebDriverWait(driver, 20).until(
+    #         EC.visibility_of_element_located((By.ID, "rcbIdentificadorPonto_Input"))
+    #     )
+    # except Exception as e:
+    #     print("Erro ao clicar em 'Vincular ponto origem':", e)
+    #     raise Exception(f"Erro ao clicar em 'Vincular ponto origem': {e}")
+
+    # try:
+    #     print("Insere CNPJ de origem")
+    #     cnpj_formatado = formatar_cnpj(dados["remetente_cnpj"])
+    #     remetente_input = driver.find_element(By.ID, "rcbIdentificadorPonto_Input")
+    #     remetente_input.clear()
+    #     remetente_input.send_keys(cnpj_formatado)
+
+    #     try:
+    #         WebDriverWait(driver, 15).until(
+    #             EC.element_to_be_clickable((By.CSS_SELECTOR, "ul.rcbList li.rcbTemplate"))
+    #         )
+    #     except TimeoutException:
+    #         print("Nenhum remetente encontrado (autocomplete_smp não apareceu).")
+    #         raise Exception("Remetente não encontrado")
+
+    #     print("Seleciona ponto de origem")
+    #     remetente_input.send_keys(Keys.DOWN)
+    #     remetente_input.send_keys(Keys.ENTER)
+    #     time.sleep(1)
+
+    #     remetente_input = driver.find_element(By.ID, "rcbIdentificadorPonto_Input")
+    #     nome_completo_remetente_cadastrado = remetente_input.get_attribute("value")
+
+    #     if not nome_completo_remetente_cadastrado.strip():
+    #         raise Exception("Remetente não foi preenchido corretamente após ENTER.")
+
+    #     dados["remetente_cadastrado_apisul"] = nome_completo_remetente_cadastrado
+    #     print("Remetente cadastrado na apisul:", nome_completo_remetente_cadastrado)
+
+    #     botao_salvar_remetente = driver.find_element(
+    #         By.NAME, "ctl00$MainContent$gridPontosVinculados$ctl00$ctl02$ctl02$btnSalvarPontoSMP"
+    #     )
+    #     print("Clica em salvar remetente")
+    #     botao_salvar_remetente.click()
+
+    # except StaleElementReferenceException as e:
+    #     print("Erro desconhecido ao preencher remetente", e)
+    #     raise ReiniciarProcessoException("Erro desconhecido ao preencher remetente") from e
+        
+
+
     try:
         print("Iniciou vinculação de ponto de origem")
         vincular_ponto_origem = driver.find_element(By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl02_ctl00_lnkPontoExistente")
         vincular_ponto_origem.click()
 
-        # Espera até o elemento com ID 'rcbIdentificadorPonto_Input' estar presente no DOM e visível
         WebDriverWait(driver, 20).until(
             EC.visibility_of_element_located((By.ID, "rcbIdentificadorPonto_Input"))
         )
-    except Exception as e:
-        print("Erro ao clicar em 'Vincular ponto origem':", e)
-        raise Exception(f"Erro ao clicar em 'Vincular ponto origem': {e}")
 
-    try:
         print("Insere CNPJ de origem")
         cnpj_formatado = formatar_cnpj(dados["remetente_cnpj"])
         remetente_input = driver.find_element(By.ID, "rcbIdentificadorPonto_Input")
         remetente_input.clear()
         remetente_input.send_keys(cnpj_formatado)
 
-        try:
-            WebDriverWait(driver, 15).until(
-                EC.element_to_be_clickable((By.CSS_SELECTOR, "ul.rcbList li.rcbTemplate"))
-            )
-        except TimeoutException:
-            print("Nenhum remetente encontrado (autocomplete_smp não apareceu).")
-            raise Exception("Remetente não encontrado")
+        WebDriverWait(driver, 15).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, "ul.rcbList li.rcbTemplate"))
+        )
 
         print("Seleciona ponto de origem")
         remetente_input.send_keys(Keys.DOWN)
@@ -74,10 +119,18 @@ def preencher_sm(driver, dados):
         print("Clica em salvar remetente")
         botao_salvar_remetente.click()
 
+    except StaleElementReferenceException as e:
+        print("Erro StaleElementReference ao preencher remetente:", e)
+        raise ReiniciarProcessoException("Erro ao preencher remetente, reiniciar processo") from e
+
     except TimeoutException as e:
-        print("Erro desconhecido ao preencher remetente", e)
-        raise ReiniciarProcessoException("Erro desconhecido ao preencher remetente") from e
-        
+        print("Timeout ao preencher remetente:", e)
+        raise ReiniciarProcessoException("Timeout ao preencher remetente") from e
+
+    except Exception as e:
+        print("Erro inesperado ao preencher remetente:", e)
+        raise
+
 
     try:
 
@@ -638,6 +691,108 @@ def preencher_sm(driver, dados):
         raise Exception(f"❌ Falha ao clicar no elemento '{valor}' após {tentativas} tentativas. Último erro: {ultima_excecao}")
 
     
+    # try:
+    #     clicar_com_seguranca(driver, By.ID, "ctl00_MainContent_btnNovo")
+
+    #     timeout = 40
+    #     start_time = time.time()
+
+    #     sm_numero = None
+    #     notificacao_texto = None
+    #     erro_detectado = False
+
+    #     while time.time() - start_time < timeout:
+    #         time.sleep(1)
+
+    #         # 1. Notificação
+    #         try:
+    #             div_notificacao = WebDriverWait(driver, 3).until(
+    #                 EC.visibility_of_element_located((By.ID, "divNotificacao"))
+    #             )
+    #             if div_notificacao.is_displayed():
+    #                 notif_text = driver.find_element(By.ID, "notifTexto").text.strip()
+    #                 print(f"📢 Notificação: {notif_text}")
+    #                 notificacao_texto = notif_text
+
+    #                 # Fecha se possível
+    #                 try:
+    #                     driver.find_element(By.ID, "btnCloseNotificacao").click()
+    #                 except:
+    #                     pass
+
+    #                 if "foi salva com sucesso" in notif_text:
+    #                     sm_numero = notif_text.split("número ")[-1].split(" ")[0]
+    #                     print(f"✅ SMP criada com sucesso: {sm_numero}")
+    #                     dados["numero_smp"] = sm_numero
+    #                     return sm_numero
+    #                 else:
+    #                     erro_detectado = True
+    #                     break  # erro detectado, sai do loop
+    #         except:
+    #             pass
+
+    #         # 2. Alertas tipo "PGV"
+    #         try:
+    #             alertas = driver.find_elements(By.CSS_SELECTOR, ".rwDialogPopup.radalert")
+    #             for alerta in alertas:
+    #                 if alerta.is_displayed():
+    #                     alerta_texto = alerta.text.strip()
+    #                     print(f"⚠️ Alerta PGV: {alerta_texto}")
+
+    #                     try:
+    #                         ok_btn = alerta.find_element(By.CLASS_NAME, "rwPopupButton")
+    #                         ok_btn.click()
+    #                         erro_detectado = True
+    #                         notificacao_texto = alerta_texto
+    #                     except:
+    #                         pass
+    #                     break
+    #         except:
+    #             pass
+
+    #         # 3. Checa se o número da SMP apareceu
+    #         try:
+    #             sm_label = driver.find_element(By.ID, "ctl00_MainContent_lblNumeroSM")
+    #             if sm_label.is_displayed() and sm_label.text.strip():
+    #                 sm_numero = sm_label.text.strip()
+    #                 print(f"✅ SMP detectada por label: {sm_numero}")
+    #                 dados["numero_smp"] = sm_numero
+    #                 return
+    #         except:
+    #             pass
+
+    #         # 3. Confirmação tipo "Deseja continuar?" (radconfirm)
+    #         try:
+    #             confirmacoes = driver.find_elements(By.CSS_SELECTOR, ".rwDialogPopup.radconfirm")
+    #             for confirm in confirmacoes:
+    #                 if confirm.is_displayed():
+    #                     texto_confirm = confirm.text.strip()
+    #                     print(f"❓ Confirmação detectada: {texto_confirm}")
+
+    #                     try:
+    #                         ok_btns = confirm.find_elements(By.CLASS_NAME, "rwPopupButton")
+    #                         for btn in ok_btns:
+    #                             if "OK" in btn.text:
+    #                                 btn.click()
+    #                                 print("✅ Clique automático no botão OK da confirmação.")
+    #                                 break
+    #                     except Exception as e:
+    #                         print("⚠️ Erro ao clicar em OK na confirmação:", e)
+    #                     break  # sai do for
+    #         except:
+    #             pass
+
+    #     # Após loop, decide se erro ou timeout
+    #     if erro_detectado:
+    #         raise Exception(f"❌ Erro ao salvar SMP: {notificacao_texto or 'erro não especificado'}")
+
+    #     raise Exception("⏱️ Timeout: Nenhuma resposta ao tentar salvar SMP.")
+
+    # except Exception as e:
+    #     print("❌ Erro final ao salvar SMP:", e)
+    #     raise
+
+
     try:
         clicar_com_seguranca(driver, By.ID, "ctl00_MainContent_btnNovo")
 
@@ -648,35 +803,55 @@ def preencher_sm(driver, dados):
         notificacao_texto = None
         erro_detectado = False
 
-        while time.time() - start_time < timeout:
-            time.sleep(1)
+        try:
+            notificacao_antes = driver.find_element(By.ID, "notifTexto").text.strip()
+        except:
+            notificacao_antes = ""
 
-            # 1. Notificação
+        while time.time() - start_time < timeout:
+            time.sleep(0.4)  # Polling mais rápido
+
+            # 1️⃣ Verifica se número da SMP já apareceu no label
+            try:
+                sm_label = driver.find_element(By.ID, "ctl00_MainContent_lblNumeroSM")
+                if sm_label.is_displayed() and sm_label.text.strip():
+                    sm_numero = sm_label.text.strip()
+                    print(f"✅ SMP detectada pelo label: {sm_numero}")
+                    dados["numero_smp"] = sm_numero
+                    break  # sai do loop
+            except:
+                pass
+
+            # 2️⃣ Verifica Notificação Toast
             try:
                 div_notificacao = driver.find_element(By.ID, "divNotificacao")
                 if div_notificacao.is_displayed():
                     notif_text = driver.find_element(By.ID, "notifTexto").text.strip()
-                    print(f"📢 Notificação: {notif_text}")
-                    notificacao_texto = notif_text
 
-                    # Fecha se possível
-                    try:
-                        driver.find_element(By.ID, "btnCloseNotificacao").click()
-                    except:
-                        pass
+                    if notif_text and notif_text != notificacao_antes:
+                        print(f"📢 Notificação: {notif_text}")
+                        notificacao_texto = notif_text
 
-                    if "foi salva com sucesso" in notif_text:
-                        sm_numero = notif_text.split("número ")[-1].split(" ")[0]
-                        print(f"✅ SMP criada com sucesso: {sm_numero}")
-                        dados["numero_smp"] = sm_numero
-                        return sm_numero
-                    else:
-                        erro_detectado = True
-                        break  # erro detectado, sai do loop
+                        try:
+                            driver.find_element(By.ID, "btnCloseNotificacao").click()
+                        except:
+                            pass
+
+                        if "foi salva com sucesso" in notif_text:
+                            try:
+                                sm_numero = notif_text.split("número ")[-1].split(" ")[0]
+                                print(f"✅ SMP criada com sucesso pela notificação: {sm_numero}")
+                                dados["numero_smp"] = sm_numero
+                                break  # sai do loop
+                            except:
+                                print("⚠️ Notificação positiva, mas não consegui extrair o número.")
+                        else:
+                            erro_detectado = True
+                            break  # erro detectado, sai do loop
             except:
                 pass
 
-            # 2. Alertas tipo "PGV"
+            # 3️⃣ Alertas PGV
             try:
                 alertas = driver.find_elements(By.CSS_SELECTOR, ".rwDialogPopup.radalert")
                 for alerta in alertas:
@@ -695,18 +870,7 @@ def preencher_sm(driver, dados):
             except:
                 pass
 
-            # 3. Checa se o número da SMP apareceu
-            try:
-                sm_label = driver.find_element(By.ID, "ctl00_MainContent_lblNumeroSM")
-                if sm_label.is_displayed() and sm_label.text.strip():
-                    sm_numero = sm_label.text.strip()
-                    print(f"✅ SMP detectada por label: {sm_numero}")
-                    dados["numero_smp"] = sm_numero
-                    return
-            except:
-                pass
-
-            # 3. Confirmação tipo "Deseja continuar?" (radconfirm)
+            # 4️⃣ Confirmações radconfirm
             try:
                 confirmacoes = driver.find_elements(By.CSS_SELECTOR, ".rwDialogPopup.radconfirm")
                 for confirm in confirmacoes:
@@ -719,19 +883,22 @@ def preencher_sm(driver, dados):
                             for btn in ok_btns:
                                 if "OK" in btn.text:
                                     btn.click()
-                                    print("✅ Clique automático no botão OK da confirmação.")
+                                    print("✅ Clique no botão OK da confirmação.")
                                     break
                         except Exception as e:
                             print("⚠️ Erro ao clicar em OK na confirmação:", e)
-                        break  # sai do for
+                        break
             except:
                 pass
 
-        # Após loop, decide se erro ou timeout
+        # Após o loop, decide se deu erro ou timeout
         if erro_detectado:
             raise Exception(f"❌ Erro ao salvar SMP: {notificacao_texto or 'erro não especificado'}")
 
-        raise Exception("⏱️ Timeout: Nenhuma resposta ao tentar salvar SMP.")
+        if not sm_numero:
+            raise Exception("⏱️ Timeout: Nenhuma resposta ao tentar salvar SMP.")
+
+        print(f"SMP criada com sucesso: {sm_numero}")
 
     except Exception as e:
         print("❌ Erro final ao salvar SMP:", e)

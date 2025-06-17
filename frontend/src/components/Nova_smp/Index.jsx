@@ -192,6 +192,7 @@ const NovaSM = ({ onUploadSuccess, onClose }) => {
     }
 
     return {
+      tipo: "mdfe",
       condutor: motorista_nome,
       cpf_condutor: motorista_cpf,
       placa_cavalo,
@@ -216,6 +217,7 @@ const NovaSM = ({ onUploadSuccess, onClose }) => {
     Array.from(xmlDoc.getElementsByTagName("*")).find(el => el.localName === "receb" || el.localName === "dest");
 
   return {
+    tipo: "cte",
     condutor: getObsCont("motorista"),
     cpf_condutor: getObsCont("cpf_motorista"),
     valor_total_carga: getTagText("vCarga"),
@@ -311,18 +313,60 @@ const NovaSM = ({ onUploadSuccess, onClose }) => {
       // Tudo OK, pode adicionar
       setFiles(prev => [...prev, ...successes.map(s => s.file)]);
       // setXmlData(successes[successes.length - 1].data);
-      setXmlData(prevData => {
-        const novaCargaTotal = successes.reduce((total, s) => {
-          const valor = parseFloat(s.data.valor_total_carga || "0");
-          return total + (isNaN(valor) ? 0 : valor);
-        }, parseFloat(prevData?.valor_total_carga || "0"));
+      // setXmlData(prevData => {
+      //   const novaCargaTotal = successes.reduce((total, s) => {
+      //     const valor = parseFloat(s.data.valor_total_carga || "0");
+      //     return total + (isNaN(valor) ? 0 : valor);
+      //   }, parseFloat(prevData?.valor_total_carga || "0"));
       
-        return {
-          ...prevData,
-          ...successes[successes.length - 1].data,
-          valor_total_carga: novaCargaTotal.toFixed(2),
-        };
-      });
+      //   return {
+      //     ...prevData,
+      //     ...successes[successes.length - 1].data,
+      //     valor_total_carga: novaCargaTotal.toFixed(2),
+      //   };
+      // });
+
+
+
+setXmlData(prevData => {
+  const novaCargaTotal = successes.reduce((total, s) => {
+    const valor = parseFloat(s.data.valor_total_carga || "0");
+    return total + (isNaN(valor) ? 0 : valor);
+  }, parseFloat(prevData?.valor_total_carga || "0"));
+
+  const ultimoArquivo = successes[successes.length - 1]?.data || {};
+
+  const isMdfe = ultimoArquivo.tipo === "mdfe"; // <- ajuste para seu identificador
+
+  return {
+    ...prevData,
+
+    valor_total_carga: isMdfe
+      ? prevData?.valor_total_carga // MDF-e não altera carga
+      : novaCargaTotal.toFixed(2),  // CTe atualiza e soma carga
+
+    // 🔄 MDF-e atualiza veículos e condutor, CTe mantém os existentes
+    condutor: ultimoArquivo.condutor || prevData?.condutor,
+    cpf_condutor: ultimoArquivo.cpf_condutor || prevData?.cpf_condutor,
+    placa_cavalo: ultimoArquivo.placa_cavalo || prevData?.placa_cavalo,
+    placa_carreta_1: ultimoArquivo.placa_carreta_1 || prevData?.placa_carreta_1,
+    placa_carreta_2: ultimoArquivo.placa_carreta_2 || prevData?.placa_carreta_2,
+
+    // 🏗️ CTe atualiza remetente, destinatário, origem e destino
+    local_origem: isMdfe ? prevData?.local_origem : ultimoArquivo.local_origem,
+    local_destino: isMdfe ? prevData?.local_destino : ultimoArquivo.local_destino,
+
+    remetente_nome: isMdfe ? prevData?.remetente_nome : ultimoArquivo.remetente_nome,
+    remetente_cnpj: isMdfe ? prevData?.remetente_cnpj : ultimoArquivo.remetente_cnpj,
+    remetente_endereco: isMdfe ? prevData?.remetente_endereco : ultimoArquivo.remetente_endereco,
+
+    destinatario_nome: isMdfe ? prevData?.destinatario_nome : ultimoArquivo.destinatario_nome,
+    destinatario_cnpj: isMdfe ? prevData?.destinatario_cnpj : ultimoArquivo.destinatario_cnpj,
+    destinatario_endereco: isMdfe ? prevData?.destinatario_endereco : ultimoArquivo.destinatario_endereco,
+  };
+});
+
+
 
       
       setPlacaCavaloBase(primeiraPlaca);
