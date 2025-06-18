@@ -398,7 +398,142 @@ def preencher_sm(driver, dados):
 
     print("Inicia preenchimento de placa")
 
-    # Mapeamento para conversão entre letra e número no 4º caractere
+    # # Mapeamento para conversão entre letra e número no 5º caractere
+    # NUMERO_PARA_LETRA = {
+    #     '0': 'A', '1': 'B', '2': 'C', '3': 'D', '4': 'E',
+    #     '5': 'F', '6': 'G', '7': 'H', '8': 'I', '9': 'J'
+    # }
+    # LETRA_PARA_NUMERO = {v: k for k, v in NUMERO_PARA_LETRA.items()}
+
+
+    # def gerar_variacoes_placa(placa: str) -> list[str]:
+    #     placa = placa.strip().upper()
+    #     variacoes = [placa]
+
+    #     if len(placa) == 7:
+    #         char5 = placa[4]  # <<< Correto: o 5º caractere (índice 4)
+
+    #         # Se letra, tenta converter para número (padrão antigo)
+    #         if char5.isalpha() and char5 in LETRA_PARA_NUMERO:
+    #             num = LETRA_PARA_NUMERO[char5]
+    #             placa_antiga = placa[:4] + num + placa[5:]
+    #             variacoes.append(placa_antiga)
+
+    #         # Se número, tenta converter para letra (padrão Mercosul)
+    #         elif char5.isdigit() and char5 in NUMERO_PARA_LETRA:
+    #             letra = NUMERO_PARA_LETRA[char5]
+    #             placa_mercosul = placa[:4] + letra + placa[5:]
+    #             variacoes.append(placa_mercosul)
+
+    #     # Remove duplicatas mantendo a ordem
+    #     resultado = []
+    #     seen = set()
+    #     for v in variacoes:
+    #         if v not in seen:
+    #             resultado.append(v)
+    #             seen.add(v)
+
+    #     return resultado
+
+    
+    # def limpar_campo_placa(campo):
+    #     time.sleep(1)
+    #     campo.clear()
+    #     time.sleep(1)
+    #     campo.clear()
+    #     time.sleep(1)
+
+
+
+    # def preencher_placa_e_confirmar(placa_texto: str):
+    #     placa = driver.find_element(By.ID, "txtVeiculo_Input")
+    #     placa.clear()
+    #     placa.send_keys(placa_texto)
+
+    #     try:
+    #         WebDriverWait(driver, 10).until(
+    #             lambda d: any(
+    #                 ul.find_elements(By.TAG_NAME, "li")
+    #                 for ul in d.find_elements(By.CSS_SELECTOR, "div.RadAutoCompleteBoxPopup ul.racList")
+    #                 if ul.is_displayed()
+    #             )
+    #         )
+    #     except TimeoutException:
+    #         raise Exception("A lista de placas não carregou a tempo.")
+
+    #     placa.send_keys(Keys.TAB)
+
+    #     try:
+    #         WebDriverWait(driver, 10).until(
+    #             EC.presence_of_element_located((By.CSS_SELECTOR, "span.racTextToken"))
+    #         )
+    #     except TimeoutException:
+    #         raise Exception("A placa não foi reconhecida após pressionar TAB.")
+
+    #     spans = driver.find_elements(By.CSS_SELECTOR, "span.racTextToken")
+    #     placas_encontradas = [span.text.strip().upper() for span in spans]
+
+    #     if not any(p.startswith(placa_texto) for p in placas_encontradas):
+    #         raise Exception(f"Placa '{placa_texto}' não encontrada no sistema.")
+
+    #     botao_confirmar_placa = driver.find_element(By.ID, "ctl00_MainContent_btnVinculoVeiculo")
+    #     botao_confirmar_placa.click()
+
+
+    # def tentar_preencher_placa(placa_texto: str, max_tentativas=3):
+    #     variacoes = gerar_variacoes_placa(placa_texto)
+
+    #     for variacao in variacoes:
+    #         for tentativa in range(1, max_tentativas + 1):
+    #             try:
+    #                 campo_placa = driver.find_element(By.ID, "txtVeiculo_Input")
+    #                 limpar_campo_placa(campo_placa)
+
+    #                 preencher_placa_e_confirmar(variacao)
+
+    #                 WebDriverWait(driver, 10).until(
+    #                     EC.presence_of_element_located((By.ID, "ctl00_MainContent_grdViewVeiculo_ctl00__0"))
+    #                 )
+
+    #                 print(f"Placa '{variacao}' inserida com sucesso na tentativa {tentativa}.")
+    #                 return  # sucesso!
+
+    #             except Exception as e:
+    #                 print(f"Tentativa {tentativa} falhou para a placa '{variacao}': {e}")
+    #                 if tentativa == max_tentativas:
+    #                     print(f"Todas tentativas falharam para a variação '{variacao}'")
+    #                 else:
+    #                     time.sleep(1)
+
+    #     raise Exception(f"Nenhuma variação da placa '{placa_texto}' foi aceita após {max_tentativas} tentativas por variação.")
+
+
+    # try:
+    #     print("Inserindo placa cavalo")
+    #     tentar_preencher_placa(dados.get("placa_cavalo", ""))
+
+    #     time.sleep(0.5)
+
+    #     print("Inserindo placa carreta")
+    #     if dados.get("placa_carreta_1") and dados["placa_carreta_1"].strip():
+    #         tentar_preencher_placa(dados["placa_carreta_1"])
+
+    #     time.sleep(0.5)
+
+    #     print("Inserindo placa carreta 2")
+    #     if dados.get("placa_carreta_2") and dados["placa_carreta_2"].strip():
+    #         tentar_preencher_placa(dados["placa_carreta_2"])
+
+    # except Exception as e:
+    #     print("Erro ao preencher a placa da carreta:", e)
+    #     raise
+
+
+
+
+    print("Inicia preenchimento de placa")
+
+    # 🔗 Mapeamento de conversão do 5º caractere
     NUMERO_PARA_LETRA = {
         '0': 'A', '1': 'B', '2': 'C', '3': 'D', '4': 'E',
         '5': 'F', '6': 'G', '7': 'H', '8': 'I', '9': 'J'
@@ -407,33 +542,34 @@ def preencher_sm(driver, dados):
 
 
     def gerar_variacoes_placa(placa: str) -> list[str]:
+        """Gera variações da placa (Mercosul ⇄ Antiga)"""
         placa = placa.strip().upper()
-        variacoes = [placa]
+        variacoes = []
 
         if len(placa) == 7:
-            char4 = placa[3]
+            char = placa[4]  # 5º caractere
 
-            # Se letra, tenta converter para número (padrão antigo)
-            if char4.isalpha() and char4 in LETRA_PARA_NUMERO:
-                num = LETRA_PARA_NUMERO[char4]
-                placa_antiga = placa[:3] + num + placa[4:]
-                variacoes.append(placa_antiga)
+            # Se for letra, tenta converter para número
+            if char in LETRA_PARA_NUMERO:
+                convertido = LETRA_PARA_NUMERO[char]
+                nova = placa[:4] + convertido + placa[5:]
+                variacoes.append(nova)
 
-            # Se número, tenta converter para letra (padrão Mercosul)
-            elif char4.isdigit() and char4 in NUMERO_PARA_LETRA:
-                letra = NUMERO_PARA_LETRA[char4]
-                placa_mercosul = placa[:3] + letra + placa[4:]
-                variacoes.append(placa_mercosul)
+            # Se for número, tenta converter para letra
+            if char in NUMERO_PARA_LETRA:
+                convertido = NUMERO_PARA_LETRA[char]
+                nova = placa[:4] + convertido + placa[5:]
+                variacoes.append(nova)
 
-        # Remove duplicatas mantendo a ordem
-        resultado = []
-        seen = set()
-        for v in variacoes:
-            if v not in seen:
-                resultado.append(v)
-                seen.add(v)
+        return variacoes
 
-        return resultado
+
+    def limpar_campo_placa(campo):
+        time.sleep(0.5)
+        campo.clear()
+        time.sleep(0.5)
+        campo.clear()
+        time.sleep(0.5)
 
 
     def preencher_placa_e_confirmar(placa_texto: str):
@@ -450,7 +586,7 @@ def preencher_sm(driver, dados):
                 )
             )
         except TimeoutException:
-            raise Exception("A lista de placas não carregou a tempo.")
+            raise Exception("A lista de sugestões de placas não carregou a tempo.")
 
         placa.send_keys(Keys.TAB)
 
@@ -464,7 +600,7 @@ def preencher_sm(driver, dados):
         spans = driver.find_elements(By.CSS_SELECTOR, "span.racTextToken")
         placas_encontradas = [span.text.strip().upper() for span in spans]
 
-        if placa_texto not in placas_encontradas:
+        if not any(p.startswith(placa_texto) for p in placas_encontradas):
             raise Exception(f"Placa '{placa_texto}' não encontrada no sistema.")
 
         botao_confirmar_placa = driver.find_element(By.ID, "ctl00_MainContent_btnVinculoVeiculo")
@@ -472,13 +608,36 @@ def preencher_sm(driver, dados):
 
 
     def tentar_preencher_placa(placa_texto: str, max_tentativas=3):
+        # 🔸 Primeiro tenta exatamente a placa informada
+        for tentativa in range(1, max_tentativas + 1):
+            try:
+                campo_placa = driver.find_element(By.ID, "txtVeiculo_Input")
+                limpar_campo_placa(campo_placa)
+
+                preencher_placa_e_confirmar(placa_texto)
+
+                WebDriverWait(driver, 10).until(
+                    EC.presence_of_element_located((By.ID, "ctl00_MainContent_grdViewVeiculo_ctl00__0"))
+                )
+
+                print(f"✅ Placa '{placa_texto}' inserida com sucesso na tentativa {tentativa}.")
+                return  # sucesso!
+
+            except Exception as e:
+                print(f"⚠️ Tentativa {tentativa} falhou para a placa '{placa_texto}': {e}")
+                if tentativa == max_tentativas:
+                    print(f"❌ Todas as tentativas falharam para a placa '{placa_texto}'")
+                else:
+                    time.sleep(1)
+
+        # 🔸 Se falhou com a placa original, tenta variações
         variacoes = gerar_variacoes_placa(placa_texto)
 
         for variacao in variacoes:
             for tentativa in range(1, max_tentativas + 1):
                 try:
                     campo_placa = driver.find_element(By.ID, "txtVeiculo_Input")
-                    campo_placa.clear()
+                    limpar_campo_placa(campo_placa)
 
                     preencher_placa_e_confirmar(variacao)
 
@@ -486,43 +645,39 @@ def preencher_sm(driver, dados):
                         EC.presence_of_element_located((By.ID, "ctl00_MainContent_grdViewVeiculo_ctl00__0"))
                     )
 
-                    print(f"Placa '{variacao}' inserida com sucesso na tentativa {tentativa}.")
+                    print(f"✅ Variação da placa '{variacao}' inserida com sucesso na tentativa {tentativa}.")
                     return  # sucesso!
 
                 except Exception as e:
-                    print(f"Tentativa {tentativa} falhou para a placa '{variacao}': {e}")
+                    print(f"⚠️ Tentativa {tentativa} falhou para a variação '{variacao}': {e}")
                     if tentativa == max_tentativas:
-                        print(f"Todas tentativas falharam para a variação '{variacao}'")
+                        print(f"❌ Todas as tentativas falharam para a variação '{variacao}'")
                     else:
                         time.sleep(1)
 
         raise Exception(f"Nenhuma variação da placa '{placa_texto}' foi aceita após {max_tentativas} tentativas por variação.")
 
 
+    # 🔥 Processo principal
     try:
-        print("Inserindo placa cavalo")
+        print("🚚 Inserindo placa cavalo")
         tentar_preencher_placa(dados.get("placa_cavalo", ""))
 
         time.sleep(0.5)
 
-        print("Inserindo placa carreta")
+        print("🛻 Inserindo placa carreta")
         if dados.get("placa_carreta_1") and dados["placa_carreta_1"].strip():
             tentar_preencher_placa(dados["placa_carreta_1"])
 
         time.sleep(0.5)
 
-        print("Inserindo placa carreta 2")
+        print("🚛 Inserindo placa carreta 2")
         if dados.get("placa_carreta_2") and dados["placa_carreta_2"].strip():
             tentar_preencher_placa(dados["placa_carreta_2"])
 
     except Exception as e:
-        print("Erro ao preencher a placa da carreta:", e)
+        print("❌ Erro ao preencher as placas:", e)
         raise
-
-
-
-
-
 
 
 
