@@ -845,7 +845,7 @@ def preencher_sm(driver, dados):
         # Se chegou aqui, todas as tentativas falharam
         raise Exception(f"❌ Falha ao clicar no elemento '{valor}' após {tentativas} tentativas. Último erro: {ultima_excecao}")
 
-    
+
     # try:
     #     clicar_com_seguranca(driver, By.ID, "ctl00_MainContent_btnNovo")
 
@@ -856,37 +856,55 @@ def preencher_sm(driver, dados):
     #     notificacao_texto = None
     #     erro_detectado = False
 
+    #     try:
+    #         notificacao_antes = driver.find_element(By.ID, "notifTexto").text.strip()
+    #     except:
+    #         notificacao_antes = ""
+
     #     while time.time() - start_time < timeout:
-    #         time.sleep(1)
+    #         time.sleep(0.4)  # Polling mais rápido
 
-    #         # 1. Notificação
+    #         # 1️⃣ Verifica se número da SMP já apareceu no label
     #         try:
-    #             div_notificacao = WebDriverWait(driver, 3).until(
-    #                 EC.visibility_of_element_located((By.ID, "divNotificacao"))
-    #             )
-    #             if div_notificacao.is_displayed():
-    #                 notif_text = driver.find_element(By.ID, "notifTexto").text.strip()
-    #                 print(f"📢 Notificação: {notif_text}")
-    #                 notificacao_texto = notif_text
-
-    #                 # Fecha se possível
-    #                 try:
-    #                     driver.find_element(By.ID, "btnCloseNotificacao").click()
-    #                 except:
-    #                     pass
-
-    #                 if "foi salva com sucesso" in notif_text:
-    #                     sm_numero = notif_text.split("número ")[-1].split(" ")[0]
-    #                     print(f"✅ SMP criada com sucesso: {sm_numero}")
-    #                     dados["numero_smp"] = sm_numero
-    #                     return sm_numero
-    #                 else:
-    #                     erro_detectado = True
-    #                     break  # erro detectado, sai do loop
+    #             sm_label = driver.find_element(By.ID, "ctl00_MainContent_lblNumeroSM")
+    #             if sm_label.is_displayed() and sm_label.text.strip():
+    #                 sm_numero = sm_label.text.strip()
+    #                 print(f"✅ SMP detectada pelo label: {sm_numero}")
+    #                 dados["numero_smp"] = sm_numero
+    #                 break  # sai do loop
     #         except:
     #             pass
 
-    #         # 2. Alertas tipo "PGV"
+    #         # 2️⃣ Verifica Notificação Toast
+    #         try:
+    #             div_notificacao = driver.find_element(By.ID, "divNotificacao")
+    #             if div_notificacao.is_displayed():
+    #                 notif_text = driver.find_element(By.ID, "notifTexto").text.strip()
+
+    #                 if notif_text and notif_text != notificacao_antes:
+    #                     print(f"📢 Notificação: {notif_text}")
+    #                     notificacao_texto = notif_text
+
+    #                     try:
+    #                         driver.find_element(By.ID, "btnCloseNotificacao").click()
+    #                     except:
+    #                         pass
+
+    #                     if "foi salva com sucesso" in notif_text:
+    #                         try:
+    #                             sm_numero = notif_text.split("número ")[-1].split(" ")[0]
+    #                             print(f"✅ SMP criada com sucesso pela notificação: {sm_numero}")
+    #                             dados["numero_smp"] = sm_numero
+    #                             break  # sai do loop
+    #                         except:
+    #                             print("⚠️ Notificação positiva, mas não consegui extrair o número.")
+    #                     else:
+    #                         erro_detectado = True
+    #                         break  # erro detectado, sai do loop
+    #         except:
+    #             pass
+
+    #         # 3️⃣ Alertas PGV
     #         try:
     #             alertas = driver.find_elements(By.CSS_SELECTOR, ".rwDialogPopup.radalert")
     #             for alerta in alertas:
@@ -905,18 +923,7 @@ def preencher_sm(driver, dados):
     #         except:
     #             pass
 
-    #         # 3. Checa se o número da SMP apareceu
-    #         try:
-    #             sm_label = driver.find_element(By.ID, "ctl00_MainContent_lblNumeroSM")
-    #             if sm_label.is_displayed() and sm_label.text.strip():
-    #                 sm_numero = sm_label.text.strip()
-    #                 print(f"✅ SMP detectada por label: {sm_numero}")
-    #                 dados["numero_smp"] = sm_numero
-    #                 return
-    #         except:
-    #             pass
-
-    #         # 3. Confirmação tipo "Deseja continuar?" (radconfirm)
+    #         # 4️⃣ Confirmações radconfirm
     #         try:
     #             confirmacoes = driver.find_elements(By.CSS_SELECTOR, ".rwDialogPopup.radconfirm")
     #             for confirm in confirmacoes:
@@ -929,24 +936,26 @@ def preencher_sm(driver, dados):
     #                         for btn in ok_btns:
     #                             if "OK" in btn.text:
     #                                 btn.click()
-    #                                 print("✅ Clique automático no botão OK da confirmação.")
+    #                                 print("✅ Clique no botão OK da confirmação.")
     #                                 break
     #                     except Exception as e:
     #                         print("⚠️ Erro ao clicar em OK na confirmação:", e)
-    #                     break  # sai do for
+    #                     break
     #         except:
     #             pass
 
-    #     # Após loop, decide se erro ou timeout
+    #     # Após o loop, decide se deu erro ou timeout
     #     if erro_detectado:
     #         raise Exception(f"❌ Erro ao salvar SMP: {notificacao_texto or 'erro não especificado'}")
 
-    #     raise Exception("⏱️ Timeout: Nenhuma resposta ao tentar salvar SMP.")
+    #     if not sm_numero:
+    #         raise Exception("⏱️ Timeout: Nenhuma resposta ao tentar salvar SMP.")
+
+    #     print(f"SMP criada com sucesso: {sm_numero}")
 
     # except Exception as e:
     #     print("❌ Erro final ao salvar SMP:", e)
     #     raise
-
 
     try:
         clicar_com_seguranca(driver, By.ID, "ctl00_MainContent_btnNovo")
@@ -964,16 +973,16 @@ def preencher_sm(driver, dados):
             notificacao_antes = ""
 
         while time.time() - start_time < timeout:
-            time.sleep(0.4)  # Polling mais rápido
+            time.sleep(0.4)  # Polling rápido
 
-            # 1️⃣ Verifica se número da SMP já apareceu no label
+            # 1️⃣ Verifica se número da SMP apareceu no label
             try:
                 sm_label = driver.find_element(By.ID, "ctl00_MainContent_lblNumeroSM")
                 if sm_label.is_displayed() and sm_label.text.strip():
                     sm_numero = sm_label.text.strip()
                     print(f"✅ SMP detectada pelo label: {sm_numero}")
                     dados["numero_smp"] = sm_numero
-                    break  # sai do loop
+                    break
             except:
                 pass
 
@@ -992,17 +1001,17 @@ def preencher_sm(driver, dados):
                         except:
                             pass
 
-                        if "foi salva com sucesso" in notif_text:
+                        if "foi salva com sucesso" in notif_text.lower():
                             try:
-                                sm_numero = notif_text.split("número ")[-1].split(" ")[0]
+                                sm_numero = notif_text.split("número ")[-1].split(" ")[0].strip()
                                 print(f"✅ SMP criada com sucesso pela notificação: {sm_numero}")
                                 dados["numero_smp"] = sm_numero
-                                break  # sai do loop
+                                break
                             except:
                                 print("⚠️ Notificação positiva, mas não consegui extrair o número.")
                         else:
                             erro_detectado = True
-                            break  # erro detectado, sai do loop
+                            break
             except:
                 pass
 
@@ -1017,10 +1026,16 @@ def preencher_sm(driver, dados):
                         try:
                             ok_btn = alerta.find_element(By.CLASS_NAME, "rwPopupButton")
                             ok_btn.click()
-                            erro_detectado = True
-                            notificacao_texto = alerta_texto
                         except:
                             pass
+
+                        # Avalia se é um erro ou só um alerta informativo
+                        if any(palavra in alerta_texto.lower() for palavra in ["erro", "não foi possível", "falha"]):
+                            erro_detectado = True
+                            notificacao_texto = alerta_texto
+                        else:
+                            print(f"ℹ️ Alerta informativo ignorado: {alerta_texto}")
+
                         break
             except:
                 pass
@@ -1036,24 +1051,28 @@ def preencher_sm(driver, dados):
                         try:
                             ok_btns = confirm.find_elements(By.CLASS_NAME, "rwPopupButton")
                             for btn in ok_btns:
-                                if "OK" in btn.text:
+                                if "OK" in btn.text.upper():
                                     btn.click()
                                     print("✅ Clique no botão OK da confirmação.")
                                     break
                         except Exception as e:
                             print("⚠️ Erro ao clicar em OK na confirmação:", e)
+
                         break
             except:
                 pass
 
-        # Após o loop, decide se deu erro ou timeout
-        if erro_detectado:
-            raise Exception(f"❌ Erro ao salvar SMP: {notificacao_texto or 'erro não especificado'}")
+        # 🔥 🔥 🔥 Verifica resultado final 🔥 🔥 🔥
 
-        if not sm_numero:
-            raise Exception("⏱️ Timeout: Nenhuma resposta ao tentar salvar SMP.")
-
-        print(f"SMP criada com sucesso: {sm_numero}")
+        if sm_numero:
+            print(f"🎉 SMP criada com sucesso: {sm_numero}")
+            # Retorna ou segue o fluxo normalmente
+        else:
+            # Só lança erro se não houver SMP criada
+            if erro_detectado:
+                raise Exception(f"❌ Erro ao salvar SMP: {notificacao_texto or 'erro não especificado'}")
+            else:
+                raise Exception("⏱️ Timeout: Nenhuma resposta ao tentar salvar SMP.")
 
     except Exception as e:
         print("❌ Erro final ao salvar SMP:", e)
