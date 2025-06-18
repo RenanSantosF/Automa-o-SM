@@ -183,9 +183,7 @@ setExecucoes((prev) =>
       <p><span className="font-semibold text-green-600">Placa Cavalo:</span> {exec.placa_cavalo}</p>
       {exec.placa_carreta_1 && <p><span className="font-semibold text-green-600">Carreta 1:</span> {exec.placa_carreta_1}</p>}
       {exec.placa_carreta_2 && <p><span className="font-semibold text-green-600">Carreta 2:</span> {exec.placa_carreta_2}</p>}
-      <p><span className="font-semibold text-green-600">Origem:</span> {exec.local_origem}</p>
-      <p><span className="font-semibold text-green-600">Destino:</span> {exec.local_destino}</p>
-      <p className="sm:col-span-2"><span className="font-semibold text-green-600">Rota Selecionada:</span> {exec.rota_selecionada}</p>
+
     </div>
   </div>
 
@@ -193,15 +191,27 @@ setExecucoes((prev) =>
     <div className="bg-white rounded-2xl shadow p-6">
       <h3 className="text-lg  mb-4">Remetente</h3>
       <p className="text-justify"><span className="font-semibold text-green-600">Nome:</span> {exec.remetente_nome}</p>
+
+      <p className="text-justify"><span className="font-semibold text-green-600">origem:</span> {exec.local_origem}</p>
       <p className="text-justify"><span className="font-semibold text-green-600">CNPJ:</span> {formatarCNPJ(exec.remetente_cnpj)}</p>
-      <p className="text-justify"><span className="font-semibold text-green-600">Endereço:</span> {exec.remetente_endereco}</p>
     </div>
 
     <div className="bg-white rounded-2xl shadow p-6">
       <h3 className="text-lg ">Destinatário</h3>
       <p className="text-justify"><span className="font-semibold text-green-600">Nome:</span> {exec.destinatario_nome}</p>
+      <p className="text-justify"><span className="font-semibold text-green-600">Destino:</span> {exec.local_destino}</p>
+
       <p className="text-justify"><span className="font-semibold text-green-600">CNPJ:</span> {formatarCNPJ(exec.destinatario_cnpj)}</p>
-      <p className="text-justify"><span className="font-semibold text-green-600">Endereço:</span> {exec.destinatario_endereco}</p>
+    </div>
+
+
+  </div>
+  <div className="bg-white rounded-2xl shadow p-6 mb-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-justify">
+      <p className="sm:col-span-2"><span className="font-semibold text-green-600">Origem e destino cadastrados Apisul</span></p>
+      <p className="sm:col-span-2"><span className="font-semibold text-green-600"></span>{exec.remetente_cadastrado_apisul}</p>
+      <p className="sm:col-span-2"><span className="font-semibold text-green-600"></span>{exec.destinatario_cadastrado_apisul}</p>
+      <p className="sm:col-span-2"><span className="font-semibold text-green-600">Rota Selecionada:</span> {exec.rota_selecionada || ""}</p>
     </div>
   </div>
 </div>
