@@ -1,17 +1,17 @@
-import os
-import asyncio
-import httpx
-from models import NFe
-from utils.email import enviar_email_com_anexos
-from sqlalchemy.orm import Session
-from utils.status import salvar_status
-from typing import List
-
+# import os
+# import asyncio
+# import httpx
+# from models import NFe
+# from utils.email import enviar_email_com_anexos
+# from sqlalchemy.orm import Session
+# from utils.status import salvar_status
+# from typing import List
 
 # async def buscar_e_enviar_nfes(
 #     db: Session,
 #     chaves: List[str],
 #     email_destino: str,
+#     email_copia: str = None,
 #     pasta_temporaria: str = "temp_xmls"
 # ):
 #     os.makedirs(pasta_temporaria, exist_ok=True)
@@ -40,7 +40,7 @@ from typing import List
 #         "Accept": "*/*",
 #     }
 
-#     MAX_TENTATIVAS = 3
+#     MAX_TENTATIVAS = 8
 
 #     async with httpx.AsyncClient(timeout=30) as client:
 
@@ -87,7 +87,7 @@ from typing import List
 #                 db.commit()
 
 #                 if len(arquivos) == 10:
-#                     enviar_email_com_anexos(email_destino, arquivos)
+#                     enviar_email_com_anexos(email_destino, arquivos, cc=email_copia)
 #                     for arquivo in arquivos:
 #                         try:
 #                             os.remove(arquivo)
@@ -102,7 +102,7 @@ from typing import List
 #             await asyncio.sleep(8)  # espera entre requisições para não estourar limite
 
 #     if arquivos:
-#         enviar_email_com_anexos(email_destino, arquivos)
+#         enviar_email_com_anexos(email_destino, arquivos, cc=email_copia)
 #         for arquivo in arquivos:
 #             try:
 #                 os.remove(arquivo)
@@ -111,6 +111,16 @@ from typing import List
 
 #     salvar_status("", len(nfes), len(nfes), "✅ Processo finalizado.")
 #     print("✅ Processo finalizado.")
+
+
+import os
+import asyncio
+import httpx
+from models import NFe
+from utils.email import enviar_email_com_anexos
+from sqlalchemy.orm import Session
+from typing import List
+
 
 async def buscar_e_enviar_nfes(
     db: Session,
@@ -128,7 +138,6 @@ async def buscar_e_enviar_nfes(
 
     if not nfes:
         print("Nenhuma NFe nova para processar.")
-        salvar_status("", 0, 0, "Nenhuma NFe nova para processar.")
         return
 
     arquivos = []
@@ -145,7 +154,7 @@ async def buscar_e_enviar_nfes(
         "Accept": "*/*",
     }
 
-    MAX_TENTATIVAS = 8
+    MAX_TENTATIVAS = 5
 
     async with httpx.AsyncClient(timeout=30) as client:
 
@@ -154,7 +163,7 @@ async def buscar_e_enviar_nfes(
                 resp = await client.post(url, headers=HEADERS, content="{}")
                 if resp.status_code == 400:
                     print(f"[ERRO] Bad Request (400) para {url}, tentativa {tentativa + 1}/{MAX_TENTATIVAS}")
-                    await asyncio.sleep(6 ** tentativa)
+                    await asyncio.sleep(2 ** tentativa)
                 else:
                     resp.raise_for_status()
                     return resp
@@ -163,19 +172,26 @@ async def buscar_e_enviar_nfes(
         for idx, nfe in enumerate(nfes, start=1):
             chave = nfe.chave.strip()
             if len(chave) != 44:
-                print(f"[AVISO] Chave inválida (tamanho errado): {chave}")
+                msg = f"[AVISO] Chave inválida (tamanho errado): {chave}"
+                print(msg)
+                nfe.status = "erro"
+                nfe.historico.append(msg)
+                db.commit()
                 continue
 
             try:
                 print(f"[INFO] Processando {idx}/{len(nfes)}: {chave}")
-                salvar_status(chave, idx, len(nfes), f"Processando chave {chave}")
+
+                # Atualiza status para processando
+                nfe.status = "processando"
+                nfe.historico.append("🚀 Iniciando processamento da NFe.")
+                db.commit()
 
                 url_consulta = f"https://ws.meudanfe.com/api/v1/get/nfe/data/MEUDANFE/{chave}"
                 url_xml = f"https://ws.meudanfe.com/api/v1/get/nfe/xml/{chave}"
 
                 resp_consulta = await post_com_retry(url_consulta)
-
-                await asyncio.sleep(6)  # para não bater muito rápido
+                await asyncio.sleep(2)  # Delay leve para não sobrecarregar
 
                 resp_xml = await post_com_retry(url_xml)
 
@@ -186,12 +202,13 @@ async def buscar_e_enviar_nfes(
 
                 arquivos.append(caminho)
 
-                # Marca como baixado
+                # ✅ Marca como baixado e sucesso
                 nfe.baixado = True
-                db.add(nfe)
+                nfe.status = "sucesso"
+                nfe.historico.append("✅ NFe baixada e salva com sucesso.")
                 db.commit()
 
-                if len(arquivos) == 10:
+                if len(arquivos) >= 10:
                     enviar_email_com_anexos(email_destino, arquivos, cc=email_copia)
                     for arquivo in arquivos:
                         try:
@@ -201,10 +218,13 @@ async def buscar_e_enviar_nfes(
                     arquivos.clear()
 
             except Exception as e:
-                salvar_status(chave, idx, len(nfes), f"Erro ao processar chave {chave}: {str(e)}")
-                print(f"[ERRO] Erro ao processar chave {chave}: {e}")
+                erro_msg = f"❌ Erro ao processar chave {chave}: {str(e)}"
+                print(erro_msg)
+                nfe.status = "erro"
+                nfe.historico.append(erro_msg)
+                db.commit()
 
-            await asyncio.sleep(8)  # espera entre requisições para não estourar limite
+            await asyncio.sleep(3)  # Delay leve entre NFes
 
     if arquivos:
         enviar_email_com_anexos(email_destino, arquivos, cc=email_copia)
@@ -214,5 +234,4 @@ async def buscar_e_enviar_nfes(
             except Exception as e:
                 print(f"[ERRO] Falha ao remover arquivo {arquivo}: {e}")
 
-    salvar_status("", len(nfes), len(nfes), "✅ Processo finalizado.")
     print("✅ Processo finalizado.")

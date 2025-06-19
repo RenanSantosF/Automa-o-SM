@@ -43,4 +43,5 @@ class NFeCreate(BaseModel):
 class CTeCreate(BaseModel):
     nome: str
     xml: str
+    solicitacao_id: str  # 🔥 Adicionado aqui
     notas: List[NFeCreate]

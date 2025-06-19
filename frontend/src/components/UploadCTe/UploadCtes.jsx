@@ -1,10 +1,12 @@
-import React, { useState } from "react";
+import React,  { useState, useEffect } from "react";
 import { MdOutlineExpandMore } from "react-icons/md";
 import { MdExpandLess } from "react-icons/md";
 import StatusScrapingNfe from "../Status/StatusScrapingNfe";
 const api = import.meta.env.VITE_API_URL;
+import { v4 as uuidv4 } from "uuid";
 
 const UploadCtes = () => {
+  const [solicitacaoId, setSolicitacaoId] = useState("");
   const [notasPorCte, setNotasPorCte] = useState([]);
   const [error, setError] = useState(null);
   const [aberto, setAberto] = useState(null);
@@ -101,15 +103,15 @@ const UploadCtes = () => {
 
   const enviarParaBackend = async () => {
     setEnviando(true);
-    console.log(notasPorCte)
     try {
-      const response = await fetch(`${api}/importacaotoemailnfe/`, {
+      const response = await fetch(`${api}/importa-e-processa-recentes/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(
           notasPorCte.map((cte) => ({
             nome: cte.nome,
             xml: cte.xml,
+            solicitacao_id: solicitacaoId,  // aqui envia o ID gerado no backend
             notas: cte.notas.map((chave) => ({ chave })),
           }))
         ),
@@ -119,7 +121,6 @@ const UploadCtes = () => {
 
       alert("Dados enviados com sucesso!");
       setNotasPorCte([]);
-      
       setFiles([]);
     } catch (err) {
       console.error(err);
@@ -128,6 +129,11 @@ const UploadCtes = () => {
       setEnviando(false);
     }
   };
+
+
+  useEffect(() => {
+    setSolicitacaoId(uuidv4());
+  }, []);
 
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white shadow rounded">
@@ -201,7 +207,7 @@ const UploadCtes = () => {
       )}
 
                   <div>
-              <StatusScrapingNfe />
+
             </div>
     </div>
   );
