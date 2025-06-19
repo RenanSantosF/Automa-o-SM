@@ -104,7 +104,7 @@ const UploadCtes = () => {
   const enviarParaBackend = async () => {
     setEnviando(true);
     try {
-      const response = await fetch(`${api}/importa-e-processa-recentes/`, {
+      const response = await fetch(`${api}/importa-e-processa-recentes`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(
