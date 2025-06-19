@@ -136,7 +136,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import { useLogin } from "./Contexts/LoginContext";
 import LoginModal from "./components/LoginModal/LoginModal";
 import Header from "./components/Header/Header";
-import SolicitacaoMonitoramento from "./pages/solicitacaoMonitoramento";
+import SolicitacaoMonitoramento from "./pages/SolicitacaoMonitoramento";
 import ImportacaoNFE from "./pages/ImportacaoNFE";
 
 function App() {
