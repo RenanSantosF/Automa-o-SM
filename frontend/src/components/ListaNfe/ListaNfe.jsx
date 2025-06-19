@@ -254,7 +254,7 @@ const reprocessarSolicitacao = async (solicitacaoId) => {
                   className="border rounded-lg p-4 mb-3 bg-gray-50"
                 >
                   <p className="font-semibold text-gray-800">
-                    📄 {cte.nome})
+                    📄 {cte.nome}
                   </p>
                   {cte.nfes && cte.nfes.length > 0 ? (
                     <ul className="mt-2 ml-4 list-disc text-sm text-gray-700">
