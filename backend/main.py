@@ -31,11 +31,15 @@ app.include_router(routes_execucoes.router, prefix="/api")
 app.include_router(routes_importar_nfe.router, prefix="/api")
 app.include_router(routes_status_importa_nfe.router, prefix="/api")
 
-# Serve a pasta raiz (ou a pasta onde estão os arquivos estáticos)
-app.mount("/", StaticFiles(directory=".", html=True), name="frontend")
+
+# Monta o frontend numa rota específica
+app.mount("/frontend", StaticFiles(directory="frontend"), name="frontend")
 
 @app.get("/{full_path:path}")
 async def spa_catch_all(request: Request, full_path: str):
-    if full_path.startswith("api"):
-        return {"detail": "API route not found"}
-    return FileResponse("index.html")
+    # Se for rota API, passa para FastAPI tratar normalmente (retorna 404 se não achar)
+    if full_path.startswith("api") or full_path.startswith("frontend"):
+        return {"detail": "API route not found or static file not found"}
+
+    # Serve o index.html para todas as outras rotas
+    return FileResponse(os.path.join("frontend", "index.html"))
