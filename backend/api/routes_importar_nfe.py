@@ -224,3 +224,21 @@ def listar_solicitacoes(
         })
 
     return {"solicitacoes": resultado}
+
+
+@router.delete("/solicitacao/{solicitacao_id}")
+def excluir_solicitacao(solicitacao_id: str, db: Session = Depends(get_db)):
+    ctes = db.query(CTe).filter(CTe.solicitacao_id == solicitacao_id).all()
+
+    if not ctes:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Nenhum CTe encontrado para a solicitação {solicitacao_id}"
+        )
+
+    for cte in ctes:
+        db.delete(cte)  # 🔥 As NFes vinculadas são deletadas automaticamente por causa do cascade
+
+    db.commit()
+
+    return {"status": "success", "message": f"Solicitação {solicitacao_id} excluída com sucesso."}

@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="pt" class="js-focus-visible" data-js-focus-visible="">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="description" content="TERMO DE USO - ApisulLog 2.0">
+  <meta name="author" content="PrivacyTools">
+  <meta name="robots" content="noindex, nofollow">
+  <title>TERMO DE USO - ApisulLog 2.0</title>
+  <link href="https://cdn.privacytools.com.br/css/css2" rel="stylesheet">
+  <link href="https://cdn.privacytools.com.br/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css'>
+<style type="text/css">
+
+* {
+    user-select: auto
+}
+
+@font-face {
+    font-weight: 400;
+    font-style: normal;
+    font-family: 'Inter-Loom';
+    src: url('https://cdn.loom.com/assets/fonts/inter/Inter-UI-Regular.woff2') format('woff2');
+}
+@font-face {
+    font-weight: 400;
+    font-style: italic;
+    font-family: 'Inter-Loom';
+    src: url('https://cdn.loom.com/assets/fonts/inter/Inter-UI-Italic.woff2') format('woff2');
+}
+@font-face {
+    font-weight: 500;
+    font-style: normal;
+    font-family: 'Inter-Loom';
+    src: url('https://cdn.loom.com/assets/fonts/inter/Inter-UI-Medium.woff2') format('woff2');
+}
+@font-face {
+    font-weight: 500;
+    font-style: italic;
+    font-family: 'Inter-Loom';
+    src: url('https://cdn.loom.com/assets/fonts/inter/Inter-UI-MediumItalic.woff2') format('woff2');
+}
+@font-face {
+    font-weight: 700;
+    font-style: normal;
+    font-family: 'Inter-Loom';
+    src: url('https://cdn.loom.com/assets/fonts/inter/Inter-UI-Bold.woff2') format('woff2');
+}
+@font-face {
+    font-weight: 700;
+    font-style: italic;
+    font-family: 'Inter-Loom';
+    src: url('https://cdn.loom.com/assets/fonts/inter/Inter-UI-BoldItalic.woff2') format('woff2');
+}
+@font-face {
+    font-weight: 900;
+    font-style: normal;
+    font-family: 'Inter-Loom';
+    src: url('https://cdn.loom.com/assets/fonts/inter/Inter-UI-Black.woff2') format('woff2');
+}
+@font-face {
+    font-weight: 900;
+    font-style: italic;
+    font-family: 'Inter-Loom';
+    src: url('https://cdn.loom.com/assets/fonts/inter/Inter-UI-BlackItalic.woff2') format('woff2');
+}
+</style>
+<script type="text/javascript">
+function close_info(){
+ $( "#doc-info" ).toggle();
+  var x = document.getElementById("close-info");
+  if (x.innerHTML === "i") {
+    x.innerHTML = "X";
+  } else {
+    x.innerHTML = "i";
+  }
+
+  }
+</script>
+</head>
+<body class="">
+
+
+  <!-- Page Content -->
+  <div class="container-fluid policy-body">
+
+    <div class="row">
+
+      <!-- Post Content Column -->
+      <div class="col-lg-12">
+
+            <div class="logo" ><a href="https://www.apisul.com.br"><img src="https://cdn.privacytools.com.br/public_api/assets/dbf8eb69-fbf7-4378-9ac5-35776527744c/website/9D37C69FFEF55A47114DD55ABF7A5CA7.png"></img></a></div>
+
+        <!-- Title -->
+        <h1>TERMO DE USO - ApisulLog 2.0</h1>
+
+      <h2 class="h2-principal">Última atualização: 22 de novembro de 2021 <span id="close-info" onclick="close_info()" title="Mais informações">i</span></h2>
+      <div id="doc-info">
+        <table>
+          <tr>
+            <th>
+                <svg style="vertical-align: text-top" width="15px" height="15px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512H418.3c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304H178.3z"/></svg>
+                Autor
+            </th>
+            <td><a href="https://www.apisul.com.br" target="_blank"  rel="ugc,nofollow">Grupo APISUL</a></td>
+          </tr>
+          <tr>
+            <th>
+                <svg style="vertical-align: text-top" width="15px" height="15px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M96 32V64H48C21.5 64 0 85.5 0 112v48H448V112c0-26.5-21.5-48-48-48H352V32c0-17.7-14.3-32-32-32s-32 14.3-32 32V64H160V32c0-17.7-14.3-32-32-32S96 14.3 96 32zM448 192H0V464c0 26.5 21.5 48 48 48H400c26.5 0 48-21.5 48-48V192z"/></svg>
+                Atualizada em
+            </th>
+            <td>22/11/2021 15:12</td>
+          </tr>
+          <tr>
+            <th>
+                <svg style="vertical-align: text-top" width="15px" height="15px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M80 104a24 24 0 1 0 0-48 24 24 0 1 0 0 48zm80-24c0 32.8-19.7 61-48 73.3v87.8c18.8-10.9 40.7-17.1 64-17.1h96c35.3 0 64-28.7 64-64v-6.7C307.7 141 288 112.8 288 80c0-44.2 35.8-80 80-80s80 35.8 80 80c0 32.8-19.7 61-48 73.3V160c0 70.7-57.3 128-128 128H176c-35.3 0-64 28.7-64 64v6.7c28.3 12.3 48 40.5 48 73.3c0 44.2-35.8 80-80 80s-80-35.8-80-80c0-32.8 19.7-61 48-73.3V352 153.3C19.7 141 0 112.8 0 80C0 35.8 35.8 0 80 0s80 35.8 80 80zm232 0a24 24 0 1 0 -48 0 24 24 0 1 0 48 0zM80 456a24 24 0 1 0 0-48 24 24 0 1 0 0 48z"/></svg>
+                Versão
+            </th>
+            <td>
+                1.1
+              </td>
+          </tr>
+          <tr>
+            <th>
+                <svg style="vertical-align: text-top" width="15px" height="15px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M144 144v48H304V144c0-44.2-35.8-80-80-80s-80 35.8-80 80zM80 192V144C80 64.5 144.5 0 224 0s144 64.5 144 144v48h16c35.3 0 64 28.7 64 64V448c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V256c0-35.3 28.7-64 64-64H80z"/></svg>
+                Assinatura digital
+            </th>
+            <td>4C91CB81277E3476177EE06E268F38B548D5DAC80CC820F1837395372955D740</td>
+          </tr>
+        </table>
+      </div>
+
+        <!-- Post Content -->
+         <style type="text/css">
+* {
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+}
+html {
+  font-family: 'Roboto', open sans, sans-serif;
+}
+.policy-body {
+  margin: 2.5em auto 20px auto;
+  width: 90%;
+  max-width: 1000px;
+}
+.logo {
+  width: 100%;
+  padding-top: 70px;
+  text-align: center;
+  background-image: url("../img/back-logo.svg");
+  background-position: bottom center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  border-bottom: 1px solid #EFEEEE;
+}
+.logo a {
+  display: block;
+  margin-bottom: -75px;
+}
+.logo img {
+  max-width: 45%;
+  max-height: 150px;
+  padding: 20px;
+  -webkit-border-radius: 10px;
+  -moz-border-radius: 10px;
+  border-radius: 10px;
+  border: 1px solid #EFEEEE;
+  background-color: #fff;
+}
+h3, h4 {
+  font-weight: 600;
+  padding-left: 0.2em;
+  padding-right: 0.2em;
+  color: #000000;
+  margin: 0;
+}
+h1 {
+  text-align: center;
+  font-size: 40px;
+  font-weight: 600;
+  margin-top: 130px;
+  margin-bottom: 20px;
+}
+h2 {
+  font-size: 20px;
+  font-weight: 7000;
+  color: #000000;
+  margin-bottom: 0;
+  margin-top: 0;
+}
+h2.h2-principal {
+  font-size: 18px;
+  font-weight: normal;
+  color: #686868;
+  text-align: center;
+  margin-bottom: 0;
+}
+h3 {
+  font-size: 20.8px;
+}
+h4 {
+  font-size: 16.8px;
+}
+p {
+  padding-left: 0.2em;
+  padding-right: 0.2em;
+  font-size: 14.8px;
+  margin-top: 0;
+  margin-bottom: 1rem;
+  text-align: justify;
+}
+#doc-info {
+  display: none;
+  width: 490px; /* alterar */
+  margin: auto;
+  margin-top: 60px;
+  margin-bottom: 70px;
+  -webkit-border-radius: 10px;
+  -moz-border-radius: 10px;
+  border-radius: 10px;
+  -webkit-box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.07);
+  -moz-box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.07);
+  box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.07);
+}
+#doc-info table td {
+  max-width: 60%;
+  word-break: break-word;
+}
+#doc-info table th {
+  width: 40%;
+  vertical-align: top;
+}
+@media screen and (max-width: 600px) {
+  #doc-info {
+    width: 98%;
+    margin-left: 1%;
+    margin-right: 1%;
+    left: 0px;
+  }
+  #doc-info select {
+    margin-bottom: 5px;
+  }
+}
+
+footer {
+  width: 100%;
+  bottom: 0px;
+  padding:20px;
+}
+footer a{
+    position:fixed;
+}
+.bg-color {
+  background-color: #274897
+}
+.consentMode > .policy-body {
+  margin-bottom: 140px;
+}
+.logo img {
+  max-width: 80%;
+}
+body .navbar {
+  display: none !important;
+}
+/* Alterar - novo estilo */
+.btn2p {
+  color: #686868;
+  font-weight: bold;
+  background-color: #ffffff;
+  border: 1px solid #eeeeee !important;
+  margin-right: 10px;
+  display: inline-block;
+  width: auto;
+  -webkit-border-radius: 7px;
+  -moz-border-radius: 7px;
+  border-radius: 7px;
+  border: 0px;
+  padding: 5px 15px;
+  cursor: pointer;
+}
+#doc-info select {
+  margin-right: 5px;
+}
+/* Alterar - novo estilo */
+.btn2p:hover {
+  color: #000000;
+}
+#close-info {
+  display: inline-block;
+  vertical-align: inherit;
+  text-align: center;
+  width: 20px;
+  height: 20px;
+  color: #274897;
+  background-color: #ffffff;
+  font-weight: bold;
+  font-size: 13px;
+  border: 2px solid #274897;
+  -webkit-border-radius: 50%;
+  -moz-border-radius: 50%;
+  border-radius: 50%;
+  -webkit-box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.07);
+  -moz-box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.07);
+  box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.07);
+  cursor: pointer;
+}
+#close-info-modal {
+  display: block;
+  vertical-align: inherit;
+  text-align: center;
+  width: 34px;
+  height: 34px;
+  color: #707070;
+  background-color: #ffffff;
+  font-weight: bold;
+  font-size: 20px;
+  border: 1px solid #E4E4E4;
+  -webkit-border-radius: 50%;
+  -moz-border-radius: 50%;
+  border-radius: 50%;
+  -webkit-box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.07);
+  -moz-box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.07);
+  box-shadow: 0px 2px 5px 4px rgba(0, 0, 0, 0.07);
+  cursor: pointer;
+  position: absolute;
+  right: 15px;
+}
+/* fim dos estilos que estavam na página */
+p {
+  margin: 0 0 0;
+}
+.margin-col {
+  border-right: 1px solid #EFEEEE;
+}
+ins {
+  background: lightgreen;
+  text-decoration: none;
+}
+.old-text ins {
+  display: none;
+}
+del {
+  background: pink;
+}
+.new-text del {
+  display: none;
+}
+.card {
+  background: #fff;
+  border-radius: 3px;
+  margin: 1rem;
+  padding: 2rem;
+}
+.card .card {
+  margin: 0;
+  flex: 1 0 0;
+}
+.row {
+  display: flex;
+  justify-content: space-between;
+  margin-right: -8px;
+}
+.col {
+  display: flex;
+  flex: 1 0 0;
+  flex-direction: column;
+  margin-right: 8px;
+}
+/* Estilos modal de comparação */
+* {
+  box-sizing: border-box;
+}
+.modal {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  overflow: hidden;
+}
+.modal-dialog {
+  position: fixed;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+}
+.modal-content {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.modal-body h1 {
+	margin-top: 0px;
+}
+.modal-header {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 60px;
+  padding: 10px;
+  border: 0;
+}
+.modal-header .col {
+  text-align: center;
+  display: inline-block;
+}
+.modal-header .btn {
+  color: #686868;
+  background-color: #ffffff;
+  border: 1px solid #eeeeee !important;
+  margin-right: 10px;
+  display: inline-block;
+  width: auto;
+  -webkit-border-radius: 7px;
+  -moz-border-radius: 7px;
+  border-radius: 7px;
+  border: 0px;
+  cursor: default !important;
+}
+.modal-body {
+  position: absolute;
+  top: 60px;
+  bottom: 0px;
+  width: 100%;
+  overflow: auto;
+}
+.modal-footer {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 60px;
+  padding: 10px;
+  background: #f1f3f5;
+}
+.btn {
+  height: 40px;
+  border-radius: 0;
+  // focus
+  &:focus, &:active, &:active:focus {
+    box-shadow: none;
+    outline: none;
+  }
+}
+.btn-modal {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-top: -20px;
+  margin-left: -100px;
+  width: 200px;
+}
+.btn-primary, .btn-primary:hover, .btn-primary:focus, .btn-primary:active {
+  font-weight: 300;
+  font-size: 1.6rem;
+  color: #fff;
+  color: lighten(#484b5b, 20%);
+  color: #fff;
+  text-align: center;
+  background: #60cc69;
+  border: 1px solid #36a940;
+  border-bottom: 3px solid #36a940;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  // active
+  &:active {
+    border-bottom: 1px solid #36a940;
+  }
+}
+.btn-default, .btn-default:hover, .btn-default:focus, .btn-default:active {
+  font-weight: 300;
+  font-size: 1.6rem;
+  color: #fff;
+  text-align: center;
+  background: darken(#dcdfe4, 10%);
+  border: 1px solid darken(#dcdfe4, 20%);
+  border-bottom: 3px solid darken(#dcdfe4, 20%);
+  // active
+  &:active {
+    border-bottom: 1px solid darken(#dcdfe4, 20%);
+  }
+}
+.btn-secondary, .btn-secondary:hover, .btn-secondary:focus, .btn-secondary:active {
+  color: #cc7272;
+  background: transparent;
+  border: 0;
+}
+@media screen and (max-width: 736px) {
+	.modal-header .btn-ver1{
+	background-color: #274897;
+    color: #ffffff;
+	}
+  .col-right {
+    display: none;
+  }
+  .margin-col {
+    border: 0px;
+  }
+  .modal-body .card {
+    padding: 0px;
+  }
+  .modal-body .row, .modal-body .col {
+    padding: 0px;
+    margin: 0px;
+  }
+  .modal-body h1 {
+    margin-top: 60px;
+  }
+}
+/* Banner de consentimento */
+#privacytools-bar {
+	display:block;
+	position:fixed;
+	bottom: 10px;
+	height:auto;
+	background-color: #ffffff;
+	padding:20px;
+	-webkit-border-radius: 10px;
+	-moz-border-radius: 10px;
+	border-radius: 10px;
+	-webkit-box-shadow: 0px 2px 5px 4px rgba(0,0,0,0.07);
+	-moz-box-shadow: 0px 2px 5px 4px rgba(0,0,0,0.07);
+	box-shadow: 0px 2px 5px 4px rgba(0,0,0,0.07);
+	z-index: 999;
+
+
+	/* Bar com largura fixa (Recomendado) */
+	margin-left: 50%;
+	width: 970px; /* Aqui vai sempre a largura total do banner */
+	left: -485px; /* Aqui vai sempre a metade da largura total do banner */
+
+	/* Bar com largura full, para funcionar tem que comentar o bloco acima e descomentar este
+	width: 98%;
+	margin-left: 1%;
+	margin-right: 1%;
+	*/
+}
+@media screen and (max-width: 1000px) {
+  #privacytools-bar {
+    width: 98%;
+	margin-left: 1%;
+	margin-right: 1%;
+	left: 0px;
+  }
+}
+#privacytools-bar p{
+	margin:0px;
+}
+#privacytools-bar .cookie-icon {
+	background-image: url("img/biscuit.svg");
+	display: block;
+	position: absolute;
+	text-indent: -200px;
+	overflow: hidden;
+	width: 30px;
+	height: 30px;
+	margin-top: -5px;
+}
+#privacytools-bar .consent-text, #privacytools-bar .consent-buttons{
+	display: inline-block;
+}
+#privacytools-bar .consent-text{
+	width: 65%;
+	margin: 0px;
+	padding-left: 35px;
+}
+#privacytools-bar .consent-buttons{
+	width: 100%;
+    min-width: 300px;
+    margin: 0 auto;
+    text-align: center;
+}
+#privacytools-bar .consent-buttons .btn1, #privacytools-bar .consent-buttons .btn2, #privacytools-bar .consent-buttons .btn-edit{
+	display: inline-block;
+	width: auto;
+	-webkit-border-radius: 7px;
+	-moz-border-radius: 7px;
+	border-radius: 7px;
+	border: 0px;
+	padding: 10px 20px;
+	cursor: pointer;
+}
+#privacytools-bar .consent-buttons .btn1{
+	color: #ffffff;
+	background-color: #274897;
+}
+#privacytools-bar .consent-buttons .btn1:hover{
+	background: rgb(39,72,151);
+    background: linear-gradient(190deg, rgba(39,72,151,1) 0%, rgba(40,81,183,1) 100%);
+}
+#privacytools-bar .consent-buttons .btn2{
+	color: #686868;
+	background-color: #ffffff;
+	border: 1px solid #eeeeee;
+	margin-right: 10px;
+}
+#privacytools-bar .consent-buttons .btn2:hover{
+	color: #000000;
+	}
+#privacytools-bar .consent-buttons .btn-edit {
+    -webkit-border-radius: 7px;
+    -webkit-border-top-left-radius: 0px;
+    -webkit-border-bottom-left-radius: 0px;
+    -moz-border-radius: 7px;
+    -moz-border-radius-topleft: 0px;
+    -moz-border-radius-bottomleft: 0px;
+    border-radius: 7px;
+    border-top-left-radius: 0px;
+    border-bottom-left-radius: 0px;
+    margin-left: -10px;
+    border-left: 1px solid #fff;
+    background-image: url(img/edit.svg);
+    background-repeat: no-repeat;
+    background-position: center center;
+	background-color: #274897;
+    text-indent: -200px;
+    overflow: hidden;
+}
+#privacytools-bar .consent-buttons .btn-edit:hover {
+	background-image: url("img/edit.svg"), linear-gradient(190deg, rgba(39,72,151,1) 0%, rgba(40,81,183,1) 100%);
+}
+#privacytools-bar #close_bar{
+    display: inline-block;
+    position: absolute;
+    text-align: center;
+    width: 30px;
+    vertical-align: middle;
+    height: 30px;
+    padding-top: 3px;
+    color: #707070;
+    background-color: #ffffff;
+    font-weight: bold;
+    font-size: 15px;
+    border: 1px solid #eeeeee;
+    -webkit-border-radius: 50%;
+    -moz-border-radius: 50%;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 1000;
+    right: 10px;
+    margin-top: -10px;
+}
+#privacytools-bar-close{
+	display:none;
+	position:fixed;
+	bottom: 10px;
+	left: 0px;
+	height:auto;
+	background-color: #ffffff;
+	padding:10px;
+	-webkit-border-top-right-radius: 10px;
+	-webkit-border-bottom-right-radius: 10px;
+	-moz-border-radius-topright: 10px;
+	-moz-border-radius-bottomright: 10px;
+	border-top-right-radius: 10px;
+	border-bottom-right-radius: 10px;
+	-webkit-box-shadow: 0px 2px 5px 4px rgba(0,0,0,0.07);
+	-moz-box-shadow: 0px 2px 5px 4px rgba(0,0,0,0.07);
+	box-shadow: 0px 2px 5px 4px rgba(0,0,0,0.07);
+	z-index: 999;
+}
+	#privacytools-bar-close .cookie-icon{
+	background-image: url("img/biscuit.svg");
+	display: block;
+	text-indent: -200px;
+	overflow: hidden;
+	width: 30px;
+	height: 30px;
+	cursor: pointer;
+}
+@media screen and (max-width: 946px) {
+  #privacytools-bar .consent-buttons {
+	  margin-top: 10px;
+	  text-align: center;
+  }
+  #privacytools-bar .consent-text, #privacytools-bar .consent-buttons {
+	  width: 100%;
+  }
+}
+#button-compare{
+    display:none;
+}
+</style><p>Os presentes Termos e Condi&ccedil;&otilde;es Gerais de Uso (&ldquo;Termos&rdquo;) reger&atilde;o todos os servi&ccedil;os e intermedia&ccedil;&otilde;es comerciais realizadas atrav&eacute;s do portal <strong>https://novoapisullog.apisul.com.br/Login</strong> (&ldquo;Site&rdquo;), plataforma e aplicativo <strong>ApisulMob</strong> de titularidade da MULTISAT GERENCIAMENTO DE RISCOS LTDA,&nbsp;pessoa jur&iacute;dica de direito privado, inscrita no CNPJ/MF sob n&ordm;. 15.697.602/0002-06, sediada &agrave; Pereira Franco 347, na cidade de Porto Alegre/RS, doravante denominada &ldquo;Apisul&rdquo;.</p>
+<p>Aqui voc&ecirc; encontrar&aacute; informa&ccedil;&otilde;es importantes sobre como desfrutar da melhor experi&ecirc;ncia no uso do site, plataforma e aplicativo, assim como sobre os servi&ccedil;os prestados no ambiente eletr&ocirc;nico e quando da aquisi&ccedil;&atilde;o de produtos. Sempre que acessar, navegar ou utilizar o nosso site, plataforma e aplicativo, voc&ecirc; estar&aacute; se comprometendo a respeitar estes Termos.</p>
+<p>A Apisul poder&aacute; a qualquer momento alterar os presentes Termos, e as altera&ccedil;&otilde;es entrar&atilde;o em vigor quando realizada a divulga&ccedil;&atilde;o da nova vers&atilde;o. Voc&ecirc; ser&aacute; comunicado previamente acerca da alguma altera&ccedil;&atilde;o substancial, podendo decidir se continuar&aacute; ou n&atilde;o a utilizar o nosso site, plataforma e aplicativo. O aceite nos novos Termos ser&aacute; considerado como novo consentimento &agrave;s disposi&ccedil;&otilde;es contidas no documento.</p>
+<p>Voc&ecirc; dever&aacute; ler e certificar-se de haver entendido e aceito todas as condi&ccedil;&otilde;es estabelecidas nos presentes Termos<s

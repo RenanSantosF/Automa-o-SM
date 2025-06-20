@@ -4,6 +4,7 @@ import { FaSync, FaExclamationCircle, FaRecycle } from "react-icons/fa";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import IconButton from "../Btn_Icone/Index";
+import { MdDelete } from "react-icons/md";
 
 const api = import.meta.env.VITE_API_URL;
 
@@ -114,6 +115,31 @@ const reprocessarSolicitacao = async (solicitacaoId) => {
   }
 };
 
+const handleDeleteSolicitacao = async (solicitacaoId) => {
+  const confirmado = confirm(`Tem certeza que deseja excluir a solicitação ${solicitacaoId}?`);
+
+  if (!confirmado) return;
+
+  try {
+    const response = await fetch(`${api}/solicitacao/${solicitacaoId}`, {
+      method: "DELETE",
+    });
+
+    if (response.ok) {
+      alert("Solicitação excluída com sucesso!");
+      // Atualiza a lista após excluir
+      setSolicitacoes((prev) => prev.filter((s) => s.solicitacao_id !== solicitacaoId));
+    } else {
+      const error = await response.json();
+      alert(`Erro ao excluir: ${error.detail || error.message}`);
+    }
+  } catch (error) {
+    alert("Erro ao excluir solicitação");
+    console.error(error);
+  }
+};
+
+
 
 
   const reprocessarErrosSolicitacao = async (solicitacaoId) => {
@@ -167,10 +193,10 @@ const reprocessarSolicitacao = async (solicitacaoId) => {
             : "bg-green-600 hover:bg-green-700"
         } text-white px-4 py-2 rounded flex items-center gap-2`}
       >
-        <FaRecycle />
+        <FaSync />
         {btnStatusPendentes === "loading" && "Processando..."}
         {btnStatusPendentes === "empty" && "Nenhuma pendente"}
-        {btnStatusPendentes === "idle" && "Reprocessar Pendentes"}
+        {btnStatusPendentes === "idle" && "Reprocessar todas NFs Pendentes"}
       </button>
 
 
@@ -187,10 +213,10 @@ const reprocessarSolicitacao = async (solicitacaoId) => {
             : "bg-yellow-500 hover:bg-yellow-600"
         } text-white px-4 py-2 rounded flex items-center gap-2`}
       >
-        <FaExclamationCircle />
+        <FaSync />
         {btnStatusErros === "loading" && "Processando..."}
         {btnStatusErros === "empty" && "Nenhum erro"}
-        {btnStatusErros === "idle" && "Reprocessar Erros"}
+        {btnStatusErros === "idle" && "Reprocessar todas NFs com Erro"}
       </button>
 
       </div>
@@ -200,50 +226,92 @@ const reprocessarSolicitacao = async (solicitacaoId) => {
       ) : solicitacoes.length === 0 ? (
         <p className="text-gray-500 text-xl">Nenhuma solicitação encontrada.</p>
       ) : (
-        solicitacoes.map((sol) => (
+        solicitacoes.map((sol) =>  {
+          const totalNfes = sol.ctes.reduce(
+            (acc, cte) => acc + (cte.nfes ? cte.nfes.length : 0),
+            0
+          );
+
+          const nfesProcessadas = sol.ctes.reduce(
+            (acc, cte) =>
+              acc +
+              (cte.nfes
+                ? cte.nfes.filter(
+                    (nfe) => nfe.baixado || nfe.status === "sucesso"
+                  ).length
+                : 0),
+            0
+          );
+
+          const progresso =
+            totalNfes > 0 ? Math.round((nfesProcessadas / totalNfes) * 100) : 0;
+
+          
+          return (
           <div key={sol.solicitacao_id} className="bg-white rounded-xl shadow p-6 mb-6">
             <div className="flex justify-between items-center">
-              <h3 className="text-xl font-semibold text-green-700">
-                Solicitação: {sol.solicitacao_id}
-              </h3>
+
+            <div className="flex items-center">
+                <IconButton
+                  icon={MdDelete}
+                  color="#f87171"
+                  size={20}
+                  onClick={() => handleDeleteSolicitacao(sol.solicitacao_id)}
+                  tooltip="Deletar"
+                />
+                <h3 className="text-xl font-semibold text-green-700 whitespace-nowrap">
+                  Solicitação {sol.solicitacao_id.substring(0, 8)}
+                </h3>
+
+                <div className="w-full flex flex-col px-5 gap-1 mt-2">
+                  <p className="text-xs text-gray-500">
+                    Progresso: {progresso}% ({nfesProcessadas}/{totalNfes})
+                  </p>
+                  <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div
+                      className={`h-3 rounded-full ${
+                        progresso === 100 ? "bg-green-600" : "bg-blue-500"
+                      }`}
+                      style={{ width: `${progresso}%` }}
+                    ></div>
+                  </div>
+                </div>
+
+
+
+
+              </div>
+
+
               <div className="flex gap-2">
-
-
-
-
-<button
-  onClick={() => reprocessarSolicitacao(sol.solicitacao_id)}
-  disabled={btnStatusSolicitacao[sol.solicitacao_id] === "loading"}
-  className={`${
-    btnStatusSolicitacao[sol.solicitacao_id] === "loading"
-      ? "bg-gray-400 cursor-not-allowed"
-      : "bg-blue-600 hover:bg-blue-700"
-  } text-white px-3 py-1 rounded flex items-center gap-1`}
->
-  <FaSync />
-  {btnStatusSolicitacao[sol.solicitacao_id] === "loading" && "Processando..."}
-  {btnStatusSolicitacao[sol.solicitacao_id] === "empty" && "Nenhuma NFe"}
-  {(!btnStatusSolicitacao[sol.solicitacao_id] || btnStatusSolicitacao[sol.solicitacao_id] === "idle") && "Reprocessar"}
-</button>
-
-
-
-              <button
-                onClick={() => reprocessarErrosSolicitacao(sol.solicitacao_id)}
-                disabled={btnStatusErrosSolicitacao[sol.solicitacao_id] === "loading"}
-                className={`${
-                  btnStatusErrosSolicitacao[sol.solicitacao_id] === "loading"
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-yellow-500 hover:bg-yellow-600"
-                } text-white px-3 py-1 rounded flex items-center gap-1`}
-              >
-                <FaExclamationCircle />
-                {btnStatusErrosSolicitacao[sol.solicitacao_id] === "loading" && "Processando..."}
-                {btnStatusErrosSolicitacao[sol.solicitacao_id] === "empty" && "Nenhum erro"}
-                {(!btnStatusErrosSolicitacao[sol.solicitacao_id] || btnStatusErrosSolicitacao[sol.solicitacao_id] === "idle") && "Erros"}
-              </button>
-
-
+                <button
+                  onClick={() => reprocessarSolicitacao(sol.solicitacao_id)}
+                  disabled={btnStatusSolicitacao[sol.solicitacao_id] === "loading"}
+                  className={`${
+                    btnStatusSolicitacao[sol.solicitacao_id] === "loading"
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-blue-600 hover:bg-blue-700"
+                  } text-white px-3 py-1 rounded flex items-center gap-1`}
+                >
+                  <FaSync />
+                  {btnStatusSolicitacao[sol.solicitacao_id] === "loading" && "Processando..."}
+                  {btnStatusSolicitacao[sol.solicitacao_id] === "empty" && "Nenhuma NFe"}
+                  {(!btnStatusSolicitacao[sol.solicitacao_id] || btnStatusSolicitacao[sol.solicitacao_id] === "idle") && "Rep. Pendentes"}
+                </button>
+                <button
+                  onClick={() => reprocessarErrosSolicitacao(sol.solicitacao_id)}
+                  disabled={btnStatusErrosSolicitacao[sol.solicitacao_id] === "loading"}
+                  className={`${
+                    btnStatusErrosSolicitacao[sol.solicitacao_id] === "loading"
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-yellow-500 hover:bg-yellow-600"
+                  } text-white px-3 py-1 rounded flex items-center gap-1`}
+                >
+                  <FaSync />
+                  {btnStatusErrosSolicitacao[sol.solicitacao_id] === "loading" && "Processando..."}
+                  {btnStatusErrosSolicitacao[sol.solicitacao_id] === "empty" && "Nenhum erro"}
+                  {(!btnStatusErrosSolicitacao[sol.solicitacao_id] || btnStatusErrosSolicitacao[sol.solicitacao_id] === "idle") && "Rep. Erros"}
+                </button>
               </div>
             </div>
 
@@ -286,7 +354,7 @@ const reprocessarSolicitacao = async (solicitacaoId) => {
               ))}
             </div>
           </div>
-        ))
+        )})
       )}
     </div>
   );
