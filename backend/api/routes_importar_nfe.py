@@ -121,8 +121,6 @@ async def reprocessar_nao_baixadas(db: Session = Depends(get_db)):
 
 
 
-
-
 @router.post("/reprocessa-solicitacao/{solicitacao_id}")
 async def reprocessar_solicitacao(solicitacao_id: str, db: Session = Depends(get_db)):
     nfes = db.query(NFe).join(CTe).filter(

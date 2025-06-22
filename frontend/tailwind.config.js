@@ -1,12 +1,14 @@
-module.exports = {
-    theme: {
-      extend: {
-        fontFamily: {
-          'poppins': ['Poppins', 'sans-serif'], // Fonte personalizada
-          // Adicione outras fontes, se necessário
-        },
+import scrollbar from 'tailwind-scrollbar'
+
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  theme: {
+    extend: {
+      fontFamily: {
+        poppins: ['Poppins', 'sans-serif'],
       },
     },
-    plugins: [],
-  }
-  
+  },
+  plugins: [scrollbar],
+}

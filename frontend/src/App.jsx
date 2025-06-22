@@ -1,35 +1,81 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { useLogin } from "./Contexts/LoginContext";
-import LoginModal from "./components/LoginModal/LoginModal";
-import Header from "./components/Header/Header";
-import SolicitacaoMonitoramento from "./pages/SolicitacaoMonitoramento";
-import ImportacaoNFE from "./pages/ImportacaoNFE";
-import { useState } from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useLogin } from './Contexts/LoginContext';
+
+import LoginModal from './components/LoginModal/LoginModal';
+import Header from './components/Header/Header';
+import SolicitacaoMonitoramento from './pages/SolicitacaoMonitoramento';
+import ImportacaoNFE from './pages/ImportacaoNFE';
+import RegistroUsuario from './pages/Registro';
+import AtualizaUsuario from './pages/AtualizaUsuario';
+import Comprovantes from './pages/Comprovantes';
+import NaoAutorizado from './pages/NaoAutorizado';
+import { useState } from 'react';
+import PrivateRoute from './components/PrivateRoute/PrivateRoute';
+
 
 function App() {
   const { isAuthenticated } = useLogin();
-  const [isOpen, setIsOpen] = useState(false); // Estado do menu lateral
-
-  if (!isAuthenticated) return <LoginModal />;
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
     <Router>
-      <div className="-z-50 flex">
-        {/* Sidebar */}
-        <Header isOpen={isOpen} setIsOpen={setIsOpen} />
+      {isAuthenticated && <Header isOpen={isOpen} setIsOpen={setIsOpen} />}
 
-        {/* Conteúdo Principal */}
-        <div
-          className={`transition-all duration-300 
-            ${isOpen ? "ml-[260px]" : "ml-[80px]"} 
-            py-6 px-4 w-full min-h-screen bg-[#333]`}
-        >
-          <Routes>
-            <Route path="/" element={<SolicitacaoMonitoramento />} />
-            <Route path="/nfe" element={<ImportacaoNFE />} />
-            <Route path="*" element={<Navigate to="/" />} />
-          </Routes>
-        </div>
+      <div
+        className={`
+          transition-all duration-300
+          ${isAuthenticated ? (isOpen ? 'ml-[260px]' : 'ml-[80px]') : 'ml-0'}
+          py-6 px-4 min-h-screen bg-[#333]
+        `}
+      >
+        <Routes>
+          {/* 🔓 Pública */}
+          <Route path="/registro" element={<RegistroUsuario />} />
+
+          {/* 🔒 Privadas */}
+          {isAuthenticated ? (
+            <>
+              <Route
+                path="/"
+                element={
+                  <PrivateRoute allowedSetores={['expedicao']}>
+                    <SolicitacaoMonitoramento />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/nfe"
+                element={
+                  <PrivateRoute allowedSetores={['expedicao']}>
+                    <ImportacaoNFE />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/updateusuario"
+                element={
+                  <PrivateRoute>
+                    <AtualizaUsuario />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/comprovantes"
+                element={
+                  <PrivateRoute>
+                    <Comprovantes />
+                  </PrivateRoute>
+                }
+              />
+              <Route path="/nao-autorizado" element={<NaoAutorizado />} />
+              <Route path="*" element={<Navigate to="/comprovantes" />} />
+            </>
+          ) : (
+            <>
+              <Route path="*" element={<LoginModal />} />
+            </>
+          )}
+        </Routes>
       </div>
     </Router>
   );

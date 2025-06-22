@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from core.config import origins
 from models import Base
 from database import engine
-from api import routes_status_importa_nfe, routes_upload, routes_execucoes, routes_importar_nfe
+from api import routes_status_importa_nfe, routes_upload, routes_execucoes, routes_importar_nfe, routes_auth, routes_documents
 import workers.fila_worker  # inicia thread worker
 
 from fastapi.staticfiles import StaticFiles
@@ -27,6 +27,9 @@ app.include_router(routes_upload.router, prefix="/api")
 app.include_router(routes_execucoes.router, prefix="/api")
 app.include_router(routes_importar_nfe.router, prefix="/api")
 app.include_router(routes_status_importa_nfe.router, prefix="/api")
+app.include_router(routes_documents.router, prefix="/api")
+app.include_router(routes_auth.router, prefix="/api")
+
 
 # Define o caminho absoluto para a pasta frontend
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # pasta raiz do projeto

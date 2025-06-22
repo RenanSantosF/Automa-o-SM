@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { IoAlertOutline } from "react-icons/io5";
+import React, { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { IoAlertOutline } from 'react-icons/io5';
 
 const AlertaGNRE = ({ isOpen, onClose }) => {
   const [showModal, setShowModal] = useState(false);
@@ -16,7 +16,7 @@ const AlertaGNRE = ({ isOpen, onClose }) => {
 
   if (!isOpen && !showModal) return null;
 
-  console.log("modal ativado");
+  console.log('modal ativado');
 
   return (
     <div className="fixed inset-0 z-50 flex justify-center items-center">
@@ -49,17 +49,16 @@ const AlertaGNRE = ({ isOpen, onClose }) => {
 
             <div className="text-gray-800 text-sm leading-relaxed space-y-2">
               <p>
-                O conhecimento de transporte que você está importando{" "}
+                O conhecimento de transporte que você está importando{' '}
                 <b>
-                  possivelmente requer o pagamento da GNRE (Guia Nacional de
-                  Recolhimento de Tributos Estaduais)
+                  possivelmente requer o pagamento da GNRE (Guia Nacional de Recolhimento de
+                  Tributos Estaduais)
                 </b>
                 .
               </p>
               <p>
-                Verifique os dados do remetente e destinatário, bem como o estado
-                de origem e destino para confirmar se a guia deve ser gerada
-                antes da circulação da mercadoria.
+                Verifique os dados do remetente e destinatário, bem como o estado de origem e
+                destino para confirmar se a guia deve ser gerada antes da circulação da mercadoria.
               </p>
               <p className="text-red-600 font-semibold">
                 O não pagamento pode gerar multas ou retenção da carga!

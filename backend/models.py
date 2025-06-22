@@ -70,3 +70,61 @@ class NFe(Base):
 
     # 🔗 Relacionamento
     cte = relationship("CTe", back_populates="notas")
+
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True)
+    senha = Column(String)  # Você deve armazenar hash
+    setor = Column(String)  # Ex: "ocorrencia", "expedicao", "outros"
+
+    usuario_apisul = Column(String)  # Essa coluna
+    senha_apisul = Column(String)
+
+
+
+class Document(Base):
+    __tablename__ = "documents"
+
+    id = Column(Integer, primary_key=True, index=True)
+    usuario_id = Column(Integer, ForeignKey("users.id"))
+    nome = Column(String, nullable=False)
+    placa = Column(String, nullable=False)
+    criado_em = Column(DateTime, default=func.now())
+    status = Column(String, default="enviado")
+
+    usuario = relationship("User")
+    arquivos = relationship("DocumentFile", back_populates="document", order_by="DocumentFile.criado_em")
+    comentarios_rel = relationship("DocumentComment", back_populates="document")
+
+
+
+class DocumentFile(Base):
+    __tablename__ = "document_files"
+
+    id = Column(Integer, primary_key=True, index=True)
+    document_id = Column(Integer, ForeignKey("documents.id"))
+    nome_arquivo = Column(String, nullable=False)
+    caminho_arquivo = Column(String, nullable=False)
+    criado_em = Column(DateTime, default=func.now())
+
+    usuario_id = Column(Integer, ForeignKey("users.id"))   # Novo campo
+    usuario = relationship("User")                         # Relacionamento com usuário
+
+    document = relationship("Document", back_populates="arquivos")
+
+
+class DocumentComment(Base):
+    __tablename__ = "document_comments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    document_id = Column(Integer, ForeignKey("documents.id"))
+    usuario_id = Column(Integer, ForeignKey("users.id"))
+    texto = Column(String, nullable=False)
+    criado_em = Column(DateTime, default=func.now())
+
+    document = relationship("Document", back_populates="comentarios_rel")
+    usuario = relationship("User")

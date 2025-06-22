@@ -1,4 +1,12 @@
-./frontend/.env.development
-./frontend/.env.production
-./backend/.env
-./backend/chrome_profile
+# Ignorar arquivos de ambiente no frontend
+/frontend/.env.development
+/frontend/.env.production
+
+# Ignorar arquivo de ambiente no backend
+/backend/.env
+
+# Ignorar pasta do chrome profile no backend
+/backend/chrome_profile/
+
+# Ignorar pasta upload no backend
+/backend/upload/

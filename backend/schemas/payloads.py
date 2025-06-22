@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional, List
+from datetime import datetime
 
 class LoginData(BaseModel):
     usuario: str
@@ -45,3 +46,86 @@ class CTeCreate(BaseModel):
     xml: str
     solicitacao_id: str  # 🔥 Adicionado aqui
     notas: List[NFeCreate]
+
+    class Config:
+        orm_mode = True
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
+class UserCreate(BaseModel):
+    username: str
+    senha: str
+    setor: str
+    usuario_apisul: Optional[str] = None
+    senha_apisul: Optional[str] = None
+
+    
+class UserOut(UserCreate):
+    id: int
+
+
+# Schema para atualização (senha opcional)
+class UserUpdate(BaseModel):
+    senha: Optional[str] = None
+    setor: Optional[str] = None
+    usuario_apisul: Optional[str] = None
+    senha_apisul: Optional[str] = None
+
+
+
+
+
+class UserSchema(BaseModel):
+    id: int
+    username: str
+    setor: str
+
+    class Config:
+        orm_mode = True
+
+class DocumentFileSchema(BaseModel):
+    id: int
+    nome_arquivo: str
+    caminho_arquivo: str
+    criado_em: datetime
+    usuario: Optional[UserSchema]  # já incluído
+
+    class Config:
+        orm_mode = True
+
+
+class DocumentCommentSchema(BaseModel):
+    id: int
+    usuario_id: int
+    texto: str
+    criado_em: datetime
+    usuario: Optional[UserSchema]  # <-- Adiciona isso
+
+    class Config:
+        orm_mode = True
+
+
+class DocumentSchema(BaseModel):
+    id: int
+    usuario_id: int
+    nome: str
+    placa: str
+    criado_em: datetime
+    status: str
+    usuario: UserSchema  # <-- Adicione isso
+    arquivos: List[DocumentFileSchema] = []
+    comentarios_rel: List[DocumentCommentSchema] = []
+
+    class Config:
+        orm_mode = True
+
+
+class DocumentCreateSchema(BaseModel):
+    nome: str
+    placa: str
+
+class ComentarioSchema(BaseModel):
+    texto: str

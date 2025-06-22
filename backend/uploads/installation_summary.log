@@ -1,0 +1,14 @@
+
+Installation Directory: C:\Program Files\PostgreSQL\17
+Server Installation Directory: C:\Program Files\PostgreSQL\17
+Data Directory: C:\Program Files\PostgreSQL\17\data
+Database Port: 5432
+Database Superuser: postgres
+Operating System Account: NT AUTHORITY\NetworkService
+Database Service: postgresql-x64-17
+Command Line Tools Installation Directory: C:\Program Files\PostgreSQL\17
+pgAdmin4 Installation Directory: C:\Program Files\PostgreSQL\17\pgAdmin 4
+Stack Builder Installation Directory: C:\Program Files\PostgreSQL\17\stackbuilder
+Installation Log: C:\Users\renan\AppData\Local\Temp\install-postgresql.log
+===== Installation completed at: 2025-04-18(YYYY-MM-DD) - 02:15:46(HH:MM:SS) =====
+                            

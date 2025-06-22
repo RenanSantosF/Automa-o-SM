@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
 
 const api = import.meta.env.VITE_API_URL;
 
@@ -8,11 +8,11 @@ const StatusScrapingNfe = () => {
   const buscarStatus = async () => {
     try {
       const resp = await fetch(`${api}/status-nfe`);
-      if (!resp.ok) throw new Error("Erro ao buscar status");
+      if (!resp.ok) throw new Error('Erro ao buscar status');
       const data = await resp.json();
       setStatus(data);
     } catch (err) {
-      console.error("Erro ao buscar status:", err.message);
+      console.error('Erro ao buscar status:', err.message);
     }
   };
 
@@ -32,10 +32,7 @@ const StatusScrapingNfe = () => {
         {status.status} ({status.atual}/{status.total})
       </div>
       <div className="w-full bg-gray-300 h-4 rounded">
-        <div
-          className="bg-green-600 h-4 rounded"
-          style={{ width: `${progresso}%` }}
-        />
+        <div className="bg-green-600 h-4 rounded" style={{ width: `${progresso}%` }} />
       </div>
     </div>
   );

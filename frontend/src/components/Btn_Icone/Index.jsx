@@ -13,10 +13,9 @@ const IconButton = ({ icon: Icon, onClick, color, size, tooltip }) => {
         cursor: 'pointer',
       }}
     >
-      <Icon color={color || "#16a34a"} size={size || 24} />
+      <Icon color={color || '#16a34a'} size={size || 24} />
     </button>
   );
 };
-
 
 export default IconButton;

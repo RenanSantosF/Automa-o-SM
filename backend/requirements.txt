@@ -1,12 +1,14 @@
 fastapi
 uvicorn
-python-multipart
+python-jose[cryptography]
+bcrypt
 sqlalchemy
+asyncpg
 psycopg2-binary
+python-multipart
 python-dotenv
 selenium
 openrouteservice
 webdriver-manager
 alembic
-psycopg2-binary
 httpx

@@ -1,5 +1,5 @@
-import React, { useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const backdropVariants = {
   hidden: { opacity: 0 },
@@ -16,13 +16,13 @@ const modalVariants = {
 const Modal = ({ isOpen, onClose, content }) => {
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = "hidden";
+      document.body.style.overflow = 'hidden';
     } else {
-      document.body.style.overflow = "";
+      document.body.style.overflow = '';
     }
 
     return () => {
-      document.body.style.overflow = "";
+      document.body.style.overflow = '';
     };
   }, [isOpen]);
 
@@ -61,7 +61,7 @@ const Modal = ({ isOpen, onClose, content }) => {
 
             <div className="mt-4 max-w-full text-gray-700">
               <div className="mt-4 break-words overflow-x-auto">
-                {typeof content === "string" ? (
+                {typeof content === 'string' ? (
                   <p className="text-sm whitespace-normal">{content}</p>
                 ) : (
                   <div className="text-sm whitespace-normal">{content}</div>
