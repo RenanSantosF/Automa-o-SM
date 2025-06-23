@@ -750,6 +750,13 @@ useEffect(() => {
 
 
 
+{!loading && documentos.length === 0 && (
+  <div className="mt-6 p-4  text-center  text-white">
+    Nenhum documento encontrado com os filtros atuais.
+  </div>
+)}
+
+
   {/* Lista de Documentos */}
   {documentosFiltrados.map((doc) => {
     const isAprovado = doc.status === 'aprovado';
