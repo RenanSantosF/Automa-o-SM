@@ -511,7 +511,7 @@ useEffect(() => {
   const token = localStorage.getItem("token");
   if (!token) return;
 
-  const protocol = window.location.protocol === "https:" ? "ws" : "ws";
+  const protocol = window.location.protocol === "https:" ? "wss" : "ws";
 
   // 🔥 Defina aqui o backend dependendo do ambiente
 const backendHost =
