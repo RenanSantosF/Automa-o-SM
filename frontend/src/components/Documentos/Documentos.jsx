@@ -514,11 +514,11 @@ useEffect(() => {
   const protocol = window.location.protocol === "https:" ? "wss" : "ws";
 
   // 🔥 Defina aqui o backend dependendo do ambiente
-  const backendHost =
-    window.location.hostname === "localhost"
-      ? "localhost:8000"
-      : "servidor.vps-kinghost.net"; // 🔥 coloque seu domínio da VPS aqui
-
+const backendHost =
+  window.location.hostname === "localhost"
+    ? "localhost:8000"
+    : "servidor.vps-kinghost.net:8000"; // coloca a porta correta aqui
+    
   const wsUrl = `${protocol}://${backendHost}/api/documentos/ws/documentos?token=${encodeURIComponent(token)}`;
 
   const ws = new WebSocket(wsUrl);
