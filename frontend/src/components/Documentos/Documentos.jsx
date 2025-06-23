@@ -579,11 +579,12 @@ useEffect(() => {
 
 useEffect(() => {
   const intervalo = setInterval(() => {
-    fetchDocumentos(true); // true para resetar, ou false para buscar incrementalmente
-  }, 3000); // 5000 ms = 5 segundos
+    fetchDocumentos(true);
+  }, 2000); // ou 3000 ms, como preferir
 
-  return () => clearInterval(intervalo); // Limpa o intervalo quando o componente desmontar
-}, []);
+  return () => clearInterval(intervalo);
+}, [filtroUsuario, filtroStatus, filtroCte, filtroNome, dataInicial, dataFinal]);
+
 
 
   return (
