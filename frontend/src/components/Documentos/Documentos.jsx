@@ -577,6 +577,15 @@ useEffect(() => {
   }
 }, [documentos]);
 
+useEffect(() => {
+  const intervalo = setInterval(() => {
+    fetchDocumentos(true); // true para resetar, ou false para buscar incrementalmente
+  }, 5000); // 5000 ms = 5 segundos
+
+  return () => clearInterval(intervalo); // Limpa o intervalo quando o componente desmontar
+}, []);
+
+
   return (
 <div className="text-gray-800 max-w-6xl mx-auto p-6">
   {/* Botão Mostrar/Esconder Upload */}
