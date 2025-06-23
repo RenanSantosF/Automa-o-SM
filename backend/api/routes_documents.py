@@ -268,7 +268,6 @@ async def aprovar_documento(
 @router.post("/{doc_id}/reprovar")
 async def reprovar_documento(
     doc_id: int,
-    comentario: str = Body(..., embed=True),
     db: Session = Depends(get_db),
     usuario: User = Depends(get_current_user),
 ):
@@ -282,18 +281,9 @@ async def reprovar_documento(
     doc.status = "reprovado"
     db.commit()
 
-    novo_coment = DocumentComment(
-        document_id=doc.id,
-        usuario_id=usuario.id,
-        texto=comentario,
-        criado_em=datetime.now(timezone.utc),
-    )
-    db.add(novo_coment)
-    db.commit()
-
     asyncio.create_task(notificar_atualizacao())
 
-    return {"msg": "Documento reprovado com comentário registrado"}
+    return {"msg": "Documento reprovado"}
 
 
 @router.post("/{doc_id}/comentario")
