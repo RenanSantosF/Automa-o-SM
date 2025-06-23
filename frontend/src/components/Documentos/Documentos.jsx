@@ -580,7 +580,7 @@ useEffect(() => {
 useEffect(() => {
   const intervalo = setInterval(() => {
     fetchDocumentos(true); // true para resetar, ou false para buscar incrementalmente
-  }, 5000); // 5000 ms = 5 segundos
+  }, 3000); // 5000 ms = 5 segundos
 
   return () => clearInterval(intervalo); // Limpa o intervalo quando o componente desmontar
 }, []);
