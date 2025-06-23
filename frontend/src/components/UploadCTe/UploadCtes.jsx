@@ -142,7 +142,7 @@ const UploadCtes = () => {
       <button
         disabled={!isAuthenticated}
         onClick={() => setMostrarFormulario(!mostrarFormulario)}
-        className={`flex items-center gap-2 px-4 py-2 mb-4 border 
+        className={`cursor-pointer flex items-center gap-2 px-4 py-2 mb-4 border 
           ${
             !isAuthenticated
               ? 'bg-gray-400 cursor-not-allowed border-gray-400'

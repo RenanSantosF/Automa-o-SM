@@ -7,13 +7,19 @@ export default function LoginModal() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+    setLoading(true);
     try {
       await login(username, password);
+      // Se quiser, aqui pode resetar campos ou fechar modal
     } catch {
       setError('Usuário ou senha inválidos');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -21,7 +27,7 @@ export default function LoginModal() {
     <div className="fixed inset-0 backdrop-blur-sm flex justify-center items-center z-50">
       <form
         onSubmit={handleSubmit}
-        className="bg-[#333] border  rounded-2xl shadow-2xl w-[90%] max-w-sm p-8 space-y-6"
+        className="bg-[#333] border rounded-2xl shadow-2xl w-[90%] max-w-sm p-8 space-y-6"
       >
         <div className="flex flex-col items-center gap-2">
           <img src="/logo.png" alt="Logo" className="w-16" />
@@ -41,6 +47,7 @@ export default function LoginModal() {
             onChange={(e) => setUsername(e.target.value)}
             className="w-full p-3 rounded-xl bg-[#2b2b2b] border border-gray-600 placeholder-gray-400 text-white focus:outline-none focus:ring-2 focus:ring-green-600"
             required
+            disabled={loading}
           />
           <input
             type="password"
@@ -49,15 +56,47 @@ export default function LoginModal() {
             onChange={(e) => setPassword(e.target.value)}
             className="w-full p-3 rounded-xl bg-[#2b2b2b] border border-gray-600 placeholder-gray-400 text-white focus:outline-none focus:ring-2 focus:ring-green-600"
             required
+            disabled={loading}
           />
         </div>
 
         <button
           type="submit"
-          className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 transition-all text-white p-3 rounded-xl font-semibold"
+          disabled={loading}
+          className={`cursor-pointer w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 transition-all text-white p-3 rounded-xl font-semibold ${
+            loading ? 'opacity-70 cursor-not-allowed' : ''
+          }`}
         >
-          <IoLogInOutline size={20} />
-          Entrar
+          {loading ? (
+            <>
+              <svg
+                className="animate-spin h-5 w-5 text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                />
+              </svg>
+              Entrando...
+            </>
+          ) : (
+            <>
+              <IoLogInOutline size={20} />
+              Entrar
+            </>
+          )}
         </button>
       </form>
     </div>

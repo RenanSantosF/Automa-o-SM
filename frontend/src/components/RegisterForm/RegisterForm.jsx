@@ -186,7 +186,7 @@ export default function RegisterForm() {
         <button
           type="submit"
           disabled={loading}
-          className={`w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl 
+          className={`cursor-pointer w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl 
             ${
               loading
                 ? 'bg-green-800 cursor-wait'

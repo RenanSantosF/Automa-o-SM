@@ -86,7 +86,7 @@ const SolicitacaoMonitoramento = () => {
       <button
         disabled={!userData.usuario_apisul}
         onClick={() => setMostrarFormulario(!mostrarFormulario)}
-        className={`flex items-center gap-2 px-4 py-2 mb-4 border 
+        className={`cursor-pointer flex items-center gap-2 px-4 py-2 mb-4 border 
           ${
             !userData.usuario_apisul
               ? 'bg-gray-400 cursor-not-allowed border-gray-400'

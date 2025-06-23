@@ -40,7 +40,7 @@ const Header = ({ isOpen, setIsOpen }) => {
       <div>
         {/* Header do Sidebar */}
         <div className="flex items-center gap-3 px-4 py-5 border-b border-gray-700">
-          <button onClick={toggleSidebar} className="text-white hover:text-green-400">
+          <button onClick={toggleSidebar} className="cursor-pointer text-white hover:text-green-400">
             <IoMenu size={26} />
           </button>
           {isOpen && (
@@ -141,7 +141,7 @@ const Header = ({ isOpen, setIsOpen }) => {
         {/* Botão Sair */}
         <button
           onClick={logout}
-          className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-all"
+          className="cursor-pointer w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-all"
         >
           <IoLogOutOutline size={18} />
           {isOpen && 'Sair'}

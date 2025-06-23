@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useLogin } from '../../Contexts/LoginContext';
 import { buttonStyles, formatDate } from './utils';
-
+import { FiTrash2 } from 'react-icons/fi';
 import {
   FaCheck,
   FaTimes,
@@ -24,17 +24,33 @@ import { useSearchParams } from 'react-router-dom';
 
 const api = import.meta.env.VITE_API_URL;
 
+const LIMIT = 50;
+
 const Documentos = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [filtroUsuario, setFiltroUsuario] = useState(searchParams.get('usuario') || '');
   const [filtroStatus, setFiltroStatus] = useState(searchParams.get('status') || '');
-  const [filtroPlaca, setFiltroPlaca] = useState(searchParams.get('placa') || '');
+  const [filtroCte, setFiltroCte] = useState(searchParams.get('cte') || '');
+  const [filtroNome, setFiltroNome] = useState(searchParams.get('nome') || '');
+  const [filtroPlaca, setFiltroPlaca] = useState(searchParams.get('placa') || ''); // Continua sendo "placa" no URL e no estado
+
+  const [dataInicial, setDataInicial] = useState('');
+  const [dataFinal, setDataFinal] = useState('');
+
+    // Documentos e paginação
+  const [skip, setSkip] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+
   const chatRefs = useRef({});
   const { userData, isAuthenticated } = useLogin();
   const fileInputRefs = useRef({});
   const [documentos, setDocumentos] = useState([]);
   const [file, setFile] = useState(null);
   const [nome, setNome] = useState('');
+
+const [docParaExcluir, setDocParaExcluir] = useState(null);
+const [senhaExclusao, setSenhaExclusao] = useState('');
 
   const [placa, setPlaca] = useState('');
   const [comentarios, setComentarios] = useState({}); // texto por doc
@@ -51,19 +67,115 @@ const Documentos = () => {
   };
 
 
-  const fetchDocumentos = async () => {
-    try {
-      const res = await fetch(`${api}/documentos/todos`, { headers });
-      if (!res.ok) throw new Error('Erro ao buscar documentos');
-      const data = await res.json();
 
-      const ordenados = data.sort((a, b) => new Date(b.criado_em) - new Date(a.criado_em));
+const fetchDocumentos = async (reset = false) => {
+  if (loading) return;
+  setLoading(true);
 
-      setDocumentos(ordenados);
-    } catch {
-      toast.error('Erro ao carregar documentos');
+  const params = new URLSearchParams();
+  if (filtroUsuario) params.append('usuario', filtroUsuario);
+  if (filtroStatus) params.append('status', filtroStatus);
+  if (filtroCte) params.append('cte', filtroCte);
+  if (filtroNome) params.append('nome', filtroNome);
+  if (dataInicial) params.append('data_inicial', dataInicial);
+  if (dataFinal) params.append('data_final', dataFinal);
+  params.append('skip', reset ? '0' : skip.toString());
+  params.append('limit', LIMIT.toString());
+
+  try {
+    const res = await fetch(`${api}/documentos/todos?${params.toString()}`, { headers });
+    if (!res.ok) throw new Error('Erro ao buscar documentos');
+    const data = await res.json();
+
+    if (reset) {
+      setDocumentos(data);
+      setSkip(data.length);
+    } else {
+      setDocumentos((prev) => {
+        const novosDocumentos = juntarSemDuplicatas(prev, data);
+        return novosDocumentos;
+      });
+      setSkip((prev) => prev + data.length);
     }
+
+    setHasMore(data.length === LIMIT);
+  } catch {
+    toast.error('Erro ao carregar documentos');
+  } finally {
+    setLoading(false);
+  }
+};
+
+const abrirModalDelete = (doc) => {
+  setDocParaDeletar(doc);
+  setSenhaAdm('');
+  setModalDeleteAberto(true);
+};
+
+const confirmarDelete = async () => {
+  if (senhaAdm !== '985509') {
+    toast.error('Senha incorreta');
+    return;
+  }
+  if (!docParaDeletar) return;
+
+  try {
+    const res = await fetch(`${api}/documentos/${docParaDeletar.id}`, {
+      method: 'DELETE',
+      headers,
+    });
+    if (!res.ok) throw new Error('Erro ao deletar documento');
+    toast.success('Documento deletado com sucesso');
+    setModalDeleteAberto(false);
+    setDocParaDeletar(null);
+    fetchDocumentos(true);
+  } catch {
+    toast.error('Falha ao deletar documento');
+  }
+};
+
+
+const confirmarExclusao = async () => {
+  const precisaSenha = ['aprovado', 'saldo_liberado'].includes(docParaExcluir.status);
+
+  if (precisaSenha && senhaExclusao !== '985509') {
+    toast.error('Senha incorreta');
+    return;
+  }
+
+  try {
+    const res = await fetch(`${api}/documentos/${docParaExcluir.id}`, {
+      method: 'DELETE',
+      headers,
+    });
+
+    if (!res.ok) throw new Error('Erro ao deletar');
+
+    toast.success('Documento deletado');
+    setDocParaExcluir(null);
+    setSenhaExclusao('');
+    fetchDocumentos(true);
+  } catch {
+    toast.error('Erro ao deletar');
+  }
+};
+
+
+  // Ao alterar filtros, resetar lista e buscar do zero
+  useEffect(() => {
+    setSkip(0);
+    fetchDocumentos(true);
+  }, [filtroUsuario, filtroStatus, filtroCte, filtroNome, dataInicial, dataFinal]);
+
+  // Função para carregar mais, pode ser chamada ao scroll ou botão
+  const carregarMais = () => {
+    if (loading || !hasMore) return;
+    fetchDocumentos(false);
   };
+
+
+
+
 
   // Função para adicionar comentário no backend e atualizar a lista local
   const adicionarComentarioStatus = async (docId, texto) => {
@@ -239,6 +351,44 @@ const reprovar = async (doc) => {
     }
   };
 
+// const handleSubmitUpload = async (e) => {
+//   e.preventDefault();
+
+//   if (!file || !nome.trim() || !placa.trim()) {
+//     toast.error("Preencha todos os campos e selecione um arquivo.");
+//     return;
+//   }
+
+//   const token = localStorage.getItem("token"); // exemplo, adapte ao seu caso
+
+//   const formData = new FormData();
+//   formData.append("file", file);
+//   formData.append("nome", nome);
+//   formData.append("placa", placa);
+
+//   try {
+//     const response = await fetch(`${api}/documentos/upload`, {
+//       method: "POST",
+//       body: formData,
+//       headers: {
+//         Authorization: `Bearer ${token}`,
+//       },
+//     });
+
+//     if (!response.ok) throw new Error("Erro ao enviar documento");
+
+//     toast.success("Documento enviado com sucesso!");
+//     setNome("");
+//     setPlaca("");
+//     setFile(null);
+//     setMostrarFormularioUpload(false);
+//     fetchDocumentos();
+//   } catch (error) {
+//     toast.error(error.message || "Erro ao enviar documento");
+//   }
+// };
+
+
 const handleSubmitUpload = async (e) => {
   e.preventDefault();
 
@@ -247,7 +397,9 @@ const handleSubmitUpload = async (e) => {
     return;
   }
 
-  const token = localStorage.getItem("token"); // exemplo, adapte ao seu caso
+  setLoadingUpload(true);
+
+  const token = localStorage.getItem("token"); // adapte se necessário
 
   const formData = new FormData();
   formData.append("file", file);
@@ -273,6 +425,8 @@ const handleSubmitUpload = async (e) => {
     fetchDocumentos();
   } catch (error) {
     toast.error(error.message || "Erro ao enviar documento");
+  } finally {
+    setLoadingUpload(false);
   }
 };
 
@@ -291,27 +445,19 @@ const handleSubmitUpload = async (e) => {
     }
   };
 
-  const documentosFiltrados = documentos.filter((doc) => {
-    const usuario = doc.usuario?.username?.toLowerCase() || '';
-    const placa = doc.placa?.toLowerCase() || '';
-    const status = doc.status?.toLowerCase() || '';
+const documentosFiltrados = documentos.filter((doc) => {
+  const isExpedicaoOuOcorrencia =
+    userData.setor === 'expedicao' || userData.setor === 'ocorrencia';
 
-    const passaNosFiltros =
-      (filtroUsuario === '' || usuario.includes(filtroUsuario.toLowerCase())) &&
-      (filtroPlaca === '' || placa.includes(filtroPlaca.toLowerCase())) &&
-      (filtroStatus === '' || status === filtroStatus);
+  if (isExpedicaoOuOcorrencia) {
+    return true;
+  } else {
+    return doc.usuario_id === userData.id;
+  }
+});
 
-    const isExpedicaoOuOcorrencia =
-      userData.setor === 'expedicao' || userData.setor === 'ocorrencia';
 
-    // Se for expedição ou ocorrência, vê todos
-    // Caso contrário, vê só os que ele mesmo enviou
-    if (isExpedicaoOuOcorrencia) {
-      return passaNosFiltros;
-    } else {
-      return doc.usuario_id === userData.id && passaNosFiltros;
-    }
-  });
+
 
   const solicitarAprovacao = async (doc) => {
   try {
@@ -332,10 +478,12 @@ useEffect(() => {
 
   if (filtroUsuario) params.usuario = filtroUsuario;
   if (filtroStatus) params.status = filtroStatus;
-  if (filtroPlaca) params.placa = filtroPlaca;
+  if (filtroCte) params.cte = filtroCte;
+  if (filtroNome) params.nome = filtroNome;
 
   setSearchParams(params);
-}, [filtroUsuario, filtroStatus, filtroPlaca]);
+}, [filtroUsuario, filtroStatus, filtroCte, filtroNome]);
+
 
 
   useEffect(() => {
@@ -347,10 +495,87 @@ useEffect(() => {
     });
   }, [mostrarAtividades, documentos]);
 
+
+
   useEffect(() => {
     console.log(userData);
     fetchDocumentos({ api, headers, toast, setDocumentos });
   }, []);
+
+
+  
+
+  useEffect(() => {
+  if (!isAuthenticated) return;
+
+  const token = localStorage.getItem("token");
+  if (!token) return;
+
+  const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+
+  // 🔥 Defina aqui o backend dependendo do ambiente
+  const backendHost =
+    window.location.hostname === "localhost"
+      ? "localhost:8000"
+      : "servidor.vps-kinghost.net"; // 🔥 coloque seu domínio da VPS aqui
+
+  const wsUrl = `${protocol}://${backendHost}/api/documentos/ws/documentos?token=${encodeURIComponent(token)}`;
+
+  const ws = new WebSocket(wsUrl);
+
+  console.log("Conectando ao WebSocket:", wsUrl);
+
+  // Intervalo para manter a conexão ativa
+  let pingInterval;
+
+  ws.onopen = () => {
+    console.log("WebSocket conectado ✅");
+    pingInterval = setInterval(() => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send("ping");
+      }
+    }, 30000);
+  };
+
+  ws.onmessage = (event) => {
+    console.log("📩 Mensagem WebSocket:", event.data);
+    fetchDocumentos();
+  };
+
+  ws.onerror = (error) => {
+    console.error("❌ WebSocket erro:", error);
+  };
+
+  ws.onclose = (event) => {
+    console.log("🔌 WebSocket desconectado", event.reason);
+    clearInterval(pingInterval);
+  };
+
+  return () => {
+    ws.close();
+    clearInterval(pingInterval);
+  };
+}, [isAuthenticated]);
+
+function juntarSemDuplicatas(arrayAntigo, arrayNovo) {
+  const map = new Map();
+  arrayAntigo.forEach(doc => map.set(doc.id, doc));
+  arrayNovo.forEach(doc => map.set(doc.id, doc)); // sobrescreve se existir
+  return Array.from(map.values());
+}
+
+const [loadingUpload, setLoadingUpload] = useState(false);
+
+
+
+
+useEffect(() => {
+  const ids = documentos.map((doc) => doc.id);
+  const idsUnicos = [...new Set(ids)];
+  if (ids.length !== idsUnicos.length) {
+    console.warn('Tem documentos duplicados no estado:', documentos);
+  }
+}, [documentos]);
 
   return (
 <div className="text-gray-800 max-w-6xl mx-auto p-6">
@@ -358,7 +583,7 @@ useEffect(() => {
   <button
     disabled={!isAuthenticated}
     onClick={() => setMostrarFormularioUpload(!mostrarFormularioUpload)}
-    className={`flex items-center gap-2 px-4 py-2 mb-4 border 
+    className={`cursor-pointer flex items-center gap-2 px-4 py-2 mb-4 border 
       ${
         !isAuthenticated
           ? 'bg-gray-400 cursor-not-allowed border-gray-400'
@@ -392,56 +617,128 @@ useEffect(() => {
         />
         <Input
           type="text"
-          placeholder="Placa"
+          placeholder="Nº CTe"
           value={placa}
           onChange={(e) => setPlaca(e.target.value)}
         />
       </div>
       <InputFile onChange={(e) => setFile(e.target.files[0])} />
-      <button
+      {/* <button
         type="submit"
         className="bg-green-700 hover:bg-green-800 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-3 justify-center max-w-xs mx-auto"
       >
         <FaUpload size={18} /> Enviar Documento
-      </button>
+      </button> */}
+
+      <button
+  type="submit"
+  disabled={loadingUpload}
+  className={`bg-green-700 hover:bg-green-800 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-3 justify-center max-w-xs mx-auto
+    ${loadingUpload ? "opacity-70 cursor-not-allowed" : ""}
+  `}
+>
+  {loadingUpload ? (
+    <>
+      <svg
+        className="animate-spin h-5 w-5 text-white"
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+      >
+        <circle
+          className="opacity-25"
+          cx="12"
+          cy="12"
+          r="10"
+          stroke="currentColor"
+          strokeWidth="4"
+        />
+        <path
+          className="opacity-75"
+          fill="currentColor"
+          d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+        />
+      </svg>
+      Enviando...
+    </>
+  ) : (
+    <>
+      <FaUpload size={18} /> Enviar Documento
+    </>
+  )}
+</button>
+
     </form>
   )}
 
-  {/* Filtros */}
-  <div className="text-white flex flex-col sm:flex-row gap-4 mb-6">
-    <Input
-      placeholder="Filtrar por usuário"
+
+
+<div className="rounded-xl p-4 mb-6">
+  <h2 className="text-lg font-semibold mb-4 text-white">Filtros</h2>
+
+  <div className="flex flex-col sm:flex-row flex-wrap gap-4">
+
+
+    <input
+      className="border border-gray-500 bg-transparent rounded px-4 py-2 w-full sm:w-auto text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500"
+      placeholder="Nome do condutor"
+      value={filtroNome}
+      onChange={(e) => setFiltroNome(e.target.value)}
+    />
+        <input
+      className="border border-gray-500 bg-transparent rounded px-4 py-2 w-full sm:w-auto text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500"
+      placeholder="Nº do CTE"
+      value={filtroCte}
+      onChange={(e) => setFiltroCte(e.target.value)}
+    />
+        <input
+      className="border border-gray-500 bg-transparent rounded px-4 py-2 w-full sm:w-auto text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500"
+      placeholder="Usuário responsável"
       value={filtroUsuario}
       onChange={(e) => setFiltroUsuario(e.target.value)}
     />
-    <Input
-      placeholder="Filtrar por placa"
-      value={filtroPlaca}
-      onChange={(e) => setFiltroPlaca(e.target.value)}
+    <input
+      type="date"
+      className="border border-gray-500 bg-transparent rounded px-4 py-2 w-full sm:w-auto text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500"
+      value={dataInicial}
+      onChange={(e) => setDataInicial(e.target.value)}
+    />
+    <input
+      type="date"
+      className="border border-gray-500 bg-transparent rounded px-4 py-2 w-full sm:w-auto text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500"
+      value={dataFinal}
+      onChange={(e) => setDataFinal(e.target.value)}
     />
     <select
+      className="border border-gray-500 bg-transparent rounded px-4 py-2 w-full sm:w-auto text-white focus:outline-none focus:ring-2 focus:ring-green-500"
       value={filtroStatus}
       onChange={(e) => setFiltroStatus(e.target.value)}
-      className="border bg-white text-black border-gray-300 rounded px-3 focus:outline-none focus:border-green-500"
     >
-      <option value="">Todos os status</option>
-      <option value="enviado">Enviado</option>
-      <option value="aprovado">Aprovado</option>
-      <option value="reprovado">Reprovado</option>
-      <option value="saldo_liberado">Saldo Liberado</option>
+      <option value="" className="text-black">Todos os status</option>
+      <option value="enviado" className="text-black">Enviado</option>
+      <option value="aprovado" className="text-black">Aprovado</option>
+      <option value="reprovado" className="text-black">Reprovado</option>
+      <option value="saldo_liberado" className="text-black">Saldo Liberado</option>
     </select>
+
     <button
       onClick={() => {
         setFiltroUsuario('');
+        setFiltroCte('');
+        setFiltroNome('');
+        setDataInicial('');
+        setDataFinal('');
         setFiltroStatus('');
-        setFiltroPlaca('');
         setSearchParams({});
       }}
-      className="px-4 py-2 rounded bg-gray-200 text-black hover:bg-gray-300 transition"
+      className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded transition border border-red-700"
     >
       Limpar Filtros
     </button>
   </div>
+</div>
+
+
 
   {/* Lista de Documentos */}
   {documentosFiltrados.map((doc) => {
@@ -462,15 +759,32 @@ useEffect(() => {
 
     return (
       <div
-        key={doc.id}
+        key={`doc-${doc.id}`}
         className="bg-white rounded-sm shadow-md p-6 mb-8 border border-gray-200 hover:shadow-lg transition flex flex-col"
       >
         {/* Cabeçalho Documento */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
           <div>
+            <div className='flex mb-4 gap-4 items-center'>
+
+            
+<button
+  onClick={() => {
+    setDocParaExcluir(doc);
+    setSenhaExclusao('');
+  }}
+  className="text-red-600 hover:text-red-800 p-2 rounded-md border border-red-600 hover:bg-red-100 transition flex items-center gap-1"
+  title="Excluir documento"
+>
+  <FiTrash2 size={18} /> {/* Ícone bonito de lixeira */}
+</button>
+
+
+
             <h3 className="text-xl font-semibold text-gray-600">
-              {doc.nome} — <span className="text-gray-600">{doc.placa}</span>
+              {doc.nome} | <span className="text-gray-600">{doc.placa}</span>
             </h3>
+            </div>
             <div className="flex flex-col mt-1 text-sm text-gray-500 gap-1">
               <Stepper status={doc.status} />
               <span className="font-medium text-gray-700">
@@ -529,7 +843,6 @@ useEffect(() => {
         {atividadesVisiveis && (
           <div>
             <p className="mt-6 font-semibold text-center text-gray-700 mb-1">Conversa</p>
-            <p className="mt-2 text-end text-sm text-gray-500 mb-1">Não atualiza em tempo real. Recarregue a página!</p>
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
@@ -643,6 +956,49 @@ useEffect(() => {
   }
   setModalReprovarAberto={setModalReprovarAberto}
 />
+
+{docParaExcluir && (
+  <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+    <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-md">
+      <h2 className="text-xl font-bold text-red-700 mb-4">Excluir Documento</h2>
+      <p className="text-gray-700 mb-4">
+        Tem certeza que deseja excluir o documento{' '}
+        <strong>{docParaExcluir.nome} - {docParaExcluir.placa}</strong>?
+      </p>
+
+      {['aprovado', 'saldo_liberado'].includes(docParaExcluir.status) && (
+        <input
+          type="password"
+          placeholder="Digite a senha de administrador"
+          value={senhaExclusao}
+          onChange={(e) => setSenhaExclusao(e.target.value)}
+          className="w-full border px-4 py-2 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-red-500"
+        />
+      )}
+
+      <div className="flex justify-end gap-4">
+        <button
+          onClick={() => {
+            setDocParaExcluir(null);
+            setSenhaExclusao('');
+          }}
+          className="px-4 py-2 rounded-md border border-gray-400 hover:bg-gray-100"
+        >
+          Cancelar
+        </button>
+
+        <button
+          onClick={confirmarExclusao}
+          className="px-4 py-2 rounded-md bg-red-600 hover:bg-red-700 text-white"
+        >
+          Confirmar Exclusão
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+
 
       </div>
     );
