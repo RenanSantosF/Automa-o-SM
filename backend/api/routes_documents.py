@@ -85,6 +85,7 @@ async def notificar_atualizacao():
 
 @router.websocket("/ws/documentos")
 async def websocket_documentos(websocket: WebSocket, db: Session = Depends(get_db)):
+    print("Tentativa de conexão WebSocket recebida")
     token = websocket.query_params.get("token")
     if not token:
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)

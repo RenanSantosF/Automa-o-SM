@@ -21,19 +21,21 @@ import { MdAddBox, MdClose } from 'react-icons/md';
 import { Stepper } from '../Progresso/Stepper';
 import { ModalReprovacao } from './ModalReprovacao';
 import { useSearchParams } from 'react-router-dom';
+import { ChevronDown } from "lucide-react";
 
 const api = import.meta.env.VITE_API_URL;
 
 const LIMIT = 50;
 
 const Documentos = () => {
+  const [errosUpload, setErrosUpload] = useState({ nome: false, placa: false, file: false });
   const [searchParams, setSearchParams] = useSearchParams();
   const [filtroUsuario, setFiltroUsuario] = useState(searchParams.get('usuario') || '');
   const [filtroStatus, setFiltroStatus] = useState(searchParams.get('status') || '');
   const [filtroCte, setFiltroCte] = useState(searchParams.get('cte') || '');
   const [filtroNome, setFiltroNome] = useState(searchParams.get('nome') || '');
   const [filtroPlaca, setFiltroPlaca] = useState(searchParams.get('placa') || ''); // Continua sendo "placa" no URL e no estado
-
+  const [mostrarFiltros, setMostrarFiltros] = useState(false);
   const [dataInicial, setDataInicial] = useState('');
   const [dataFinal, setDataFinal] = useState('');
 
@@ -351,51 +353,25 @@ const reprovar = async (doc) => {
     }
   };
 
-// const handleSubmitUpload = async (e) => {
-//   e.preventDefault();
-
-//   if (!file || !nome.trim() || !placa.trim()) {
-//     toast.error("Preencha todos os campos e selecione um arquivo.");
-//     return;
-//   }
-
-//   const token = localStorage.getItem("token"); // exemplo, adapte ao seu caso
-
-//   const formData = new FormData();
-//   formData.append("file", file);
-//   formData.append("nome", nome);
-//   formData.append("placa", placa);
-
-//   try {
-//     const response = await fetch(`${api}/documentos/upload`, {
-//       method: "POST",
-//       body: formData,
-//       headers: {
-//         Authorization: `Bearer ${token}`,
-//       },
-//     });
-
-//     if (!response.ok) throw new Error("Erro ao enviar documento");
-
-//     toast.success("Documento enviado com sucesso!");
-//     setNome("");
-//     setPlaca("");
-//     setFile(null);
-//     setMostrarFormularioUpload(false);
-//     fetchDocumentos();
-//   } catch (error) {
-//     toast.error(error.message || "Erro ao enviar documento");
-//   }
-// };
-
-
 const handleSubmitUpload = async (e) => {
   e.preventDefault();
 
-  if (!file || !nome.trim() || !placa.trim()) {
+  const temErroNome = !nome.trim();
+  const temErroPlaca = !placa.trim();
+  const temErroFile = !file;
+
+
+if (temErroNome || temErroPlaca || temErroFile) {
+    setErrosUpload({
+      nome: temErroNome,
+      placa: temErroPlaca,
+      file: temErroFile,
+    });
+
     toast.error("Preencha todos os campos e selecione um arquivo.");
     return;
   }
+setErrosUpload({ nome: false, placa: false, file: false });
 
   setLoadingUpload(true);
 
@@ -603,7 +579,7 @@ useEffect(() => {
   >
     <motion.div
       initial={{ rotate: 0 }}
-      animate={{ rotate: mostrarFormularioUpload ? 180 : 0 }}
+      animate={{ rotate: mostrarFormularioUpload ? 90 : 0 }}
       transition={{ duration: 0.3 }}
     >
       {mostrarFormularioUpload ? <MdClose size={20} /> : <MdAddBox size={20} />}
@@ -620,30 +596,26 @@ useEffect(() => {
       <h2 className="text-3xl font-extrabold text-green-700">Enviar Documento</h2>
       <div className="flex flex-col sm:flex-row gap-5">
         <Input
-          type="text"
-          placeholder="Nome do condutor"
-          value={nome}
-          onChange={(e) => setNome(e.target.value)}
-        />
+  type="text"
+  placeholder="Nome do condutor"
+  value={nome}
+  onChange={(e) => setNome(e.target.value)}
+  className={errosUpload.nome ? "border-red-500" : ""}
+/>
         <Input
-          type="text"
-          placeholder="Nº CTe"
-          value={placa}
-          onChange={(e) => setPlaca(e.target.value)}
-        />
+  type="text"
+  placeholder="Nº CTe"
+  value={placa}
+  onChange={(e) => setPlaca(e.target.value)}
+  className={errosUpload.placa ? "border-red-500" : ""}
+/>
       </div>
       <InputFile onChange={(e) => setFile(e.target.files[0])} />
-      {/* <button
-        type="submit"
-        className="bg-green-700 hover:bg-green-800 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-3 justify-center max-w-xs mx-auto"
-      >
-        <FaUpload size={18} /> Enviar Documento
-      </button> */}
 
       <button
   type="submit"
   disabled={loadingUpload}
-  className={`bg-green-700 hover:bg-green-800 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-3 justify-center max-w-xs mx-auto
+  className={`cursor-pointer bg-green-700 hover:bg-green-800 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-3 justify-center max-w-xs mx-auto
     ${loadingUpload ? "opacity-70 cursor-not-allowed" : ""}
   `}
 >
@@ -683,78 +655,104 @@ useEffect(() => {
 
 
 
-<div className="rounded-xl p-4 mb-6">
-  <h2 className="text-lg font-semibold mb-4 text-white">Filtros</h2>
-
-  <div className="flex flex-col sm:flex-row flex-wrap gap-4">
-
-
-    <input
-      className="border border-gray-500 bg-transparent rounded px-4 py-2 w-full sm:w-auto text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500"
-      placeholder="Nome do condutor"
-      value={filtroNome}
-      onChange={(e) => setFiltroNome(e.target.value)}
-    />
-        <input
-      className="border border-gray-500 bg-transparent rounded px-4 py-2 w-full sm:w-auto text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500"
-      placeholder="Nº do CTE"
-      value={filtroCte}
-      onChange={(e) => setFiltroCte(e.target.value)}
-    />
-        <input
-      className="border border-gray-500 bg-transparent rounded px-4 py-2 w-full sm:w-auto text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500"
-      placeholder="Usuário responsável"
-      value={filtroUsuario}
-      onChange={(e) => setFiltroUsuario(e.target.value)}
-    />
-    <input
-      type="date"
-      className="border border-gray-500 bg-transparent rounded px-4 py-2 w-full sm:w-auto text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500"
-      value={dataInicial}
-      onChange={(e) => setDataInicial(e.target.value)}
-    />
-    <input
-      type="date"
-      className="border border-gray-500 bg-transparent rounded px-4 py-2 w-full sm:w-auto text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500"
-      value={dataFinal}
-      onChange={(e) => setDataFinal(e.target.value)}
-    />
-    <select
-      className="border border-gray-500 bg-transparent rounded px-4 py-2 w-full sm:w-auto text-white focus:outline-none focus:ring-2 focus:ring-green-500"
-      value={filtroStatus}
-      onChange={(e) => setFiltroStatus(e.target.value)}
+<div className="rounded-xl p-4 mb-6 ">
+  {/* Cabeçalho com botão e seta */}
+  <button
+    onClick={() => setMostrarFiltros(!mostrarFiltros)}
+    className="flex items-center gap-5 pr-20 mb-4"
+  >
+    <h2 className="text-lg font-semibold text-white">Filtros</h2>
+    <motion.div
+      animate={{ rotate: mostrarFiltros ? 180 : 0 }}
+      transition={{ duration: 0.3 }}
     >
-      <option value="" className="text-black">Todos os status</option>
-      <option value="enviado" className="text-black">Enviado</option>
-      <option value="aprovado" className="text-black">Aprovado</option>
-      <option value="reprovado" className="text-black">Reprovado</option>
-      <option value="saldo_liberado" className="text-black">Saldo Liberado</option>
-    </select>
+      <ChevronDown className="text-white" />
+    </motion.div>
+  </button>
 
-    <button
-      onClick={() => {
-        setFiltroUsuario('');
-        setFiltroCte('');
-        setFiltroNome('');
-        setDataInicial('');
-        setDataFinal('');
-        setFiltroStatus('');
-        setSearchParams({});
-      }}
-      className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded transition border border-red-700"
-    >
-      Limpar Filtros
-    </button>
-  </div>
+  {/* Conteúdo dos filtros com animação */}
+  <AnimatePresence>
+    {mostrarFiltros && (
+      <motion.div
+        key="filtros"
+        initial={{ height: 0, opacity: 0 }}
+        animate={{ height: "auto", opacity: 1 }}
+        exit={{ height: 0, opacity: 0 }}
+        transition={{ duration: 0.3 }}
+        className="p-2 overflow-hidden"
+      >
+        <div className="flex flex-col sm:flex-row flex-wrap gap-4">
+          <input
+            className="border border-gray-500 bg-transparent rounded px-4 py-2 w-full sm:w-auto text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500"
+            placeholder="Nome do condutor"
+            value={filtroNome}
+            onChange={(e) => setFiltroNome(e.target.value)}
+          />
+          <input
+            className="border border-gray-500 bg-transparent rounded px-4 py-2 w-full sm:w-auto text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500"
+            placeholder="Nº do CTE"
+            value={filtroCte}
+            onChange={(e) => setFiltroCte(e.target.value)}
+          />
+          <input
+            className="border border-gray-500 bg-transparent rounded px-4 py-2 w-full sm:w-auto text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500"
+            placeholder="Usuário responsável"
+            value={filtroUsuario}
+            onChange={(e) => setFiltroUsuario(e.target.value)}
+          />
+          <input
+            type="date"
+            className="border border-gray-500 bg-transparent rounded px-4 py-2 w-full sm:w-auto text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500"
+            value={dataInicial}
+            onChange={(e) => setDataInicial(e.target.value)}
+          />
+          <input
+            type="date"
+            className="border border-gray-500 bg-transparent rounded px-4 py-2 w-full sm:w-auto text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500"
+            value={dataFinal}
+            onChange={(e) => setDataFinal(e.target.value)}
+          />
+          <select
+            className="border border-gray-500 bg-transparent rounded px-4 py-2 w-full sm:w-auto text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+            value={filtroStatus}
+            onChange={(e) => setFiltroStatus(e.target.value)}
+          >
+            <option value="" className="text-black">Todos os status</option>
+            <option value="enviado" className="text-black">Enviado</option>
+            <option value="aprovado" className="text-black">Aprovado</option>
+            <option value="reprovado" className="text-black">Reprovado</option>
+            <option value="saldo_liberado" className="text-black">Saldo Liberado</option>
+          </select>
+
+          <button
+            onClick={() => {
+              setFiltroUsuario('');
+              setFiltroCte('');
+              setFiltroNome('');
+              setDataInicial('');
+              setDataFinal('');
+              setFiltroStatus('');
+              setSearchParams({});
+            }}
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded transition border border-red-700"
+          >
+            Limpar Filtros
+          </button>
+        </div>
+      </motion.div>
+    )}
+  </AnimatePresence>
 </div>
 
 
-
-{!loading && documentos.length === 0 && (
-  <div className="mt-6 p-4  text-center  text-white">
+{!loading && documentosFiltrados.length === 0 && (
+  <div className="text-center text-white p-4 ">
     Nenhum documento encontrado com os filtros atuais.
   </div>
 )}
+
+
+
 
 
   {/* Lista de Documentos */}
