@@ -283,6 +283,7 @@ const solicitarAprovacao = async () => {
   }
 };
 
+console.log(doc)
 
   // Comentário automático ao final das ações
   const enviarComentarioAutom = async (texto) => {
@@ -300,6 +301,9 @@ const solicitarAprovacao = async () => {
     setDocumentoSelecionado(atualizado);
   }
 };
+
+const podeComentar = userData.setor === 'ocorrencia' || userData.id === doc.usuario_id;
+
 
 
 
@@ -335,10 +339,10 @@ const solicitarAprovacao = async () => {
     </div>
   )}
 
-  {doc.usuario?.nome && (
+  {doc.usuario?.username && (
     <div className="flex items-center text-sm text-gray-500 gap-2">
       <MdPerson size={16} />
-      <span>Criado por: {doc.name}</span>
+      <span>Criado por: {doc.usuario.username}</span>
     </div>
   )}
 
@@ -405,48 +409,49 @@ const solicitarAprovacao = async () => {
           <ChatMensagem key={item.id} item={item} currentUser={userData.username} />
         ))}
       </div>
+      {podeComentar && (
+  <div className="p-4 border-t bg-white flex items-center gap-2">
+    <input
+      type="text"
+      placeholder="Digite uma mensagem..."
+      value={comentario}
+      onChange={(e) => setComentario(e.target.value)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          enviarComentario();
+        }
+      }}
+      className="flex-1 text-black border px-3 py-2 rounded"
+    />
+    <button
+      onClick={enviarComentario}
+      disabled={!comentario.trim()}
+      className="p-2 cursor-pointer bg-green-600 text-white rounded hover:bg-green-700"
+    >
+      <FaPaperPlane />
+    </button>
+    <button
+      onClick={() => fileInputRef.current?.click()}
+      className="cursor-pointer p-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+    >
+      <FaPaperclip />
+    </button>
+    <input
+      ref={fileInputRef}
+      type="file"
+      hidden
+      className="cursor-pointer"
+      onChange={(e) => {
+        const file = e.target.files[0];
+        if (file) {
+          uploadVersao(file);
+        }
+      }}
+    />
+  </div>
+)}
 
-      {/* Área de envio - sempre grudada no fundo */}
-      <div className="p-4 border-t bg-white flex items-center gap-2">
-        <input
-          type="text"
-          placeholder="Digite uma mensagem..."
-          value={comentario}
-          onChange={(e) => setComentario(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault();
-              enviarComentario();
-            }
-          }}
-          className="flex-1 text-black border px-3 py-2 rounded"
-        />
-        <button
-          onClick={enviarComentario}
-          disabled={!comentario.trim()}
-          className="p-2 cursor-pointer bg-green-600 text-white rounded hover:bg-green-700"
-        >
-          <FaPaperPlane />
-        </button>
-        <button
-          onClick={() => fileInputRef.current?.click()}
-          className="cursor-pointer p-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
-        >
-          <FaPaperclip />
-        </button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          hidden
-          className='cursor-pointer'
-          onChange={(e) => {
-            const file = e.target.files[0];
-            if (file) {
-              uploadVersao(file);
-            }
-          }}
-        />
-      </div>
     </div>
 
     {/* Modal de reprovação */}

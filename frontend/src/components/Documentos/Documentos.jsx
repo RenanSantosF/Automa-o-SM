@@ -113,6 +113,11 @@ const selecionarDocumento = (doc) => {
 };
 
 
+const documentosFiltrados =
+  userData.setor === 'outros'
+    ? documentos.filter((doc) => doc.usuario_id === userData.id)
+    : documentos;
+
   return (
     <div className="flex h-[calc(100vh-100px)] bg-white rounded-xl overflow-hidden border">
       {/* Sidebar (Lista) */}
@@ -132,11 +137,12 @@ const selecionarDocumento = (doc) => {
       <span className='text-gray-500 font-medium '>Conversas</span>
     </div>
     
-    <Sidebar
-      documentos={documentos}
-      onSelecionar={selecionarDocumento}
-      documentoSelecionado={documentoSelecionado}
-    />
+<Sidebar
+  documentos={documentosFiltrados}
+  onSelecionar={selecionarDocumento}
+  documentoSelecionado={documentoSelecionado}
+/>
+
 
     {hasMore && (
       <div className="p-4 text-center">
