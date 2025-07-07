@@ -28,7 +28,7 @@ function App() {
         className={`
           transition-all duration-300
           ${isAuthenticated ? (isOpen ? 'ml-[260px]' : 'ml-[80px]') : 'ml-0'}
-          py-6 px-4 min-h-screen bg-[#333]
+          py-2 px-2 min-h-screen bg-[#333]
         `}
       >
         <Routes>

@@ -29,22 +29,32 @@ html, body, #root {
 
 
 
+/* Scroll global elegante */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
 *::-webkit-scrollbar {
   width: 8px;
+  height: 8px;
 }
 
 *::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: transparent;
 }
 
 *::-webkit-scrollbar-thumb {
-  background-color: #888;
-  border-radius: 4px;
+  background-color: #cbd5e1; /* slate-300 */
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
 }
 
 *::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background-color: #94a3b8; /* slate-400 */
 }
+
 
 .input-filtro {
   @apply border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500;
@@ -59,13 +69,11 @@ html, body, #root {
   width: 6px;
 }
 
-.chat-scroll::-webkit-scrollbar-track {
-  background: transparent;
-}
-
 .chat-scroll::-webkit-scrollbar-thumb {
   background-color: #d1d5db;
   border-radius: 9999px;
+  background-clip: content-box;
+  border: 2px solid transparent;
 }
 
 .chat-scroll::-webkit-scrollbar-thumb:hover {

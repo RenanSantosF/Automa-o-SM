@@ -1,10 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { FiUser, FiKey, FiServer, FiCheckCircle, FiLoader } from 'react-icons/fi';
+import {
+  FiUser,
+  FiKey,
+  FiServer,
+  FiCheckCircle,
+  FiLoader,
+  FiEye,
+  FiEyeOff,
+  FiShield
+} from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useLogin } from '../../Contexts/LoginContext';
 const setores = ['ocorrencia', 'expedicao', 'outros'];
-const api = import.meta.env.VITE_API_URL; // Ajuste conforme seu ambiente
+const api = import.meta.env.VITE_API_URL;
 
 export default function UpdateUser() {
   const { logout } = useLogin();
@@ -17,15 +26,15 @@ export default function UpdateUser() {
     senha_apisul: '',
   });
 
-  const [setorInicial, setSetorInicial] = useState(''); // Guarda o setor original
-
-  // Nova senha de confirmação para alteração do setor
+  const [setorInicial, setSetorInicial] = useState('');
   const [senhaConfirmSetor, setSenhaConfirmSetor] = useState('');
+  const [mostrarApisul, setMostrarApisul] = useState(false);
+  const [mostrarSenha, setMostrarSenha] = useState(false);
 
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [successMessage, setSuccessMessage] = useState(''); // estado para sucesso
+  const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
     async function fetchUser() {
@@ -53,7 +62,7 @@ export default function UpdateUser() {
           usuario_apisul: data.usuario_apisul || '',
           senha_apisul: '',
         });
-        setSetorInicial(data.setor || setores[0]); // guarda setor original
+        setSetorInicial(data.setor || setores[0]);
       } catch (err) {
         setError(err.message);
       }
@@ -63,7 +72,6 @@ export default function UpdateUser() {
 
   const handleChange = (e) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-    // Se alterar setor, limpa a senha de confirmação para forçar digitar de novo
     if (e.target.name === 'setor') {
       setSenhaConfirmSetor('');
       setError('');
@@ -76,7 +84,6 @@ export default function UpdateUser() {
     setError('');
     setSuccessMessage('');
 
-    // Se setor foi alterado, exige confirmação da senha fixa 985509
     if (form.setor !== setorInicial) {
       if (senhaConfirmSetor !== '985509') {
         setError('Senha incorreta para alteração do setor.');
@@ -86,13 +93,11 @@ export default function UpdateUser() {
     }
 
     const payload = {};
-
     if (form.email !== '') payload.email = form.email;
     if (form.senha) payload.senha = form.senha;
     if (form.setor !== setorInicial) payload.setor = form.setor;
-    if (form.usuario_apisul) payload.usuario_apisul = form.usuario_apisul;
-    if (form.senha_apisul) payload.senha_apisul = form.senha_apisul;
-
+    if (mostrarApisul && form.usuario_apisul) payload.usuario_apisul = form.usuario_apisul;
+    if (mostrarApisul && form.senha_apisul) payload.senha_apisul = form.senha_apisul;
 
     Object.keys(payload).forEach((key) => payload[key] === undefined && delete payload[key]);
 
@@ -115,16 +120,16 @@ export default function UpdateUser() {
       }
 
       setSuccessMessage('✅ Usuário atualizado com sucesso!');
-      setSetorInicial(form.setor); // atualiza o setor original para o novo valor
-      setSenhaConfirmSetor(''); // limpa senha confirmação
+      setSetorInicial(form.setor);
+      setSenhaConfirmSetor('');
 
       setTimeout(() => {
         logout();
-        localStorage.removeItem('token'); // logout
-        navigate('/login'); // redireciona
+        localStorage.removeItem('token');
+        navigate('/login');
       }, 2000);
 
-      setForm((prev) => ({ ...prev, senha: '', senha_apisul: '' })); // limpa senhas
+      setForm((prev) => ({ ...prev, senha: '', senha_apisul: '' }));
     } catch (err) {
       setError(err.message);
     } finally {
@@ -147,7 +152,6 @@ export default function UpdateUser() {
           <FiCheckCircle /> Atualizar Usuário
         </h2>
 
-        {/* Username - só mostrar */}
         <div className="flex flex-col">
           <label className="text-sm text-gray-300 mb-1 flex gap-1">
             <FiUser /> Usuário
@@ -176,22 +180,26 @@ export default function UpdateUser() {
           />
         </div>
 
-        {/* Senha */}
-        <div className="flex flex-col">
+        <div className="flex flex-col relative">
           <label className="text-sm text-gray-300 mb-1 flex gap-1">
             <FiKey /> Nova Senha
           </label>
           <input
-            type="password"
+            type={mostrarSenha ? 'text' : 'password'}
             name="senha"
             value={form.senha}
             onChange={handleChange}
             placeholder="••••••••"
-            className="bg-[#2b2b2b] border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-600"
+            className="bg-[#2b2b2b] border border-gray-600 rounded-lg px-3 py-2 pr-10 text-white focus:outline-none focus:ring-2 focus:ring-green-600"
           />
+          <span
+            className="absolute right-3 top-[38px] text-gray-400 cursor-pointer"
+            onClick={() => setMostrarSenha(!mostrarSenha)}
+          >
+            {mostrarSenha ? <FiEyeOff /> : <FiEye />}
+          </span>
         </div>
 
-        {/* Setor */}
         <div className="flex flex-col">
           <label className="text-sm text-gray-300 mb-1 flex gap-1">
             <FiServer /> Setor
@@ -210,7 +218,6 @@ export default function UpdateUser() {
           </select>
         </div>
 
-        {/* Campo senha confirmação só aparece se setor mudou */}
         <AnimatePresence>
           {form.setor !== setorInicial && (
             <motion.div
@@ -222,7 +229,7 @@ export default function UpdateUser() {
               className="flex flex-col overflow-hidden"
             >
               <label className="text-sm text-gray-300 mb-1 flex gap-1">
-                <FiKey /> Informe a senha de administrador *
+                <FiShield /> Confirmar senha para mudar o setor
               </label>
               <input
                 type="password"
@@ -232,54 +239,67 @@ export default function UpdateUser() {
                 placeholder="••••••••"
                 className="bg-[#2b2b2b] border border-red-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-red-600"
                 required
-                autoFocus
               />
             </motion.div>
           )}
         </AnimatePresence>
 
-        <hr className="border-gray-700" />
+        <button
+          type="button"
+          onClick={() => setMostrarApisul(!mostrarApisul)}
+          className="text-sm text-green-400 underline"
+        >
+          {mostrarApisul ? 'Ocultar campos Apisul' : 'Utiliza Apisul?'}
+        </button>
 
-        {/* Usuário Apisul */}
-        <div className="flex flex-col">
-          <label className="text-sm text-gray-300 mb-1 flex gap-1">
-            <FiUser /> Usuário Apisul (opcional)
-          </label>
-          <input
-            type="text"
-            name="usuario_apisul"
-            value={form.usuario_apisul}
-            onChange={handleChange}
-            placeholder="login.apisul"
-            className="bg-[#2b2b2b] border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-600"
-          />
-        </div>
+        <div className='overflow-hidden'>
 
-        {/* Senha Apisul */}
-        <div className="flex flex-col">
-          <label className="text-sm text-gray-300 mb-1 flex gap-1">
-            <FiKey /> Senha Apisul (opcional)
-          </label>
-          <input
-            type="password"
-            name="senha_apisul"
-            value={form.senha_apisul}
-            onChange={handleChange}
-            placeholder="••••••••"
-            className="bg-[#2b2b2b] border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-600"
-          />
-        </div>
-
-        {/* Botão */}
+        
+        <AnimatePresence>
+          {mostrarApisul && (
+            <motion.div
+              key="apisul-fields"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3 }}
+              className="space-y-4"
+            >
+              <div className="flex flex-col">
+                <label className="text-sm text-gray-300 mb-1 flex gap-1">
+                  <FiUser /> Usuário Apisul
+                </label>
+                <input
+                  type="text"
+                  name="usuario_apisul"
+                  value={form.usuario_apisul}
+                  onChange={handleChange}
+                  placeholder="login.apisul"
+                  className="bg-[#2b2b2b] border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-600"
+                />
+              </div>
+              <div className="flex flex-col">
+                <label className="text-sm text-gray-300 mb-1 flex gap-1">
+                  <FiKey /> Senha Apisul
+                </label>
+                <input
+                  type="password"
+                  name="senha_apisul"
+                  value={form.senha_apisul}
+                  onChange={handleChange}
+                  placeholder="••••••••"
+                  className="bg-[#2b2b2b] border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-600"
+                />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+          </div>
         <button
           type="submit"
           disabled={loading}
           className={`cursor-pointer w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl 
-            ${
-              loading
-                ? 'bg-green-800 cursor-wait'
-                : 'bg-green-600 hover:bg-green-700 transition-all'
-            } 
+            ${loading ? 'bg-green-800 cursor-wait' : 'bg-green-600 hover:bg-green-700 transition-all'} 
             text-white font-medium`}
         >
           {loading ? (
@@ -293,7 +313,6 @@ export default function UpdateUser() {
           )}
         </button>
 
-        {/* Mensagens de sucesso e erro */}
         {successMessage && (
           <p className="text-green-500 text-center text-sm border border-green-500 p-2 rounded-lg bg-green-500/10">
             {successMessage}

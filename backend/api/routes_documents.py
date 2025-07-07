@@ -209,7 +209,7 @@ async def listar_todos_documentos(
     data_malote_final: Optional[str] = Query(None),
 
     skip: int = 0,
-    limit: int = Query(5, ge=1, le=100),  # Começa com 50 por padrão, pode pedir mais no frontend
+    limit: int = Query(500, ge=1, le=500),  # Começa com 50 por padrão, pode pedir mais no frontend
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 

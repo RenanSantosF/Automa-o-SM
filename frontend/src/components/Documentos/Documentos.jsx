@@ -19,18 +19,17 @@ const Documentos = () => {
   const [manualLoading, setManualLoading] = useState(false);
   const [autoScrollChat, setAutoScrollChat] = useState(false);
 
-const [filtros, setFiltros] = useState({
-  usuario: '',
-  status: '',
-  cte: '',
-  nome: '',
-  cliente: '',
-  dataMaloteInicial: '',
-  dataMaloteFinal: '',
-  dataInicial: '',
-  dataFinal: '',
-});
-
+  const [filtros, setFiltros] = useState({
+    usuario: '',
+    status: '',
+    cte: '',
+    nome: '',
+    cliente: '',
+    dataMaloteInicial: '',
+    dataMaloteFinal: '',
+    dataInicial: '',
+    dataFinal: '',
+  });
 
   const [modalReprovarAberto, setModalReprovarAberto] = useState(null);
   const [motivoReprovacao, setMotivoReprovacao] = useState({});
@@ -39,7 +38,17 @@ const [filtros, setFiltros] = useState({
     Authorization: `Bearer ${localStorage.getItem('token')}`,
   };
 
-  const fetchDocumentos = async (pagina = 1, modo = 'merge', isAutoUpdate = false) => {
+  const fetchDocumentosCompletos = async () => {
+    const totalLimit = paginaAtual * LIMIT;
+    return await fetchDocumentos(1, 'merge', false, totalLimit);
+  };
+
+  const fetchDocumentos = async (
+    pagina = 1,
+    modo = 'merge',
+    isAutoUpdate = false,
+    limitOverride = null
+  ) => {
     if (!isAutoUpdate && manualLoading) return;
     if (!isAutoUpdate) setManualLoading(true);
 
@@ -61,14 +70,11 @@ const [filtros, setFiltros] = useState({
       params.append('data_malote_final', filtros.dataMaloteFinal);
     }
 
-
     if (filtros.dataInicial) params.append('data_inicial', filtros.dataInicial);
     if (filtros.dataFinal) params.append('data_final', filtros.dataFinal);
 
-
-    
     params.append('skip', ((pagina - 1) * LIMIT).toString());
-    params.append('limit', LIMIT.toString());
+    params.append('limit', (limitOverride || LIMIT).toString());
 
     try {
       const res = await fetch(`${api}/documentos/todos?${params}`, { headers });
@@ -83,7 +89,9 @@ const [filtros, setFiltros] = useState({
         );
       });
 
-      setHasMore(data.length === LIMIT);
+      if (!isAutoUpdate) {
+        setHasMore(data.length === LIMIT);
+      }
       return data;
     } catch (err) {
       if (!isAutoUpdate) toast.error('Erro ao carregar documentos');
@@ -101,7 +109,9 @@ const [filtros, setFiltros] = useState({
   // 🔁 Atualização automática a cada 15s sem sobrescrever ou duplicar
   useEffect(() => {
     const intervalo = setInterval(async () => {
-      const atualizados = await fetchDocumentos(paginaAtual, 'merge', true);
+      const totalLimit = paginaAtual * LIMIT;
+      const atualizados = await fetchDocumentos(1, 'merge', true, totalLimit);
+
       if (documentoSelecionado && atualizados) {
         const atualizado = atualizados.find((d) => d.id === documentoSelecionado.id);
         if (atualizado) {
@@ -109,7 +119,7 @@ const [filtros, setFiltros] = useState({
           setAutoScrollChat(false); // 🚫 Desliga scroll automático
         }
       }
-    }, 7000); // 15 segundos
+    }, 15000); // 7 segundos
 
     return () => clearInterval(intervalo);
   }, [documentoSelecionado?.id, paginaAtual, filtros]);
@@ -133,7 +143,7 @@ const [filtros, setFiltros] = useState({
       : documentos;
 
   return (
-    <div className="flex h-[calc(100vh-100px)] bg-white rounded-xl overflow-hidden border">
+    <div className="flex h-[calc(100vh-100px)] bg-white rounded-md overflow-hidden border">
       {/* Sidebar (Lista) */}
       <div className="w-[510px] bg-gray-100 border-r flex flex-col">
         {/* Topo fixo: Upload + Filtros */}
@@ -161,11 +171,24 @@ const [filtros, setFiltros] = useState({
             <div className="p-4 text-center">
               <button
                 onClick={carregarMais}
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg"
+                className="mx-auto mt-4 flex items-center justify-center gap-2 px-3 py-1 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors duration-200"
               >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 5v14m7-7H5" />
+                </svg>
                 Carregar mais
               </button>
             </div>
+          )}
+          {!hasMore && documentos.length > 0 && (
+            <div className="p-4 text-center text-gray-400">Nada encontrado.</div>
           )}
         </div>
       </div>
@@ -178,7 +201,7 @@ const [filtros, setFiltros] = useState({
             userData={userData}
             headers={headers}
             setDocumentoSelecionado={setDocumentoSelecionado}
-            fetchDocumentos={() => fetchDocumentos(paginaAtual)}
+            fetchDocumentos={fetchDocumentosCompletos}
             motivoReprovacao={motivoReprovacao}
             setMotivoReprovacao={setMotivoReprovacao}
             setModalReprovarAberto={setModalReprovarAberto}

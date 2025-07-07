@@ -1,19 +1,14 @@
 import React from 'react';
 import { formatDate } from './utils';
-import {
-  MdCheckCircle,
-  MdCancel,
-  MdSend,
-  MdAttachMoney,
-  MdDelete,
-} from 'react-icons/md';
+import { MdCheckCircle, MdCancel, MdSend, MdAttachMoney, MdDelete } from 'react-icons/md';
+import { useLogin } from '../../Contexts/LoginContext';
 
 const DocItem = ({ doc, onClick, isActive }) => {
+  const { userData } = useLogin();
   const rawStatus = doc.status || '';
   const status = rawStatus.toLowerCase();
 
-  const formatStatus = (s) =>
-    s.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  const formatStatus = (s) => s.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 
   const getStatusBadge = () => {
     switch (status) {
@@ -93,7 +88,7 @@ const DocItem = ({ doc, onClick, isActive }) => {
       }`}
     >
       {/* Conteúdo do documento (clicável) */}
-      <button onClick={onClick} className="flex-1 px-4 py-3 text-left flex flex-col gap-1">
+      <button onClick={onClick} className="cursor-pointer flex-1 px-4 py-3 text-left flex flex-col gap-1">
         <div className="text-sm font-semibold text-gray-700">
           {doc.nome} | CTe {doc.placa}
         </div>
@@ -105,17 +100,18 @@ const DocItem = ({ doc, onClick, isActive }) => {
           {badge.label}
         </div>
 
-              {/* Botão deletar */}
-
-      </button>
-      <button
-        onClick={handleDelete}
-        title="Deletar documento"
-        className="text-red-300 pr-4 hover:text-red-700 p-1 rounded transition"
-      >
-        <MdDelete size={20} />
+        {/* Botão deletar */}
       </button>
 
+      {userData.id === doc.usuario_id && (
+        <button
+          onClick={handleDelete}
+          title="Deletar documento"
+          className="cursor-pointer text-red-300 pr-4 hover:text-red-700 p-1 rounded transition"
+        >
+          <MdDelete size={20} />
+        </button>
+      )}
     </div>
   );
 };

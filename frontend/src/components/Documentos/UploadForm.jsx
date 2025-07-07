@@ -65,7 +65,7 @@ const UploadForm = ({ isAuthenticated, fetchDocumentos }) => {
       <button
         disabled={!isAuthenticated}
         onClick={() => setMostrar(!mostrar)}
-        className={`w-full flex items-center justify-center gap-2 px-4 py-2 rounded-md text-white ${
+        className={`cursor-pointer w-full flex items-center justify-center gap-2 px-4 py-2 rounded-md text-white ${
           isAuthenticated ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-400 cursor-not-allowed'
         }`}
       >
@@ -116,7 +116,15 @@ const UploadForm = ({ isAuthenticated, fetchDocumentos }) => {
                   value={nome}
                   onChange={(e) => setNome(e.target.value)}
                 />
-                <Input placeholder="CTe" value={placa} onChange={(e) => setPlaca(e.target.value)} />
+                <Input
+                  placeholder="CTe"
+                  value={placa}
+                  onChange={(e) => {
+                    const somenteNumeros = e.target.value.replace(/\D/g, '');
+                    setPlaca(somenteNumeros);
+                  }}
+                />
+
                 <Input
                   placeholder="Cliente"
                   value={cliente}
@@ -127,14 +135,14 @@ const UploadForm = ({ isAuthenticated, fetchDocumentos }) => {
                   type="date"
                   value={data}
                   onChange={(e) => setData(e.target.value)}
-                  className="border p-2 rounded"
+                  className="border cursor-pointer p-2 rounded"
                 />
                 <InputFile onChange={(e) => setFile(e.target.files[0])} />
 
                 <button
                   type="submit"
                   disabled={loading}
-                  className="bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-lg flex items-center gap-2 justify-center"
+                  className="cursor-pointer bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-lg flex items-center gap-2 justify-center"
                 >
                   {loading ? (
                     'Enviando...'
