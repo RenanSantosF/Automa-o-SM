@@ -11,6 +11,8 @@ import Comprovantes from './pages/Comprovantes';
 import NaoAutorizado from './pages/NaoAutorizado';
 import { useState } from 'react';
 import PrivateRoute from './components/PrivateRoute/PrivateRoute';
+import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer } from 'react-toastify';
 
 
 function App() {
@@ -18,6 +20,7 @@ function App() {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
+    <>
     <Router>
       {isAuthenticated && <Header isOpen={isOpen} setIsOpen={setIsOpen} />}
 
@@ -78,6 +81,18 @@ function App() {
         </Routes>
       </div>
     </Router>
+    <ToastContainer
+        position="top-right"
+        autoClose={3000} // desaparece após 3 segundos
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
+    </>
   );
 }
 

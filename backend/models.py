@@ -2,7 +2,7 @@ from sqlalchemy import Column,Boolean, ForeignKey, Integer, String, Text, DateTi
 from sqlalchemy.sql import func
 from database import Base  # ou como você estiver importando sua base declarativa
 from sqlalchemy.orm import relationship
-
+from sqlalchemy import Date
 class Execucao(Base):
     __tablename__ = "execucoes"
 
@@ -72,17 +72,18 @@ class NFe(Base):
     cte = relationship("CTe", back_populates="notas")
 
 
-
+# models.py
 class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
-    username = Column(String, unique=True, index=True)
-    senha = Column(String)  # Você deve armazenar hash
-    setor = Column(String)  # Ex: "ocorrencia", "expedicao", "outros"
+    username = Column(String, unique=True, index=True, nullable=False)
+    email = Column(String, unique=True, index=True, nullable=False)   # NOVO
+    senha = Column(String, nullable=False)                            # hash
+    setor = Column(String, nullable=False)
 
-    usuario_apisul = Column(String)  # Essa coluna
-    senha_apisul = Column(String)
+    usuario_apisul = Column(String, nullable=True)
+    senha_apisul = Column(String, nullable=True)
 
 
 
@@ -93,6 +94,8 @@ class Document(Base):
     usuario_id = Column(Integer, ForeignKey("users.id"))
     nome = Column(String, nullable=False)
     placa = Column(String, nullable=False)
+    cliente     = Column(String, nullable=False)          # NOVO
+    data_do_malote = Column(Date, nullable=False)
     criado_em = Column(DateTime, default=func.now())
     status = Column(String, default="enviado")
 

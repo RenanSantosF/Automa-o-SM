@@ -16,8 +16,7 @@ from fastapi import (
 
 
 from sqlalchemy import func, or_
-
-
+from database import SessionLocal
 from sqlalchemy.orm import Session, selectinload
 from datetime import datetime, timezone
 from models import User, Document, DocumentFile, DocumentComment
@@ -84,45 +83,67 @@ async def notificar_atualizacao():
 
 
 @router.websocket("/ws/documentos")
-async def websocket_documentos(websocket: WebSocket, db: Session = Depends(get_db)):
-    print("Tentativa de conexão WebSocket recebida")
+async def websocket_documentos(websocket: WebSocket):
     token = websocket.query_params.get("token")
+    print("Tentando conectar WebSocket...")
+
     if not token:
+        print("❌ Sem token, conexão recusada.")
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return
 
-    user = get_user_from_token(token, db)
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username = payload.get("sub")
+        if not username:
+            raise JWTError()
+    except JWTError:
+        print("❌ Token inválido.")
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return
+
+    with SessionLocal() as db:
+        user = db.query(User).filter(User.username == username).first()
     if not user:
+        print(f"❌ Usuário '{username}' não encontrado no banco.")
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return
 
+    print(f"✅ WebSocket conectado com sucesso: {username}")
     await manager.connect(websocket)
+
     try:
         while True:
-            await asyncio.sleep(10)
-    except (WebSocketDisconnect, asyncio.CancelledError):
-        print("🔌 WebSocket desconectado.")
+            await asyncio.sleep(30)
+    except WebSocketDisconnect:
+        print(f"🔌 WebSocket desconectado: {username}")
+    finally:
         manager.disconnect(websocket)
 
 
-
-
-
-# ----- 📤 Upload -----
 @router.post("/upload")
 async def upload_documento(
     file: UploadFile = File(...),
     nome: str = Form(...),
     placa: str = Form(...),
+    cliente: str = Form(...),                  # NOVO
+    data_do_malote: str = Form(...),           # NOVO (virá como ISO date "YYYY‑MM‑DD")
     db: Session = Depends(get_db),
     usuario: User = Depends(get_current_user),
 ):
     caminho = salvar_comprovante(file)
 
+    try:
+        data_malote = datetime.fromisoformat(data_do_malote).date()
+    except ValueError:
+        raise HTTPException(400, "data_do_malote inválida (use YYYY-MM-DD)")
+
     doc = Document(
         usuario_id=usuario.id,
         nome=nome,
         placa=placa,
+        cliente=cliente,
+        data_do_malote=data_malote,
         status="enviado",
         criado_em=datetime.now(timezone.utc),
     )
@@ -143,6 +164,7 @@ async def upload_documento(
     asyncio.create_task(notificar_atualizacao())
 
     return {"id_documento": doc.id, "status": doc.status}
+
 
 
 # ----- 🔍 Listagens -----
@@ -182,16 +204,25 @@ async def listar_todos_documentos(
     nome: Optional[str] = Query(None),
     data_inicial: Optional[str] = Query(None),
     data_final: Optional[str] = Query(None),
+    cliente: Optional[str] = Query(None),
+    data_malote_inicial: Optional[str] = Query(None),
+    data_malote_final: Optional[str] = Query(None),
+
     skip: int = 0,
-    limit: int = 50,  # Começa com 50 por padrão, pode pedir mais no frontend
+    limit: int = Query(5, ge=1, le=100),  # Começa com 50 por padrão, pode pedir mais no frontend
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
+
 ):
+    
     query = db.query(Document).options(
         selectinload(Document.usuario),
         selectinload(Document.arquivos).selectinload(DocumentFile.usuario),
         selectinload(Document.comentarios_rel).selectinload(DocumentComment.usuario),
     )
+
+    print(f"🔎 Limit recebido: {limit}")
+
 
     # Filtro por usuário (nome ou username)
     if usuario:
@@ -231,6 +262,27 @@ async def listar_todos_documentos(
             query = query.filter(Document.criado_em <= dt_fim)
         except Exception:
             pass
+
+    # Filtro por cliente (aproximação)
+    if cliente:
+        cli_like = f"%{cliente.lower()}%"
+        query = query.filter(func.lower(Document.cliente).like(cli_like))
+
+    # Filtro por data_do_malote
+    if data_malote_inicial:
+        try:
+            dm_inicio = datetime.fromisoformat(data_malote_inicial).date()
+            query = query.filter(Document.data_do_malote >= dm_inicio)
+        except Exception:
+            pass
+
+    if data_malote_final:
+        try:
+            dm_fim = datetime.fromisoformat(data_malote_final).date()
+            query = query.filter(Document.data_do_malote <= dm_fim)
+        except Exception:
+            pass
+
 
     # Ordenar do mais recente para o mais antigo
     query = query.order_by(Document.criado_em.desc())

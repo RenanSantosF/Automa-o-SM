@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional, List
-from datetime import datetime
+from datetime import datetime, date
+from pydantic import EmailStr
 
 class LoginData(BaseModel):
     usuario: str
@@ -57,18 +58,28 @@ class Token(BaseModel):
 
 class UserCreate(BaseModel):
     username: str
+    email: EmailStr
     senha: str
     setor: str
     usuario_apisul: Optional[str] = None
     senha_apisul: Optional[str] = None
 
     
-class UserOut(UserCreate):
+class UserOut(BaseModel):
     id: int
+    username: str
+    email: Optional[EmailStr]   # opcional aqui
+    setor: str
+    usuario_apisul: Optional[str] = None
+
+    class Config:
+        orm_mode = True
+
 
 
 # Schema para atualização (senha opcional)
 class UserUpdate(BaseModel):
+    email: Optional[EmailStr] = None
     senha: Optional[str] = None
     setor: Optional[str] = None
     usuario_apisul: Optional[str] = None
@@ -81,6 +92,7 @@ class UserUpdate(BaseModel):
 class UserSchema(BaseModel):
     id: int
     username: str
+    email: Optional[EmailStr]
     setor: str
 
     class Config:
@@ -113,6 +125,8 @@ class DocumentSchema(BaseModel):
     usuario_id: int
     nome: str
     placa: str
+    cliente: str                         # ← NOVO
+    data_do_malote: date                 
     criado_em: datetime
     status: str
     usuario: UserSchema  # <-- Adicione isso
@@ -126,6 +140,8 @@ class DocumentSchema(BaseModel):
 class DocumentCreateSchema(BaseModel):
     nome: str
     placa: str
+    cliente: str                         # ← NOVO
+    data_do_malote: date
 
 class ComentarioSchema(BaseModel):
     texto: str

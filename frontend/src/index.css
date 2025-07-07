@@ -46,7 +46,9 @@ html, body, #root {
   background: #555;
 }
 
-
+.input-filtro {
+  @apply border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500;
+}
 
 .chat-scroll {
   scrollbar-width: thin;

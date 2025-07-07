@@ -17,14 +17,25 @@ router = APIRouter()
 
 @router.post("/register", response_model=UserOut)
 def register(user: UserCreate, db: Session = Depends(get_db)):
+    print(">>> ENTROU NO ENDPOINT /register")   # <- precisa aparecer
+    print("payload recebido:", user.dict())
+
     # Verifica se username já existe
     existing_user = db.query(User).filter(User.username == user.username).first()
     if existing_user:
         raise HTTPException(status_code=400, detail="Username já existe")
 
+
+    # Verifica se email já existe
+    existing_email = db.query(User).filter(User.email == user.email).first()
+    if existing_email:
+        raise HTTPException(status_code=400, detail="Email já está em uso")
+    
     hashed_password = hash_password(user.senha)
+    print(user)
     novo_usuario = User(
         username=user.username,
+        email=user.email,
         senha=hashed_password,
         setor=user.setor,                  # pegue o setor enviado (não fixe "outros")
         usuario_apisul=user.usuario_apisul,  # opcional
@@ -77,6 +88,18 @@ def update_user(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    
+    # Atualiza email se enviado (não nulo)
+    if update_data.email is not None:
+        # Verifica se o email já está em uso por outro usuário
+        existing_email = db.query(User).filter(
+            User.email == update_data.email,
+            User.id != current_user.id
+        ).first()
+        if existing_email:
+            raise HTTPException(status_code=400, detail="Email já está em uso por outro usuário")
+        current_user.email = update_data.email
+        
     # Atualiza os campos se foram enviados
     if update_data.senha:
         current_user.senha = hash_password(update_data.senha)

@@ -12,3 +12,4 @@ openrouteservice
 webdriver-manager
 alembic
 httpx
+pydantic[email]

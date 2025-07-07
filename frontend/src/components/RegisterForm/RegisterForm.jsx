@@ -12,6 +12,7 @@ export default function RegisterForm() {
 
   const [form, setForm] = useState({
     username: '',
+    email: '',
     senha: '',
     setor: setores[0],
     usuario_apisul: '',
@@ -41,10 +42,12 @@ export default function RegisterForm() {
 
     try {
       await register(form);
+      console.log("Enviando dados registro:", form);
       alert('✅ Usuário registrado com sucesso!');
       navigate('/login');
       setForm({
         username: '',
+        email: '',
         senha: '',
         setor: setores[0],
         usuario_apisul: '',
@@ -52,7 +55,8 @@ export default function RegisterForm() {
       });
       setSenhaConfirm('');
     } catch (err) {
-      console.log('❌ Erro: ' + err.message);
+      console.log(form)
+      console.log(err.message);
       setError(err.message || 'Erro ao registrar usuário.');
     }
   };
@@ -137,6 +141,22 @@ export default function RegisterForm() {
             value={form.usuario_apisul}
             onChange={handleChange}
             placeholder="login.apisul"
+            className="bg-[#2b2b2b] border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-600"
+          />
+        </div>
+
+        {/* Email */}
+        <div className="flex flex-col">
+          <label className="text-sm text-gray-300 mb-1 flex gap-1">
+            <FiUser /> Email *
+          </label>
+          <input
+            type="email"
+            name="email"
+            value={form.email}
+            onChange={handleChange}
+            required
+            placeholder="exemplo@dominio.com"
             className="bg-[#2b2b2b] border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-600"
           />
         </div>

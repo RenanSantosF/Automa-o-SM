@@ -10,6 +10,7 @@ export default function UpdateUser() {
   const { logout } = useLogin();
   const [form, setForm] = useState({
     username: '',
+    email: '',
     senha: '',
     setor: setores[0],
     usuario_apisul: '',
@@ -46,6 +47,7 @@ export default function UpdateUser() {
         const data = await res.json();
         setForm({
           username: data.username,
+          email: data.email || '',
           senha: '',
           setor: data.setor || setores[0],
           usuario_apisul: data.usuario_apisul || '',
@@ -83,12 +85,14 @@ export default function UpdateUser() {
       }
     }
 
-    const payload = {
-      senha: form.senha || undefined,
-      setor: form.setor || undefined,
-      usuario_apisul: form.usuario_apisul || undefined,
-      senha_apisul: form.senha_apisul || undefined,
-    };
+    const payload = {};
+
+    if (form.email !== '') payload.email = form.email;
+    if (form.senha) payload.senha = form.senha;
+    if (form.setor !== setorInicial) payload.setor = form.setor;
+    if (form.usuario_apisul) payload.usuario_apisul = form.usuario_apisul;
+    if (form.senha_apisul) payload.senha_apisul = form.senha_apisul;
+
 
     Object.keys(payload).forEach((key) => payload[key] === undefined && delete payload[key]);
 
@@ -154,6 +158,21 @@ export default function UpdateUser() {
             value={form.username}
             readOnly
             className="bg-[#2b2b2b] border border-gray-600 rounded-lg px-3 py-2 text-gray-400 cursor-not-allowed"
+          />
+        </div>
+
+        <div className="flex flex-col">
+          <label className="text-sm text-gray-300 mb-1 flex gap-1">
+            <FiUser /> Email *
+          </label>
+          <input
+            type="email"
+            name="email"
+            value={form.email}
+            onChange={handleChange}
+            required
+            placeholder="exemplo@dominio.com"
+            className="bg-[#2b2b2b] border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-600"
           />
         </div>
 
