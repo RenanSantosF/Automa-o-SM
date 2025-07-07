@@ -18,7 +18,7 @@ from fastapi import (
 from sqlalchemy import func, or_
 from database import SessionLocal
 from sqlalchemy.orm import Session, selectinload
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from models import User, Document, DocumentFile, DocumentComment
 from core.dependencies import get_db
 from utils.salvar_comprovantes import salvar_comprovante
@@ -258,10 +258,11 @@ async def listar_todos_documentos(
 
     if data_final:
         try:
-            dt_fim = datetime.fromisoformat(data_final)
-            query = query.filter(Document.criado_em <= dt_fim)
+            dt_fim = datetime.fromisoformat(data_final) + timedelta(days=1)
+            query = query.filter(Document.criado_em < dt_fim)
         except Exception:
             pass
+
 
     # Filtro por cliente (aproximação)
     if cliente:

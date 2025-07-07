@@ -77,61 +77,78 @@ const UploadForm = ({ isAuthenticated, fetchDocumentos }) => {
 
       {/* Modal */}
       <AnimatePresence>
-  {mostrar && (
-    <>
-      {/* Fundo escurecido */}
-      <motion.div
-        className="fixed inset-0 bg-black/80 bg-opacity-40 z-40"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={() => setMostrar(false)}
-      />
+        {mostrar && (
+          <>
+            {/* Fundo escurecido */}
+            <motion.div
+              className="fixed inset-0 bg-black/80 bg-opacity-40 z-40"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setMostrar(false)}
+            />
 
-      {/* Modal */}
-      <motion.div
-        className="fixed inset-0 z-50 flex items-center justify-center"
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.95 }}
-      >
-        <form
-          onSubmit={enviar}
-          className="relative bg-white p-6 rounded-lg shadow-lg w-full max-w-md flex flex-col gap-4"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* Botão de Fechar */}
-          <button
-            type="button"
-            onClick={() => setMostrar(false)}
-            className="cursor-pointer absolute top-4 right-4 text-gray-500 hover:text-black"
-          >
-            <MdClose size={26} />
-          </button>
+            {/* Modal */}
+            <motion.div
+              className="fixed inset-0 z-50 flex items-center justify-center"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+            >
+              <form
+                onSubmit={enviar}
+                className="relative bg-white p-6 rounded-lg shadow-lg w-full max-w-md flex flex-col gap-4"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Botão de Fechar */}
+                <button
+                  type="button"
+                  onClick={() => setMostrar(false)}
+                  className="cursor-pointer absolute top-4 right-4 text-gray-500 hover:text-black"
+                >
+                  <MdClose size={26} />
+                </button>
 
-          <h2 className="text-xl font-bold mb-2">Enviar Documento</h2>
+                <h2 className="text-xl font-bold mb-2">Enviar Documento</h2>
 
-          <Input placeholder="Nome do condutor" value={nome} onChange={(e) => setNome(e.target.value)} />
-          <Input placeholder="CTe" value={placa} onChange={(e) => setPlaca(e.target.value)} />
-          <Input placeholder="Cliente" value={cliente} onChange={(e) => setCliente(e.target.value)} />
-          <input type="date" value={data} onChange={(e) => setData(e.target.value)} className="border p-2 rounded" />
-          <InputFile onChange={(e) => setFile(e.target.files[0])} />
+                <Input
+                  placeholder="Nome do condutor"
+                  value={nome}
+                  onChange={(e) => setNome(e.target.value)}
+                />
+                <Input placeholder="CTe" value={placa} onChange={(e) => setPlaca(e.target.value)} />
+                <Input
+                  placeholder="Cliente"
+                  value={cliente}
+                  onChange={(e) => setCliente(e.target.value)}
+                />
+                <Input
+                  placeholder="Data de envio do Malote"
+                  type="date"
+                  value={data}
+                  onChange={(e) => setData(e.target.value)}
+                  className="border p-2 rounded"
+                />
+                <InputFile onChange={(e) => setFile(e.target.files[0])} />
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-lg flex items-center gap-2 justify-center"
-          >
-            {loading ? 'Enviando...' : <>
-              <FaUpload size={18} /> Enviar Documento
-            </>}
-          </button>
-        </form>
-      </motion.div>
-    </>
-  )}
-</AnimatePresence>
-
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-lg flex items-center gap-2 justify-center"
+                >
+                  {loading ? (
+                    'Enviando...'
+                  ) : (
+                    <>
+                      <FaUpload size={18} /> Enviar Documento
+                    </>
+                  )}
+                </button>
+              </form>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

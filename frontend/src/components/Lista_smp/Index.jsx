@@ -136,7 +136,6 @@ const ListaSM = () => {
       },
     };
 
-    console.log(payload);
 
     try {
       const response = await fetch(`${api}/reprocessar-execucao/`, {

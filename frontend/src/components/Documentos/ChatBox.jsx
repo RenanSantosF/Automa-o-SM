@@ -283,7 +283,6 @@ const solicitarAprovacao = async () => {
   }
 };
 
-console.log(doc)
 
   // Comentário automático ao final das ações
   const enviarComentarioAutom = async (texto) => {
@@ -304,6 +303,11 @@ console.log(doc)
 
 const podeComentar = userData.setor === 'ocorrencia' || userData.id === doc.usuario_id;
 
+function formatDateBr(dataStr) {
+  const [year, month, day] = dataStr.split("-");
+  return `${day}/${month}/${year}`;
+}
+
 
 
 
@@ -320,7 +324,7 @@ const podeComentar = userData.setor === 'ocorrencia' || userData.id === doc.usua
     {/* Cabeçalho */}
 <div className="border-b p-4 space-y-2">
   <h2 className="text-lg font-semibold text-gray-700">
-    {doc.nome} | {doc.placa}
+    {doc.nome} | CTe {doc.placa}
   </h2>
 
   <p className="text-sm text-gray-500">Cliente: {doc.cliente}</p>
@@ -328,14 +332,15 @@ const podeComentar = userData.setor === 'ocorrencia' || userData.id === doc.usua
   {doc.data_do_malote && (
     <div className="flex items-center text-sm text-gray-500 gap-2">
       <MdDateRange size={16} />
-      <span>Data do Malote: {formatDate(doc.data_do_malote)}</span>
+      <span>Data do Malote: {formatDateBr(doc.data_do_malote)}</span>
+
     </div>
   )}
 
-  {doc.created_at && (
+  {doc.criado_em && (
     <div className="flex items-center text-sm text-gray-500 gap-2">
       <MdAccessTime size={16} />
-      <span>Criado em: {formatDate(doc.created_at)}</span>
+      <span>Criado em: {formatDate(doc.criado_em)}</span>
     </div>
   )}
 
