@@ -114,6 +114,7 @@ class DocumentCommentSchema(BaseModel):
     usuario_id: int
     texto: str
     criado_em: datetime
+    visualizado_por: Optional[List[int]] = []
     usuario: Optional[UserSchema]  # <-- Adiciona isso
 
     class Config:
@@ -128,6 +129,7 @@ class DocumentSchema(BaseModel):
     cliente: str                         # ← NOVO
     data_do_malote: date                 
     criado_em: datetime
+    atualizado_em: Optional[datetime] = None  #
     status: str
     usuario: UserSchema  # <-- Adicione isso
     arquivos: List[DocumentFileSchema] = []

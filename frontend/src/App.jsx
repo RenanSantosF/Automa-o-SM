@@ -1,5 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useLogin } from './Contexts/LoginContext';
+import { useEffect, useState } from 'react';
+
 
 import LoginModal from './components/LoginModal/LoginModal';
 import Header from './components/Header/Header';
@@ -9,7 +11,6 @@ import RegistroUsuario from './pages/Registro';
 import AtualizaUsuario from './pages/AtualizaUsuario';
 import Comprovantes from './pages/Comprovantes';
 import NaoAutorizado from './pages/NaoAutorizado';
-import { useState } from 'react';
 import PrivateRoute from './components/PrivateRoute/PrivateRoute';
 import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer } from 'react-toastify';
@@ -18,6 +19,7 @@ import { ToastContainer } from 'react-toastify';
 function App() {
   const { isAuthenticated } = useLogin();
   const [isOpen, setIsOpen] = useState(false);
+
 
   return (
     <>
@@ -79,8 +81,12 @@ function App() {
             </>
           )}
         </Routes>
+        
       </div>
     </Router>
+
+
+
     <ToastContainer
         position="top-right"
         autoClose={3000} // desaparece após 3 segundos
@@ -92,6 +98,8 @@ function App() {
         draggable
         pauseOnHover
       />
+
+      
     </>
   );
 }

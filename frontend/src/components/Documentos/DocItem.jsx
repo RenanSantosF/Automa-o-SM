@@ -81,6 +81,10 @@ const DocItem = ({ doc, onClick, isActive }) => {
     }
   };
 
+  const naoVisualizadas = (doc.comentarios_rel || []).filter(
+    (comentario) => !comentario.visualizado_por?.includes(userData.id)
+  ).length;
+
   return (
     <div
       className={`w-full flex justify-between items-center gap-2 transition ${
@@ -88,7 +92,10 @@ const DocItem = ({ doc, onClick, isActive }) => {
       }`}
     >
       {/* Conteúdo do documento (clicável) */}
-      <button onClick={onClick} className="cursor-pointer flex-1 px-4 py-3 text-left flex flex-col gap-1">
+      <button
+        onClick={onClick}
+        className="cursor-pointer flex-1 px-4 py-3 text-left flex flex-col gap-1"
+      >
         <div className="text-sm font-semibold text-gray-700">
           {doc.nome} | CTe {doc.placa}
         </div>
@@ -103,7 +110,12 @@ const DocItem = ({ doc, onClick, isActive }) => {
         {/* Botão deletar */}
       </button>
 
-      {userData.id === doc.usuario_id && (
+      {naoVisualizadas > 0 && (
+        <span className=" mr-4 text-xs text-white bg-green-400 rounded-full px-2 py-0.5 ml-1">
+          {naoVisualizadas}
+        </span>
+      )}
+      {/* {userData.id === doc.usuario_id && (
         <button
           onClick={handleDelete}
           title="Deletar documento"
@@ -111,7 +123,8 @@ const DocItem = ({ doc, onClick, isActive }) => {
         >
           <MdDelete size={20} />
         </button>
-      )}
+      )} */}
+
     </div>
   );
 };

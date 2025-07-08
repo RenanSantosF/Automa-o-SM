@@ -286,7 +286,8 @@ async def listar_todos_documentos(
 
 
     # Ordenar do mais recente para o mais antigo
-    query = query.order_by(Document.criado_em.desc())
+    query = query.order_by(Document.atualizado_em.desc())
+
 
     # Paginação
     query = query.offset(skip).limit(limit)
@@ -294,6 +295,21 @@ async def listar_todos_documentos(
     documentos = query.all()
     return documentos
 
+
+@router.post("/{document_id}/marcar-visualizados")
+def marcar_comentarios_visualizados(
+    document_id: int,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    comentarios = db.query(DocumentComment).filter(DocumentComment.document_id == document_id).all()
+
+    for comentario in comentarios:
+        if user.id not in (comentario.visualizado_por or []):
+            comentario.visualizado_por = (comentario.visualizado_por or []) + [user.id]
+
+    db.commit()
+    return {"ok": True}
 
 
 
@@ -312,6 +328,7 @@ async def aprovar_documento(
         raise HTTPException(404, "Documento não encontrado")
 
     doc.status = "aprovado"
+    doc.atualizado_em = datetime.now(timezone.utc)
     db.commit()
 
     asyncio.create_task(notificar_atualizacao())
@@ -333,6 +350,8 @@ async def reprovar_documento(
         raise HTTPException(404, "Documento não encontrado")
 
     doc.status = "reprovado"
+    doc.atualizado_em = datetime.now(timezone.utc)
+    print(doc)
     db.commit()
 
     asyncio.create_task(notificar_atualizacao())
@@ -358,6 +377,7 @@ async def adicionar_comentario(
         criado_em=datetime.now(timezone.utc),
     )
     db.add(novo_coment)
+    doc.atualizado_em = datetime.now(timezone.utc)
     db.commit()
 
     asyncio.create_task(notificar_atualizacao())
@@ -389,6 +409,7 @@ async def upload_nova_versao(
         usuario_id=usuario.id,
     )
     db.add(nova_versao)
+    doc.atualizado_em = datetime.now(timezone.utc)
     db.commit()
 
     asyncio.create_task(notificar_atualizacao())
@@ -413,6 +434,7 @@ async def solicitar_aprovacao(
         raise HTTPException(400, "Aprovação só pode ser solicitada se estiver reprovado")
 
     doc.status = "enviado"
+    doc.atualizado_em = datetime.now(timezone.utc)
     db.commit()
 
     asyncio.create_task(notificar_atualizacao())
@@ -434,6 +456,7 @@ async def liberar_saldo(
         raise HTTPException(404, "Documento não encontrado")
 
     doc.status = "saldo_liberado"
+    doc.atualizado_em = datetime.now(timezone.utc)
     db.commit()
 
     asyncio.create_task(notificar_atualizacao())
@@ -455,6 +478,7 @@ async def baixar_documento(
         raise HTTPException(404, "Documento não encontrado")
 
     doc.status = "baixado"
+    doc.atualizado_em = datetime.now(timezone.utc)
     db.commit()
 
     asyncio.create_task(notificar_atualizacao())

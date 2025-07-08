@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Sidebar from './SideBar';
 import ChatBox from './ChatBox';
 import UploadForm from './UploadForm';
@@ -10,6 +10,17 @@ const LIMIT = 20;
 const api = import.meta.env.VITE_API_URL;
 
 const Documentos = () => {
+  useEffect(() => {
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission().then((permission) => {
+        if (permission !== 'granted') {
+          console.log('Permissão de notificação foi negada.');
+        }
+      });
+    }
+  }, []);
+  const documentosNotificados = useRef(new Set());
+
   const { userData, isAuthenticated } = useLogin();
   const [documentos, setDocumentos] = useState([]);
   const [documentoSelecionado, setDocumentoSelecionado] = useState(null);
@@ -18,6 +29,7 @@ const Documentos = () => {
   const [loading, setLoading] = useState(false);
   const [manualLoading, setManualLoading] = useState(false);
   const [autoScrollChat, setAutoScrollChat] = useState(false);
+  const comentariosNotificados = useRef(new Set());
 
   const [filtros, setFiltros] = useState({
     usuario: '',
@@ -85,7 +97,8 @@ const Documentos = () => {
         const map = new Map(prev.map((d) => [d.id, d]));
         data.forEach((doc) => map.set(doc.id, doc));
         return Array.from(map.values()).sort(
-          (a, b) => new Date(b.criado_em) - new Date(a.criado_em)
+          (a, b) =>
+            new Date(b.atualizado_em || b.criado_em) - new Date(a.atualizado_em || a.criado_em)
         );
       });
 
@@ -106,20 +119,74 @@ const Documentos = () => {
     fetchDocumentos(1);
   }, [filtros]);
 
-  // 🔁 Atualização automática a cada 15s sem sobrescrever ou duplicar
   useEffect(() => {
     const intervalo = setInterval(async () => {
+      console.log('⏰ Verificando atualizações...');
+
       const totalLimit = paginaAtual * LIMIT;
       const atualizados = await fetchDocumentos(1, 'merge', true, totalLimit);
 
-      if (documentoSelecionado && atualizados) {
-        const atualizado = atualizados.find((d) => d.id === documentoSelecionado.id);
-        if (atualizado) {
-          setDocumentoSelecionado(atualizado);
-          setAutoScrollChat(false); // 🚫 Desliga scroll automático
+      if (atualizados) {
+        const agora = new Date();
+
+        atualizados.forEach((doc) => {
+          // Ignora mensagens enviadas por mim ou já lidas
+          const novosComentarios = (doc.comentarios_rel || []).filter((coment) => {
+            const criadoEm = new Date(coment.criado_em);
+            const segundos = (agora - criadoEm) / 1000;
+            return (
+              coment.usuario_id !== userData.id &&
+              !comentariosNotificados.current.has(coment.id) &&
+              segundos < 100
+            );
+          });
+
+          for (const coment of novosComentarios) {
+            console.log('🔔 Notificando comentário:', coment.id, coment.texto);
+            if (Notification.permission === 'granted') {
+              new Notification(`📨 Nova mensagem de ${coment.usuario?.username || 'Usuário'}`, {
+                body: `"${coment.texto || 'Comentário novo.'}"`,
+                icon: '/icone-mensagem.png',
+                tag: `comentario-${coment.id}`,
+              });
+              new Audio('/notificacao.mp3').play().catch(console.error);
+            }
+
+            comentariosNotificados.current.add(coment.id);
+          }
+
+          // Se for o documento aberto, atualiza ele
+          if (documentoSelecionado?.id === doc.id) {
+            setDocumentoSelecionado(doc);
+            setAutoScrollChat(false);
+          }
+        });
+      }
+
+      // Notificar novos documentos
+      const agora = new Date();
+      for (const doc of atualizados) {
+        const criadoEm = new Date(doc.criado_em);
+        const segundos = (agora - criadoEm) / 1000;
+
+        if (
+          doc.usuario_id !== userData.id && // não notificar documentos enviados por mim
+          !documentosNotificados.current.has(doc.id) &&
+          segundos < 100 // documentos criados nos últimos 100s
+        ) {
+          documentosNotificados.current.add(doc.id);
+
+          if (Notification.permission === 'granted') {
+            new Notification(`📄 Novo documento: ${doc.nome}`, {
+              body: `Enviado por ${doc.usuario?.username || 'usuário'}`,
+              icon: '/icone-mensagem.png',
+              tag: `documento-${doc.id}`,
+            });
+            new Audio('/notificacao.mp3').play().catch(console.error);
+          }
         }
       }
-    }, 15000); // 7 segundos
+    }, 15000);
 
     return () => clearInterval(intervalo);
   }, [documentoSelecionado?.id, paginaAtual, filtros]);
@@ -132,9 +199,31 @@ const Documentos = () => {
     }
   };
 
-  const selecionarDocumento = (doc) => {
-    setDocumentoSelecionado(doc);
-    setAutoScrollChat(true);
+  const selecionarDocumento = async (doc) => {
+    try {
+      await fetch(`${api}/documentos/${doc.id}/marcar-visualizados`, {
+        method: 'POST',
+        headers,
+      });
+
+      // ✅ Atualiza o doc manualmente marcando todas as mensagens como visualizadas
+      const docAtualizado = {
+        ...doc,
+        comentarios_rel: doc.comentarios_rel.map((coment) => ({
+          ...coment,
+          visualizado_por: [...(coment.visualizado_por || []), userData.id],
+        })),
+      };
+
+      setDocumentoSelecionado(docAtualizado);
+
+      // ✅ Atualiza também na lista lateral (documentos[])
+      setDocumentos((prevDocs) => prevDocs.map((d) => (d.id === doc.id ? docAtualizado : d)));
+
+      setAutoScrollChat(true);
+    } catch (err) {
+      console.error('Erro ao marcar como visualizado', err);
+    }
   };
 
   const documentosFiltrados =

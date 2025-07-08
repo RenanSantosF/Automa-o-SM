@@ -97,6 +97,8 @@ class Document(Base):
     cliente     = Column(String, nullable=False)          # NOVO
     data_do_malote = Column(Date, nullable=False)
     criado_em = Column(DateTime, default=func.now())
+    atualizado_em = Column(DateTime, nullable=False, default=func.now(), onupdate=func.now())
+  # NOVO CAMPO
     status = Column(String, default="enviado")
 
     usuario = relationship("User")
@@ -128,6 +130,9 @@ class DocumentComment(Base):
     usuario_id = Column(Integer, ForeignKey("users.id"))
     texto = Column(String, nullable=False)
     criado_em = Column(DateTime, default=func.now())
+
+    # NOVO: Lista de IDs dos usuários que já visualizaram
+    visualizado_por = Column(JSON, default=[])  # lista de user_ids
 
     document = relationship("Document", back_populates="comentarios_rel")
     usuario = relationship("User")
