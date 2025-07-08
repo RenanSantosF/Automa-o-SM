@@ -115,7 +115,7 @@ const DocItem = ({ doc, onClick, isActive }) => {
           {naoVisualizadas}
         </span>
       )}
-      {/* {userData.id === doc.usuario_id && (
+
         <button
           onClick={handleDelete}
           title="Deletar documento"
@@ -123,7 +123,7 @@ const DocItem = ({ doc, onClick, isActive }) => {
         >
           <MdDelete size={20} />
         </button>
-      )} */}
+
 
     </div>
   );
