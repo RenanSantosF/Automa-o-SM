@@ -60,6 +60,11 @@ const DocItem = ({ doc, onClick, isActive }) => {
     }
   };
 
+    function formatDateBr(dataStr) {
+    const [year, month, day] = dataStr.split('-');
+    return `${day}/${month}/${year}`;
+  }
+
   const badge = getStatusBadge();
 
   const handleDelete = async () => {
@@ -132,23 +137,29 @@ const DocItem = ({ doc, onClick, isActive }) => {
         className="cursor-pointer flex-1 px-4 py-3 text-left flex flex-col gap-1"
       >
         {/* Cabeçalho: Nome + CTe + Status */}
-        <div className="flex justify-between items-center w-full">
-          {/* Nome + CTe (sem "|", visual clean) */}
-          <div className="truncate">
-            <span className="text-sm font-bold text-gray-700">{doc.nome}</span>
-            <span className="ml-1 text-sm font-bold text-gray-700">- CTe {doc.placa}</span>
-          </div>
-          
-
-          {/* Status badge */}
+        <div className="flex justify-between items-center w-full gap-2">
+          {/* Texto limitado com tooltip */}
           <div
-            className={`text-[11px] font-medium inline-flex items-center gap-1 px-2 py-0.5 rounded-full shadow-sm ${badge.className} ml-2`}
+            className="text-sm  text-gray-600 font-semibold truncate max-w-[300px]"
+            title={`${doc.nome} ${
+              doc.data_do_malote ? `+ Malote ${formatDateBr(doc.data_do_malote)}` : ''
+            } CTe ${doc.placa}`}
+          >
+            {doc.nome}
+            {doc.data_do_malote && (
+              <span className="text-gray-600 font-semibold"> + Malote {formatDateBr(doc.data_do_malote)}</span>
+            )}
+            <span className="text-gray-600 font-semibold" > | CTe {doc.placa}</span>
+          </div>
+
+          {/* Status badge sem quebra de linha */}
+          <div
+            className={`text-[11px] font-medium whitespace-nowrap inline-flex items-center gap-1 px-2 py-0.5 rounded-full shadow-sm ${badge.className}`}
           >
             {badge.icon}
             {badge.label}
           </div>
         </div>
-        
 
         {/* Última mensagem + horário */}
         <div className="flex justify-between items-center text-xs text-gray-600">
@@ -179,13 +190,12 @@ const DocItem = ({ doc, onClick, isActive }) => {
         </div>
       </button>
 
-                {/* Contador de não visualizadas */}
+      {/* Contador de não visualizadas */}
       {naoVisualizadas > 0 && (
         <span className=" text-[10px] text-white bg-green-400 rounded-full px-2 py-0.5">
           {naoVisualizadas}
         </span>
       )}
-
 
       {/* Menu de ações */}
       <div className="relative pr-3" ref={menuRef}>
