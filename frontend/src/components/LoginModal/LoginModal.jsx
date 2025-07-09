@@ -27,11 +27,11 @@ export default function LoginModal() {
     <div className="fixed inset-0 backdrop-blur-sm flex justify-center items-center z-50">
       <form
         onSubmit={handleSubmit}
-        className="bg-[#333] border rounded-2xl shadow-2xl w-[90%] max-w-sm p-8 space-y-6"
+        className="bg-[#333] border border-gray-400 rounded-2xl shadow-2xl w-[90%] max-w-sm p-8 space-y-6"
       >
         <div className="flex flex-col items-center gap-2">
           <img src="/logo.png" alt="Logo" className="w-16" />
-          <h2 className="text-2xl font-bold text-green-400">Login Automação</h2>
+          <h2 className="text-2xl font-bold text-green-400">Login Dellmar Docs</h2>
           <p className="text-sm text-gray-400">Acesse sua conta</p>
         </div>
 

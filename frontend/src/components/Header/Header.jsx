@@ -34,7 +34,7 @@ const Header = ({ isOpen, setIsOpen }) => {
       transition={{ duration: 0.4, type: 'spring', damping: 12 }}
       className="fixed top-0 left-0 h-screen 
                  bg-[#1f1f1f]/80 backdrop-blur-md 
-                 border-r border-green-600/50 shadow-lg 
+                 border-r-1 border-gray-500 shadow-lg 
                  flex flex-col justify-between z-50 overflow-hidden"
     >
       <div>
@@ -50,7 +50,7 @@ const Header = ({ isOpen, setIsOpen }) => {
               className="flex gap-2 text-green-200 text-xl font-bold whitespace-nowrap"
             >
               <img src="/logo.png" className="w-8" alt="Logo" />
-              Automação
+              Dellmar Docs
             </motion.span>
           )}
         </div>

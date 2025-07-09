@@ -1,10 +1,25 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { formatDate } from './utils';
-import { MdCheckCircle, MdCancel, MdSend, MdAttachMoney, MdDelete } from 'react-icons/md';
+import { MdCheckCircle, MdCancel, MdSend, MdAttachMoney } from 'react-icons/md';
+import { MoreVertical, Trash2 } from 'lucide-react';
 import { useLogin } from '../../Contexts/LoginContext';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const DocItem = ({ doc, onClick, isActive }) => {
   const { userData } = useLogin();
+  const [menuAberto, setMenuAberto] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickFora = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setMenuAberto(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickFora);
+    return () => document.removeEventListener('mousedown', handleClickFora);
+  }, []);
+
   const rawStatus = doc.status || '';
   const status = rawStatus.toLowerCase();
 
@@ -74,7 +89,7 @@ const DocItem = ({ doc, onClick, isActive }) => {
 
       if (!res.ok) throw new Error();
       alert('Documento deletado com sucesso.');
-      window.location.reload(); // ou chame fetchDocumentos() se estiver disponível no contexto
+      window.location.reload(); // ou chame fetchDocumentos() externamente
     } catch (err) {
       alert('Erro ao deletar o documento.');
       console.error(err);
@@ -85,47 +100,181 @@ const DocItem = ({ doc, onClick, isActive }) => {
     (comentario) => !comentario.visualizado_por?.includes(userData.id)
   ).length;
 
+  // Combina arquivos e comentários, ordenados por data
+  const itensChat = [...(doc.arquivos || []), ...(doc.comentarios_rel || [])]
+    .map((item) => {
+      if (item.nome_arquivo) {
+        return {
+          id: `arq-${item.id}`,
+          tipo: 'arquivo',
+          texto: '📎 Arquivo enviado',
+          criado_em: item.criado_em,
+        };
+      } else {
+        return {
+          id: `com-${item.id}`,
+          tipo: 'comentario',
+          texto: item.texto,
+          criado_em: item.criado_em,
+        };
+      }
+    })
+    .sort((a, b) => new Date(a.criado_em) - new Date(b.criado_em));
+
   return (
     <div
-      className={`w-full flex justify-between items-center gap-2 transition ${
+      className={`w-full flex justify-between items-center gap-2 transition relative ${
         isActive ? 'bg-green-50 border-l-4 border-green-500' : 'hover:bg-green-100'
       }`}
     >
-      {/* Conteúdo do documento (clicável) */}
       <button
         onClick={onClick}
         className="cursor-pointer flex-1 px-4 py-3 text-left flex flex-col gap-1"
       >
-        <div className="text-sm font-semibold text-gray-700">
-          {doc.nome} | CTe {doc.placa}
-        </div>
+        {/* Cabeçalho: Nome + CTe + Status */}
+        <div className="flex justify-between items-center w-full">
+          {/* Nome + CTe (sem "|", visual clean) */}
+          <div className="truncate">
+            <span className="text-sm font-bold text-gray-700">{doc.nome}</span>
+            <span className="ml-1 text-sm font-bold text-gray-700">- CTe {doc.placa}</span>
+          </div>
+          
 
-        <div
-          className={`text-xs inline-flex items-center gap-1 px-2 py-1 rounded-sm w-fit ${badge.className}`}
-        >
-          {badge.icon}
-          {badge.label}
+          {/* Status badge */}
+          <div
+            className={`text-[11px] font-medium inline-flex items-center gap-1 px-2 py-0.5 rounded-full shadow-sm ${badge.className} ml-2`}
+          >
+            {badge.icon}
+            {badge.label}
+          </div>
         </div>
+        
 
-        {/* Botão deletar */}
+        {/* Última mensagem + horário */}
+        <div className="flex justify-between items-center text-xs text-gray-600">
+          <div
+            className="truncate max-w-[80%]"
+            title={
+              doc.comentarios_rel?.length > 0
+                ? doc.comentarios_rel[doc.comentarios_rel.length - 1].texto
+                : ''
+            }
+          >
+            {itensChat.length > 0
+              ? itensChat[itensChat.length - 1].texto.slice(0, 50) +
+                (itensChat[itensChat.length - 1].texto.length > 50 ? '...' : '')
+              : 'Sem mensagens'}
+          </div>
+
+          <div className="whitespace-nowrap text-gray-400 text-xs">
+            {doc.comentarios_rel?.length > 0
+              ? new Date(
+                  doc.comentarios_rel[doc.comentarios_rel.length - 1].criado_em
+                ).toLocaleTimeString('pt-BR', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })
+              : ''}
+          </div>
+        </div>
       </button>
 
+                {/* Contador de não visualizadas */}
       {naoVisualizadas > 0 && (
-        <span className=" mr-4 text-xs text-white bg-green-400 rounded-full px-2 py-0.5 ml-1">
+        <span className=" text-[10px] text-white bg-green-400 rounded-full px-2 py-0.5">
           {naoVisualizadas}
         </span>
       )}
 
+
+      {/* Menu de ações */}
+      <div className="relative pr-3" ref={menuRef}>
         <button
-          onClick={handleDelete}
-          title="Deletar documento"
-          className="cursor-pointer text-red-300 pr-4 hover:text-red-700 p-1 rounded transition"
+          onClick={() => setMenuAberto((prev) => !prev)}
+          className="cursor-pointer p-1 text-gray-600 hover:text-black"
         >
-          <MdDelete size={20} />
+          <MoreVertical size={20} />
         </button>
 
-
+        <AnimatePresence>
+          {menuAberto && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: -5 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: -5 }}
+              transition={{ duration: 0.15 }}
+              className="absolute right-3 top-8 z-20 bg-white border shadow-md rounded-md overflow-hidden w-44"
+            >
+              <button
+                onClick={handleDelete}
+                className="cursor-pointer w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition"
+              >
+                <Trash2 size={16} />
+                Deletar
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
+
+    // <div
+    //   className={`w-full flex justify-between items-center gap-2 transition relative ${
+    //     isActive ? 'bg-green-50 border-l-4 border-green-500' : 'hover:bg-green-100'
+    //   }`}
+    // >
+    //   <button
+    //     onClick={onClick}
+    //     className="cursor-pointer flex-1 px-4 py-3 text-left flex flex-col gap-1"
+    //   >
+    //     <div className="text-sm font-semibold text-gray-700">
+    //       {doc.nome} | CTe {doc.placa}
+    //     </div>
+
+    //     <div
+    //       className={`text-xs inline-flex items-center gap-1 px-2 py-1 rounded-sm w-fit ${badge.className}`}
+    //     >
+    //       {badge.icon}
+    //       {badge.label}
+    //     </div>
+    //   </button>
+
+    //   {naoVisualizadas > 0 && (
+    //     <span className="mr-2 text-xs text-white bg-green-500 rounded-full px-2 py-0.5">
+    //       {naoVisualizadas}
+    //     </span>
+    //   )}
+
+    //   {/* Menu de ações */}
+    //   <div className="relative pr-3" ref={menuRef}>
+    //     <button
+    //       onClick={() => setMenuAberto((prev) => !prev)}
+    //       className="cursor-pointer p-1 text-gray-600 hover:text-black"
+    //     >
+    //       <MoreVertical size={20} />
+    //     </button>
+
+    //     <AnimatePresence>
+    //       {menuAberto && (
+    //         <motion.div
+    //           initial={{ opacity: 0, scale: 0.95, y: -5 }}
+    //           animate={{ opacity: 1, scale: 1, y: 0 }}
+    //           exit={{ opacity: 0, scale: 0.95, y: -5 }}
+    //           transition={{ duration: 0.15 }}
+    //           className="  absolute right-3 top-8 z-20 bg-white border shadow-md rounded-md overflow-hidden w-44"
+    //         >
+    //           <button
+    //             onClick={handleDelete}
+    //             className="cursor-pointer w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition"
+    //           >
+    //             <Trash2 size={16} />
+    //             Deletar
+    //           </button>
+    //         </motion.div>
+    //       )}
+    //     </AnimatePresence>
+    //   </div>
+    // </div>
   );
 };
 

@@ -113,7 +113,7 @@ export const aprovar = async ({ api, headers, toast, userData, doc, adicionarCom
       headers,
     });
     if (!res.ok) throw new Error('Erro ao aprovar');
-    await adicionarComentarioStatus(doc.id, `Usuário ${userData.username} aprovou o documento.`);
+    await adicionarComentarioStatus(doc.id, `${userData.username} aprovou o documento.`);
     toast.success('Documento aprovado');
     fetchDocumentos();
   } catch {

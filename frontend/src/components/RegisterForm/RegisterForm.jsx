@@ -65,7 +65,7 @@ export default function RegisterForm() {
     >
       <form
         onSubmit={handleSubmit}
-        className="bg-[#1f1f1f]/90 backdrop-blur-md border border-green-700/40 p-8 rounded-2xl shadow-lg w-full max-w-md space-y-5"
+        className="bg-[#1f1f1f]/90 backdrop-blur-md border border-gray-400 p-8 rounded-2xl shadow-lg w-full max-w-md space-y-5"
       >
         <h2 className="text-2xl font-bold text-center text-green-400 flex items-center justify-center gap-2">
           <FiCheckCircle /> Registrar Novo Usuário

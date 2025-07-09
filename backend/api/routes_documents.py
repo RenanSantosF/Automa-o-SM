@@ -396,8 +396,6 @@ async def upload_nova_versao(
     if not doc:
         raise HTTPException(404, "Documento não encontrado")
 
-    if usuario.id != doc.usuario_id:
-        raise HTTPException(403, "Não autorizado")
 
     caminho = salvar_comprovante(file)
 

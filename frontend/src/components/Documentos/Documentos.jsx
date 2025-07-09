@@ -9,6 +9,8 @@ import { toast } from 'react-toastify';
 const LIMIT = 20;
 const api = import.meta.env.VITE_API_URL;
 
+
+
 const Documentos = () => {
   useEffect(() => {
     if ('Notification' in window && Notification.permission === 'default') {
@@ -121,7 +123,7 @@ const Documentos = () => {
 
   useEffect(() => {
     const intervalo = setInterval(async () => {
-      console.log('⏰ Verificando atualizações...');
+
 
       const totalLimit = paginaAtual * LIMIT;
       const atualizados = await fetchDocumentos(1, 'merge', true, totalLimit);
@@ -145,12 +147,14 @@ const Documentos = () => {
             console.log('🔔 Notificando comentário:', coment.id, coment.texto);
             if (Notification.permission === 'granted') {
               new Notification(`📨 Nova mensagem de ${coment.usuario?.username || 'Usuário'}`, {
-                body: `"${coment.texto || 'Comentário novo.'}"`,
+                body: `${coment.texto || 'Comentário novo.'}`,
                 icon: '/icone-mensagem.png',
                 tag: `comentario-${coment.id}`,
               });
               new Audio('/notificacao.mp3').play().catch(console.error);
             }
+
+
 
             comentariosNotificados.current.add(coment.id);
           }
@@ -184,6 +188,8 @@ const Documentos = () => {
             });
             new Audio('/notificacao.mp3').play().catch(console.error);
           }
+
+
         }
       }
     }, 15000);
@@ -226,13 +232,16 @@ const Documentos = () => {
     }
   };
 
+  
+
+
   const documentosFiltrados =
     userData.setor === 'outros'
       ? documentos.filter((doc) => doc.usuario_id === userData.id)
       : documentos;
 
   return (
-    <div className="flex h-[calc(100vh-100px)] bg-white rounded-md overflow-hidden border">
+    <div className="flex h-[calc(100vh-20px)]  bg-white rounded-md overflow-hidden border">
       {/* Sidebar (Lista) */}
       <div className="w-[510px] bg-gray-100 border-r flex flex-col">
         {/* Topo fixo: Upload + Filtros */}

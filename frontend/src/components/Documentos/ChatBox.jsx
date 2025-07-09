@@ -9,6 +9,8 @@ import { ModalReprovacao } from './ModalReprovacao';
 
 import { MdDateRange, MdAccessTime, MdPerson } from 'react-icons/md';
 
+
+
 const ChatBox = ({
   doc,
   userData,
@@ -27,16 +29,24 @@ const ChatBox = ({
 
   const itensChat = [...(doc.arquivos || []), ...(doc.comentarios_rel || [])]
     .map((item) => {
+
       if (item.nome_arquivo) {
-        return {
-          id: `arq-${item.id}`,
-          tipo: 'arquivo',
-          nome: item.nome_arquivo,
-          criado_em: item.criado_em,
-          usuario: item.usuario?.username || 'Usuário desconhecido',
-          abrir: () => abrirArquivo(item.id),
-        };
-      } else {
+  const extensao = item.nome_arquivo.split('.').pop().toLowerCase();
+  const ehImagem = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extensao);
+
+  return {
+    id: `arq-${item.id}`,
+    tipo: 'arquivo',
+    nome: item.nome_arquivo,
+    criado_em: item.criado_em,
+    usuario: item.usuario?.username || 'Usuário desconhecido',
+    abrir: () => abrirArquivo(item.id),
+    ehImagem,
+    idArquivo: item.id, // necessário pra carregar blob
+  };
+}
+      
+      else {
         return {
           id: `com-${item.id}`,
           tipo: 'comentario',
@@ -385,6 +395,7 @@ useEffect(() => {
             <Stepper status={doc.status} />
           </div>
         </div>
+
 
         {/* Ações */}
         {/* Ações */}
