@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Sidebar from './SideBar';
 import ChatBox from './ChatBox';
 import UploadForm from './UploadForm';
@@ -8,8 +8,6 @@ import { toast } from 'react-toastify';
 
 const LIMIT = 20;
 const api = import.meta.env.VITE_API_URL;
-
-
 
 const Documentos = () => {
   useEffect(() => {
@@ -32,6 +30,11 @@ const Documentos = () => {
   const [manualLoading, setManualLoading] = useState(false);
   const [autoScrollChat, setAutoScrollChat] = useState(false);
   const comentariosNotificados = useRef(new Set());
+  const [wsConectado, setWsConectado] = useState(true); // <- começa como falso
+  const reconnectingRef = useRef(false);
+  const delayTentativaTimeout = useRef(null);
+  const socketRef = useRef(null);
+  const [wsTentouConectar, setWsTentouConectar] = useState(false);
 
   const [filtros, setFiltros] = useState({
     usuario: '',
@@ -47,6 +50,89 @@ const Documentos = () => {
 
   const [modalReprovarAberto, setModalReprovarAberto] = useState(null);
   const [motivoReprovacao, setMotivoReprovacao] = useState({});
+
+  const verificarNotificacoes = (docList) => {
+    const agora = new Date();
+
+    docList.forEach((doc) => {
+      // 🔔 Notificar novos COMENTÁRIOS
+      const novosComentarios = (doc.comentarios_rel || []).filter((coment) => {
+        const criadoEm = new Date(coment.criado_em);
+        const segundos = (agora - criadoEm) / 1000;
+        return (
+          coment.usuario_id !== userData.id &&
+          !comentariosNotificados.current.has(coment.id) &&
+          segundos < 100
+        );
+      });
+
+      for (const coment of novosComentarios) {
+        console.log('🔔 Notificando comentário:', coment.id, coment.texto);
+        if (Notification.permission === 'granted') {
+          // new Notification(`📨 Nova mensagem de ${coment.usuario?.username || 'Usuário'}`, {
+          //   body: coment.texto || 'Comentário novo.',
+          //   icon: '/icone-mensagem.png',
+          //   tag: `comentario-${coment.id}`,
+          // });
+          const notification = new Notification(
+            `📨 Nova mensagem de ${coment.usuario?.username || 'Usuário'}`,
+            {
+              body: coment.texto || 'Comentário novo.',
+              icon: '/icone-mensagem.png',
+              tag: `comentario-${coment.id}`,
+            }
+          );
+
+          notification.onclick = () => {
+            localStorage.setItem('documentoParaAbrir', doc.id);
+            window.focus();
+          };
+
+          new Audio('/notificacao.mp3').play().catch(console.error);
+        }
+
+        comentariosNotificados.current.add(coment.id);
+      }
+
+      // 🔔 Notificar NOVOS DOCUMENTOS
+      const criadoEm = new Date(doc.criado_em);
+      const segundos = (agora - criadoEm) / 1000;
+
+      if (
+        doc.usuario_id !== userData.id &&
+        !documentosNotificados.current.has(doc.id) &&
+        segundos < 100
+      ) {
+        documentosNotificados.current.add(doc.id);
+
+        if (Notification.permission === 'granted') {
+          // new Notification(`📄 Novo documento: ${doc.nome}`, {
+          //   body: `Enviado por ${doc.usuario?.username || 'usuário'}`,
+          //   icon: '/icone-mensagem.png',
+          //   tag: `documento-${doc.id}`,
+          // });
+          const notification = new Notification(`📄 Novo documento: ${doc.nome}`, {
+            body: `Enviado por ${doc.usuario?.username || 'usuário'}`,
+            icon: '/icone-mensagem.png',
+            tag: `documento-${doc.id}`,
+          });
+
+          notification.onclick = () => {
+            localStorage.setItem('documentoParaAbrir', doc.id);
+            window.focus();
+          };
+
+          new Audio('/notificacao.mp3').play().catch(console.error);
+        }
+      }
+
+      // Se for o documento aberto, atualiza ele
+      if (documentoSelecionado?.id === doc.id) {
+        setDocumentoSelecionado(doc);
+        setAutoScrollChat(false);
+      }
+    });
+  };
 
   const headers = {
     Authorization: `Bearer ${localStorage.getItem('token')}`,
@@ -67,9 +153,6 @@ const Documentos = () => {
     if (!isAutoUpdate) setManualLoading(true);
 
     const params = new URLSearchParams();
-    // Object.entries(filtros).forEach(([key, val]) => {
-    //   if (val) params.append(key === 'dataMalote' ? 'data_malote' : key, val);
-    // });
     if (filtros.nome) params.append('nome', filtros.nome);
     if (filtros.usuario) params.append('usuario', filtros.usuario);
     if (filtros.status) params.append('status', filtros.status);
@@ -118,84 +201,85 @@ const Documentos = () => {
 
   useEffect(() => {
     setDocumentos([]);
-    fetchDocumentos(1);
+    // fetchDocumentos(1);
+fetchDocumentos(1).then((docs) => {
+  const idParaAbrir = localStorage.getItem('documentoParaAbrir');
+  if (idParaAbrir) {
+    const doc = docs.find((d) => String(d.id) === idParaAbrir);
+    if (doc) selecionarDocumento(doc);
+    localStorage.removeItem('documentoParaAbrir');
+  }
+});
+
   }, [filtros]);
 
-  useEffect(() => {
-    const intervalo = setInterval(async () => {
+  const conectarWebSocket = useCallback(() => {
+    const socket = new WebSocket(
+      `${api.replace(/^http/, 'ws')}/documentos/ws/documentos?token=${localStorage.getItem(
+        'token'
+      )}`
+    );
 
+    socketRef.current = socket;
 
-      const totalLimit = paginaAtual * LIMIT;
-      const atualizados = await fetchDocumentos(1, 'merge', true, totalLimit);
-
-      if (atualizados) {
-        const agora = new Date();
-
-        atualizados.forEach((doc) => {
-          // Ignora mensagens enviadas por mim ou já lidas
-          const novosComentarios = (doc.comentarios_rel || []).filter((coment) => {
-            const criadoEm = new Date(coment.criado_em);
-            const segundos = (agora - criadoEm) / 1000;
-            return (
-              coment.usuario_id !== userData.id &&
-              !comentariosNotificados.current.has(coment.id) &&
-              segundos < 100
-            );
-          });
-
-          for (const coment of novosComentarios) {
-            console.log('🔔 Notificando comentário:', coment.id, coment.texto);
-            if (Notification.permission === 'granted') {
-              new Notification(`📨 Nova mensagem de ${coment.usuario?.username || 'Usuário'}`, {
-                body: `${coment.texto || 'Comentário novo.'}`,
-                icon: '/icone-mensagem.png',
-                tag: `comentario-${coment.id}`,
-              });
-              new Audio('/notificacao.mp3').play().catch(console.error);
-            }
-
-
-
-            comentariosNotificados.current.add(coment.id);
-          }
-
-          // Se for o documento aberto, atualiza ele
-          if (documentoSelecionado?.id === doc.id) {
-            setDocumentoSelecionado(doc);
-            setAutoScrollChat(false);
-          }
-        });
+    socket.onopen = () => {
+      console.log('✅ WebSocket conectado');
+      setWsConectado(true);
+      setWsTentouConectar(false); // oculta botão
+      if (delayTentativaTimeout.current) {
+        clearTimeout(delayTentativaTimeout.current);
+        delayTentativaTimeout.current = null;
       }
+    };
 
-      // Notificar novos documentos
-      const agora = new Date();
-      for (const doc of atualizados) {
-        const criadoEm = new Date(doc.criado_em);
-        const segundos = (agora - criadoEm) / 1000;
-
-        if (
-          doc.usuario_id !== userData.id && // não notificar documentos enviados por mim
-          !documentosNotificados.current.has(doc.id) &&
-          segundos < 100 // documentos criados nos últimos 100s
-        ) {
-          documentosNotificados.current.add(doc.id);
-
-          if (Notification.permission === 'granted') {
-            new Notification(`📄 Novo documento: ${doc.nome}`, {
-              body: `Enviado por ${doc.usuario?.username || 'usuário'}`,
-              icon: '/icone-mensagem.png',
-              tag: `documento-${doc.id}`,
-            });
-            new Audio('/notificacao.mp3').play().catch(console.error);
+    socket.onmessage = async (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data?.tipo === 'documentos_atualizados') {
+          console.log('📡 Atualização recebida via WebSocket');
+          const atualizados = await fetchDocumentosCompletos();
+          if (atualizados) {
+            verificarNotificacoes(atualizados);
           }
-
-
         }
+      } catch (err) {
+        console.error('Erro ao processar mensagem WebSocket:', err);
       }
-    }, 15000);
+    };
 
-    return () => clearInterval(intervalo);
-  }, [documentoSelecionado?.id, paginaAtual, filtros]);
+    socket.onclose = () => {
+      console.warn('🔌 WebSocket desconectado');
+      setWsConectado(false);
+
+      // Só ativa o botão depois de 10s desconectado
+      if (delayTentativaTimeout.current) clearTimeout(delayTentativaTimeout.current);
+      delayTentativaTimeout.current = setTimeout(() => {
+        setWsTentouConectar(true);
+      }, 10000); // 10 segundos
+
+      if (!reconnectingRef.current) {
+        reconnectingRef.current = true;
+        setTimeout(() => {
+          reconnectingRef.current = false;
+          conectarWebSocket();
+        }, 5000);
+      }
+    };
+
+    socket.onerror = (error) => {
+      console.error('❌ Erro no WebSocket:', error);
+      socket.close();
+    };
+  });
+
+  useEffect(() => {
+    conectarWebSocket();
+
+    return () => {
+      socketRef.current?.close();
+      if (delayTentativaTimeout.current) clearTimeout(delayTentativaTimeout.current);
+    };
+  }, []);
 
   const carregarMais = () => {
     if (!loading && hasMore) {
@@ -204,6 +288,24 @@ const Documentos = () => {
       fetchDocumentos(proximaPagina);
     }
   };
+
+useEffect(() => {
+  const idParaAbrir = localStorage.getItem('documentoParaAbrir');
+  if (idParaAbrir && documentos.length > 0) {
+    const doc = documentos.find((d) => String(d.id) === idParaAbrir);
+    if (doc) {
+      selecionarDocumento(doc);
+      localStorage.removeItem('documentoParaAbrir');
+    } else {
+      // Caso ainda não esteja na lista, tenta carregar mais páginas até encontrar
+      if (hasMore) {
+        carregarMais();
+      }
+    }
+  }
+}, [documentos]);
+
+
 
   const selecionarDocumento = async (doc) => {
     try {
@@ -232,9 +334,6 @@ const Documentos = () => {
     }
   };
 
-  
-
-
   const documentosFiltrados =
     userData.setor === 'outros'
       ? documentos.filter((doc) => doc.usuario_id === userData.id)
@@ -252,6 +351,38 @@ const Documentos = () => {
           />
           <Filtros filtros={filtros} setFiltros={setFiltros} />
         </div>
+        {!wsConectado && wsTentouConectar && (
+          <div className="px-4 mt-2 pb-2 flex justify-start">
+            <button
+              onClick={() => {
+                if (!reconnectingRef.current) {
+                  reconnectingRef.current = true;
+                  conectarWebSocket();
+                  setTimeout(() => {
+                    reconnectingRef.current = false;
+                  }, 5000);
+                }
+              }}
+              className="flex items-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 text-sm rounded-md border border-red-200 shadow-sm transition"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M18.364 5.636l-1.414 1.414A9 9 0 106.05 17.95l1.414-1.414"
+                />
+              </svg>
+              <span>Conexão perdida. Tente novamente</span>
+            </button>
+          </div>
+        )}
 
         {/* Lista scrollável */}
         <div className="flex-1 overflow-y-auto">

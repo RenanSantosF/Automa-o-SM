@@ -309,6 +309,7 @@ def marcar_comentarios_visualizados(
             comentario.visualizado_por = (comentario.visualizado_por or []) + [user.id]
 
     db.commit()
+    asyncio.create_task(notificar_atualizacao())
     return {"ok": True}
 
 
