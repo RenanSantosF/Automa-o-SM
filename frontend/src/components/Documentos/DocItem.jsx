@@ -105,6 +105,12 @@ const DocItem = ({ doc, onClick, isActive }) => {
     (comentario) => !comentario.visualizado_por?.includes(userData.id)
   ).length;
 
+  const naoVisualizadasArquivos = (doc.arquivos || []).filter(
+  (arquivo) => !arquivo.visualizado_por?.includes(userData.id)
+).length;
+
+const totalNaoVisualizadas = naoVisualizadas + naoVisualizadasArquivos;
+
   // Combina arquivos e comentários, ordenados por data
   const itensChat = [...(doc.arquivos || []), ...(doc.comentarios_rel || [])]
     .map((item) => {
@@ -191,9 +197,9 @@ const DocItem = ({ doc, onClick, isActive }) => {
       </button>
 
       {/* Contador de não visualizadas */}
-      {naoVisualizadas > 0 && (
+      {totalNaoVisualizadas  > 0 && (
         <span className=" text-[10px] text-white bg-green-400 rounded-full px-2 py-0.5">
-          {naoVisualizadas}
+          {totalNaoVisualizadas }
         </span>
       )}
 

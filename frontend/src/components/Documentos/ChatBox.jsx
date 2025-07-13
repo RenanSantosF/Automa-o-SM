@@ -107,6 +107,9 @@ const ChatBox = ({
   const texto = comentario.trim();
   if (!texto) return;
 
+
+
+
   try {
     const res = await fetch(`${api}/documentos/${doc.id}/comentario`, {
       method: 'POST',
@@ -357,6 +360,8 @@ useEffect(() => {
 
   return () => clearTimeout(timer); // cancela se o efeito reiniciar
 }, [doc?.id, doc?.comentarios_rel]);
+
+
 
 
   return (

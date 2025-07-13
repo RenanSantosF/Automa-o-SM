@@ -94,7 +94,8 @@ class Document(Base):
     usuario_id = Column(Integer, ForeignKey("users.id"))
     nome = Column(String, nullable=False)
     placa = Column(String, nullable=False)
-    cliente     = Column(String, nullable=False)          # NOVO
+    cliente     = Column(String, nullable=False)     
+    visualizado_por = Column(JSON, default=[])
     data_do_malote = Column(Date, nullable=False)
     criado_em = Column(DateTime, default=func.now())
     atualizado_em = Column(DateTime, nullable=False, default=func.now(), onupdate=func.now())
@@ -107,6 +108,20 @@ class Document(Base):
 
 
 
+# class DocumentFile(Base):
+#     __tablename__ = "document_files"
+
+#     id = Column(Integer, primary_key=True, index=True)
+#     document_id = Column(Integer, ForeignKey("documents.id"))
+#     nome_arquivo = Column(String, nullable=False)
+#     caminho_arquivo = Column(String, nullable=False)
+#     criado_em = Column(DateTime, default=func.now())
+
+#     usuario_id = Column(Integer, ForeignKey("users.id"))   # Novo campo
+#     usuario = relationship("User")                         # Relacionamento com usuário
+
+#     document = relationship("Document", back_populates="arquivos")
+
 class DocumentFile(Base):
     __tablename__ = "document_files"
 
@@ -116,10 +131,12 @@ class DocumentFile(Base):
     caminho_arquivo = Column(String, nullable=False)
     criado_em = Column(DateTime, default=func.now())
 
-    usuario_id = Column(Integer, ForeignKey("users.id"))   # Novo campo
-    usuario = relationship("User")                         # Relacionamento com usuário
+    usuario_id = Column(Integer, ForeignKey("users.id"))
+    usuario = relationship("User")
 
     document = relationship("Document", back_populates="arquivos")
+
+    visualizado_por = Column(JSON, default=[])  # <--- ADICIONE ESTA LINHA
 
 
 class DocumentComment(Base):

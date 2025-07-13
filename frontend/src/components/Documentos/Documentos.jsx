@@ -20,7 +20,7 @@ const Documentos = () => {
     }
   }, []);
   const documentosNotificados = useRef(new Set());
-
+const arquivosNotificados = useRef(new Set());
   const { userData, isAuthenticated } = useLogin();
   const [documentos, setDocumentos] = useState([]);
   const [documentoSelecionado, setDocumentoSelecionado] = useState(null);
@@ -55,6 +55,35 @@ const Documentos = () => {
     const agora = new Date();
 
     docList.forEach((doc) => {
+
+      const novosArquivos = (doc.arquivos || []).filter((arquivo) => {
+  const criadoEm = new Date(arquivo.criado_em);
+  const segundos = (agora - criadoEm) / 1000;
+  return (
+    arquivo.usuario_id !== userData.id && // só notifica arquivos enviados por outros
+    !arquivosNotificados.current.has(arquivo.id) &&
+    segundos < 100
+  );
+});
+
+for (const arquivo of novosArquivos) {
+  console.log('🔔 Notificando arquivo:', arquivo.id, arquivo.nome_arquivo);
+  if (Notification.permission === 'granted') {
+    const notification = new Notification(`📎 Novo arquivo enviado`, {
+      body: arquivo.nome_arquivo || 'Arquivo novo enviado',
+      icon: '/icone-mensagem.png',
+      tag: `arquivo-${arquivo.id}`,
+    });
+    notification.onclick = () => {
+      localStorage.setItem('documentoParaAbrir', doc.id);
+      window.focus();
+    };
+  }
+  arquivosNotificados.current.add(arquivo.id);
+}
+
+
+
       // 🔔 Notificar novos COMENTÁRIOS
       const novosComentarios = (doc.comentarios_rel || []).filter((coment) => {
         const criadoEm = new Date(coment.criado_em);
@@ -69,11 +98,6 @@ const Documentos = () => {
       for (const coment of novosComentarios) {
         console.log('🔔 Notificando comentário:', coment.id, coment.texto);
         if (Notification.permission === 'granted') {
-          // new Notification(`📨 Nova mensagem de ${coment.usuario?.username || 'Usuário'}`, {
-          //   body: coment.texto || 'Comentário novo.',
-          //   icon: '/icone-mensagem.png',
-          //   tag: `comentario-${coment.id}`,
-          // });
           const notification = new Notification(
             `📨 Nova mensagem de ${coment.usuario?.username || 'Usuário'}`,
             {
@@ -87,8 +111,6 @@ const Documentos = () => {
             localStorage.setItem('documentoParaAbrir', doc.id);
             window.focus();
           };
-
-          new Audio('/notificacao.mp3').play().catch(console.error);
         }
 
         comentariosNotificados.current.add(coment.id);
@@ -106,11 +128,6 @@ const Documentos = () => {
         documentosNotificados.current.add(doc.id);
 
         if (Notification.permission === 'granted') {
-          // new Notification(`📄 Novo documento: ${doc.nome}`, {
-          //   body: `Enviado por ${doc.usuario?.username || 'usuário'}`,
-          //   icon: '/icone-mensagem.png',
-          //   tag: `documento-${doc.id}`,
-          // });
           const notification = new Notification(`📄 Novo documento: ${doc.nome}`, {
             body: `Enviado por ${doc.usuario?.username || 'usuário'}`,
             icon: '/icone-mensagem.png',
@@ -121,13 +138,15 @@ const Documentos = () => {
             localStorage.setItem('documentoParaAbrir', doc.id);
             window.focus();
           };
-
-          new Audio('/notificacao.mp3').play().catch(console.error);
         }
       }
 
       // Se for o documento aberto, atualiza ele
-      if (documentoSelecionado?.id === doc.id) {
+      // if (documentoSelecionado?.id === doc.id) {
+      //   setDocumentoSelecionado(doc);
+      //   setAutoScrollChat(false);
+      // }
+      if (documentoSelecionadoRef.current?.id === doc.id) {
         setDocumentoSelecionado(doc);
         setAutoScrollChat(false);
       }
@@ -142,6 +161,12 @@ const Documentos = () => {
     const totalLimit = paginaAtual * LIMIT;
     return await fetchDocumentos(1, 'merge', false, totalLimit);
   };
+
+  const documentoSelecionadoRef = useRef(null);
+
+  useEffect(() => {
+    documentoSelecionadoRef.current = documentoSelecionado;
+  }, [documentoSelecionado]);
 
   const fetchDocumentos = async (
     pagina = 1,
@@ -202,15 +227,14 @@ const Documentos = () => {
   useEffect(() => {
     setDocumentos([]);
     // fetchDocumentos(1);
-fetchDocumentos(1).then((docs) => {
-  const idParaAbrir = localStorage.getItem('documentoParaAbrir');
-  if (idParaAbrir) {
-    const doc = docs.find((d) => String(d.id) === idParaAbrir);
-    if (doc) selecionarDocumento(doc);
-    localStorage.removeItem('documentoParaAbrir');
-  }
-});
-
+    fetchDocumentos(1).then((docs) => {
+      const idParaAbrir = localStorage.getItem('documentoParaAbrir');
+      if (idParaAbrir) {
+        const doc = docs.find((d) => String(d.id) === idParaAbrir);
+        if (doc) selecionarDocumento(doc);
+        localStorage.removeItem('documentoParaAbrir');
+      }
+    });
   }, [filtros]);
 
   const conectarWebSocket = useCallback(() => {
@@ -289,23 +313,21 @@ fetchDocumentos(1).then((docs) => {
     }
   };
 
-useEffect(() => {
-  const idParaAbrir = localStorage.getItem('documentoParaAbrir');
-  if (idParaAbrir && documentos.length > 0) {
-    const doc = documentos.find((d) => String(d.id) === idParaAbrir);
-    if (doc) {
-      selecionarDocumento(doc);
-      localStorage.removeItem('documentoParaAbrir');
-    } else {
-      // Caso ainda não esteja na lista, tenta carregar mais páginas até encontrar
-      if (hasMore) {
-        carregarMais();
+  useEffect(() => {
+    const idParaAbrir = localStorage.getItem('documentoParaAbrir');
+    if (idParaAbrir && documentos.length > 0) {
+      const doc = documentos.find((d) => String(d.id) === idParaAbrir);
+      if (doc) {
+        selecionarDocumento(doc);
+        localStorage.removeItem('documentoParaAbrir');
+      } else {
+        // Caso ainda não esteja na lista, tenta carregar mais páginas até encontrar
+        if (hasMore) {
+          carregarMais();
+        }
       }
     }
-  }
-}, [documentos]);
-
-
+  }, [documentos]);
 
   const selecionarDocumento = async (doc) => {
     try {

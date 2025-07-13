@@ -1,4 +1,7 @@
 
+
+
+
 from fastapi import (
     APIRouter,
     Depends,
@@ -296,21 +299,60 @@ async def listar_todos_documentos(
     return documentos
 
 
+# @router.post("/{document_id}/marcar-visualizados")
+# async def marcar_comentarios_visualizados(
+#     document_id: int,
+#     user: User = Depends(get_current_user),
+#     db: Session = Depends(get_db)
+# ):
+#     comentarios = db.query(DocumentComment).filter(DocumentComment.document_id == document_id).all()
+
+#     for comentario in comentarios:
+#         if user.id not in (comentario.visualizado_por or []):
+#             comentario.visualizado_por = (comentario.visualizado_por or []) + [user.id]
+
+#     db.commit()
+#     # asyncio.create_task(notificar_atualizacao())
+#     return {"ok": True}
+
 @router.post("/{document_id}/marcar-visualizados")
-def marcar_comentarios_visualizados(
+async def marcar_comentarios_visualizados(
     document_id: int,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    documento = db.query(Document).filter(Document.id == document_id).first()
+    if not documento:
+        raise HTTPException(status_code=404, detail="Documento não encontrado")
+
+    # Marcar comentários como visualizados
     comentarios = db.query(DocumentComment).filter(DocumentComment.document_id == document_id).all()
-
     for comentario in comentarios:
-        if user.id not in (comentario.visualizado_por or []):
-            comentario.visualizado_por = (comentario.visualizado_por or []) + [user.id]
+        visualizado = comentario.visualizado_por or []
+        if user.id not in visualizado:
+            visualizado = visualizado.copy()
+            visualizado.append(user.id)
+            comentario.visualizado_por = visualizado
 
-    db.commit()
-    asyncio.create_task(notificar_atualizacao())
+    # Marcar arquivos como visualizados
+    arquivos = db.query(DocumentFile).filter(DocumentFile.document_id == document_id).all()
+    for arquivo in arquivos:
+        visualizado = arquivo.visualizado_por or []
+        if user.id not in visualizado:
+            visualizado = visualizado.copy()
+            visualizado.append(user.id)
+            arquivo.visualizado_por = visualizado
+
+    try:
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Erro ao salvar visualização: {str(e)}")
+
     return {"ok": True}
+
+
+
 
 
 

@@ -104,7 +104,7 @@ class DocumentFileSchema(BaseModel):
     caminho_arquivo: str
     criado_em: datetime
     usuario: Optional[UserSchema]  # já incluído
-
+    visualizado_por: Optional[List[int]] = []  
     class Config:
         orm_mode = True
 
@@ -134,6 +134,7 @@ class DocumentSchema(BaseModel):
     usuario: UserSchema  # <-- Adicione isso
     arquivos: List[DocumentFileSchema] = []
     comentarios_rel: List[DocumentCommentSchema] = []
+
 
     class Config:
         orm_mode = True
