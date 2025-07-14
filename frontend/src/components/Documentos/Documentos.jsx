@@ -54,26 +54,20 @@ const Documentos = () => {
 
   const [modalReprovarAberto, setModalReprovarAberto] = useState(null);
   const [motivoReprovacao, setMotivoReprovacao] = useState({});
+const verificarNotificacoes = (docList) => {
+  const agora = new Date();
 
-  const verificarNotificacoes = (docList) => {
-    const agora = new Date();
+  docList.forEach((doc) => {
+    const ignorarNotificacoes =
+      doc.usuario_id === userData.id || (userData.setor === 'outros' && doc.usuario_id !== userData.id);
 
-    docList.forEach((doc) => {
-      // 🚫 Ignorar qualquer notificação se o documento foi criado pelo próprio usuário
-      if (doc.usuario_id === userData.id) {
-        return;
-      }
-
-      // 🚫 Ignora notificações se for do setor "outros" e não criou o documento
-      if (userData.setor === 'outros' && doc.usuario_id !== userData.id) {
-        return;
-      }
+    // 🔔 Notificar novos ARQUIVOS (se permitido)
+    if (!ignorarNotificacoes) {
       const novosArquivos = (doc.arquivos || []).filter((arquivo) => {
         const criadoEm = new Date(arquivo.criado_em);
-        console.log('Verificando arquivo para notificação:', arquivo);
         const segundos = (agora - criadoEm) / 1000;
         return (
-          arquivo.usuario?.id !== userData.id && // só notifica arquivos enviados por outros
+          arquivo.usuario?.id !== userData.id &&
           !arquivosNotificados.current.has(arquivo.id) &&
           segundos < 100
         );
@@ -132,7 +126,6 @@ const Documentos = () => {
       const segundos = (agora - criadoEm) / 1000;
 
       if (
-        doc.usuario_id !== userData.id &&
         !documentosNotificados.current.has(doc.id) &&
         segundos < 100
       ) {
@@ -151,18 +144,16 @@ const Documentos = () => {
           };
         }
       }
+    }
 
-      // Se for o documento aberto, atualiza ele
-      // if (documentoSelecionado?.id === doc.id) {
-      //   setDocumentoSelecionado(doc);
-      //   setAutoScrollChat(false);
-      // }
-      if (documentoSelecionadoRef.current?.id === doc.id) {
-        setDocumentoSelecionado(doc);
-        setAutoScrollChat(true);
-      }
-    });
-  };
+    // ✅ Sempre atualiza o chat, independentemente de quem criou
+    if (documentoSelecionadoRef.current?.id === doc.id) {
+      setDocumentoSelecionado(doc);
+      setAutoScrollChat(true);
+    }
+  });
+};
+
 
   const headers = {
     Authorization: `Bearer ${localStorage.getItem('token')}`,

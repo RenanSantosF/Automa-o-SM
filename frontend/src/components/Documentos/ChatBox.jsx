@@ -327,73 +327,41 @@ const ChatBox = ({
     }
   }, [autoScroll, doc?.comentarios_rel?.length, doc?.arquivos?.length]);
 
-// useEffect(() => {
-//   if (!doc?.comentarios_rel || !userData?.id) return;
-
-//   const timer = setTimeout(() => {
-//     const comentariosNaoLidos = doc.comentarios_rel.some(
-//       (coment) =>
-//         coment.usuario_id !== userData.id &&
-//         !(coment.visualizado_por || []).includes(userData.id)
-//     );
-
-//     if (!comentariosNaoLidos) return;
-
-//     fetch(`${api}/documentos/${doc.id}/marcar-visualizados`, {
-//       method: 'POST',
-//       headers,
-//     })
-//       .then((res) => {
-//         if (!res.ok) throw new Error('Erro ao marcar como lido');
-//         const comentariosAtualizados = doc.comentarios_rel.map((c) =>
-//           c.usuario_id !== userData.id &&
-//           !(c.visualizado_por || []).includes(userData.id)
-//             ? { ...c, visualizado_por: [...(c.visualizado_por || []), userData.id] }
-//             : c
-//         );
-
-//         setDocumentoSelecionado({ ...doc, comentarios_rel: comentariosAtualizados });
-//       })
-//       .catch((err) => {
-//         console.error('Erro ao marcar comentários como visualizados:', err);
-//       });
-//   }, 3000); // 3000 milissegundos = 3 segundos
-
-//   return () => clearTimeout(timer); // cancela se o efeito reiniciar
-// }, [doc?.id, doc?.comentarios_rel]);
-
-
-
-
 useEffect(() => {
   if (!doc?.comentarios_rel || !userData?.id) return;
 
-  const timer = setTimeout(async () => {
-    // Se o último comentário não estiver no estado, busca documento atualizado
-    try {
-      const novosDocs = await fetchDocumentos();
-      const atualizado = novosDocs.find((d) => d.id === doc.id);
+  const timer = setTimeout(() => {
+    const comentariosNaoLidos = doc.comentarios_rel.some(
+      (coment) =>
+        coment.usuario_id !== userData.id &&
+        !(coment.visualizado_por || []).includes(userData.id)
+    );
 
-      if (!atualizado) return;
+    if (!comentariosNaoLidos) return;
 
-      const houveMudanca = atualizado.comentarios_rel.length > doc.comentarios_rel.length;
+    fetch(`${api}/documentos/${doc.id}/marcar-visualizados`, {
+      method: 'POST',
+      headers,
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error('Erro ao marcar como lido');
+        const comentariosAtualizados = doc.comentarios_rel.map((c) =>
+          c.usuario_id !== userData.id &&
+          !(c.visualizado_por || []).includes(userData.id)
+            ? { ...c, visualizado_por: [...(c.visualizado_por || []), userData.id] }
+            : c
+        );
 
-      if (houveMudanca) {
-        setDocumentoSelecionado(atualizado);
-        setMensagemEnviada(true);
+        setDocumentoSelecionado({ ...doc, comentarios_rel: comentariosAtualizados });
+      })
+      .catch((err) => {
+        console.error('Erro ao marcar comentários como visualizados:', err);
+      });
+  }, 3000); // 3000 milissegundos = 3 segundos
 
-        await fetch(`${api}/documentos/${doc.id}/marcar-visualizados`, {
-          method: 'POST',
-          headers,
-        });
-      }
-    } catch (err) {
-      console.error('Erro ao tentar atualizar documento com nova mensagem:', err);
-    }
-  }, 3000);
-
-  return () => clearTimeout(timer);
+  return () => clearTimeout(timer); // cancela se o efeito reiniciar
 }, [doc?.id, doc?.comentarios_rel]);
+
 
 
 
