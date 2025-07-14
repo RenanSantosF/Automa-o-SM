@@ -4,7 +4,7 @@ import DocItem from "./DocItem.jsx"
 
 const Sidebar = ({ documentos, onSelecionar, documentoSelecionado }) => {
   return (
-    <div className="divide-y divide-gray-200">
+    <div className="divide-y  divide-white gap-[2px] flex p-2 flex-col">
       {documentos.map((doc) => (
         <DocItem
           key={doc.id}

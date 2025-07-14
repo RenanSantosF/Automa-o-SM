@@ -413,7 +413,7 @@ useEffect(() => {
 
         {/* Ações */}
         {/* Ações */}
-        <div className="flex flex-wrap gap-2 px-4 py-3 border-b bg-white text-sm">
+        <div className="flex flex-wrap gap-2 px-4 py-3 border-b border-gray-200 bg-white text-sm">
           {userData.id === doc.usuario_id && doc.status === 'reprovado' && (
             <button
               onClick={solicitarAprovacao}
@@ -460,13 +460,13 @@ useEffect(() => {
         {/* Conteúdo principal (mensagens + envio) */}
         <div className="flex flex-col flex-1 overflow-hidden">
           {/* Lista de mensagens - ocupa o espaço restante */}
-          <div ref={chatRef} className="flex-1 overflow-y-auto p-4 bg-gray-50">
+          <div ref={chatRef} className="flex-1 overflow-y-auto p-4 bg-black/2">
             {itensChat.map((item) => (
               <ChatMensagem key={item.id} item={item} currentUser={userData.username} />
             ))}
           </div>
           {podeComentar && (
-            <div className="p-4 border-t bg-white flex items-center gap-2">
+            <div className="p-4 border-t bg-white border-gray-200 flex items-center gap-2">
               <input
                 type="text"
                 placeholder="Digite uma mensagem..."
@@ -478,7 +478,7 @@ useEffect(() => {
                     enviarComentario();
                   }
                 }}
-                className="flex-1 text-black border w-full px-3 py-2 rounded"
+                className="flex-1 text-black border border-gray-200 h-full w-full px-3 py-2 rounded"
               />
               <button
                 onClick={enviarComentario}

@@ -127,12 +127,15 @@ const DocItem = ({ doc, onClick, isActive }) => {
   // Combina arquivos e comentários, ordenados por data
   const itensChat = [...(doc.arquivos || []), ...(doc.comentarios_rel || [])]
     .map((item) => {
+      const nomeUsuario = item.usuario?.username || 'Usuário';
+
       if (item.nome_arquivo) {
         return {
           id: `arq-${item.id}`,
           tipo: 'arquivo',
           texto: '📎 Arquivo enviado',
           criado_em: item.criado_em,
+          autor: nomeUsuario,
         };
       } else {
         return {
@@ -140,15 +143,17 @@ const DocItem = ({ doc, onClick, isActive }) => {
           tipo: 'comentario',
           texto: item.texto,
           criado_em: item.criado_em,
+          autor: nomeUsuario,
         };
       }
     })
+
     .sort((a, b) => new Date(a.criado_em) - new Date(b.criado_em));
 
   return (
     <div
-      className={`w-full flex justify-between items-center gap-2 transition relative ${
-        isActive ? 'bg-green-50 border-l-4 border-green-500' : 'hover:bg-green-100'
+      className={`w-full flex justify-between items-center gap-2 transition relative rounded-md ${
+        isActive ? 'bg-black/7 border-l-4' : 'bg-white hover:bg-gray-100'
       }`}
     >
       <button
@@ -198,10 +203,15 @@ const DocItem = ({ doc, onClick, isActive }) => {
                 : ''
             }
           >
-            {itensChat.length > 0
-              ? itensChat[itensChat.length - 1].texto.slice(0, 50) +
-                (itensChat[itensChat.length - 1].texto.length > 50 ? '...' : '')
-              : 'Sem mensagens'}
+            {itensChat.length > 0 ? (
+              <span>
+                <strong className="text-gray-700">{itensChat[itensChat.length - 1].autor}:</strong>{' '}
+                {itensChat[itensChat.length - 1].texto.slice(0, 50)}
+                {itensChat[itensChat.length - 1].texto.length > 50 ? '...' : ''}
+              </span>
+            ) : (
+              'Sem mensagens'
+            )}
           </div>
 
           <div className="whitespace-nowrap text-gray-400 text-xs">

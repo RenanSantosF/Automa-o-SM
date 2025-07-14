@@ -394,10 +394,10 @@ const verificarNotificacoes = (docList) => {
       {/* Sidebar / Lista */}
       {(!mobileView || modoMobile === 'lista') && (
         <div
-          className={`bg-gray-100 border-r flex flex-col ${mobileView ? 'w-full' : 'w-[510px]'}`}
+          className={`bg-white border-r border-gray-200 flex flex-col ${mobileView ? 'w-full' : 'w-[510px]'}`}
         >
           {/* Topo fixo: Upload + Filtros */}
-          <div className="sticky top-0 z-10 bg-gray-100 border-b space-y-4">
+          <div className="sticky top-0 z-10 bg-white border-b space-y-4">
             <UploadForm
               isAuthenticated={isAuthenticated}
               fetchDocumentos={() => fetchDocumentos(1)}
@@ -482,7 +482,7 @@ const verificarNotificacoes = (docList) => {
 
           {/* Lista scrollável */}
           <div
-            className={`flex-1 ${
+            className={`flex-1 bg-white ${
               mobileView && modoMobile === 'chat' ? 'overflow-hidden' : 'overflow-y-auto'
             }`}
           >
@@ -498,6 +498,19 @@ const verificarNotificacoes = (docList) => {
               }}
               documentoSelecionado={documentoSelecionado}
             />
+
+            {documentosFiltrados.length === 0 && !manualLoading && (
+  <div className="text-center text-gray-400 py-6">
+    Nenhum comprovante encontrado.
+  </div>
+)}
+
+{documentosFiltrados.length > 0 && !hasMore && (
+  <div className="text-center text-gray-400 py-4">
+    todos os documentos já foram carregados.
+  </div>
+)}
+
 
             {hasMore && (
               <div className="p-4 text-center">
@@ -519,9 +532,7 @@ const verificarNotificacoes = (docList) => {
                 </button>
               </div>
             )}
-            {!hasMore && documentos.length > 0 && (
-              <div className="p-4 text-center text-gray-400">Nada encontrado.</div>
-            )}
+
           </div>
         </div>
       )}

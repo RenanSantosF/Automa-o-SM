@@ -28,7 +28,7 @@ const ChatMensagem = ({ item, currentUser }) => {
     <div className={`mb-4 px-2 ${isMe ? 'text-right' : 'text-left'}`}>
       <div
         className={`inline-flex flex-col items-start px-3 py-2 rounded-lg whitespace-pre-wrap max-w-xs sm:max-w-md ${
-          isMe ? 'bg-green-100 text-black' : 'bg-gray-200 text-gray-800'
+          isMe ? 'bg-green-100 text-black' : 'bg-white text-gray-800'
         }`}
         style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
       >

@@ -40,7 +40,7 @@ const limpar = () => {
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="p-4 rounded-md overflow-hidden bg-[#555] mt-4 "
+            className="p-4 rounded-md overflow-hidden bg-[#333] mt-4 "
           >
             <div className="flex  flex-col gap-2 py-4">
               <Input
