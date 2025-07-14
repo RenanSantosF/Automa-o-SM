@@ -395,7 +395,7 @@ const Documentos = () => {
       : documentos;
 
 return (
-  <div className="flex h-[calc(100vh-20px)] bg-white rounded-md overflow-hidden border">
+  <div className="flex h-[calc(100dvh-20px)] bg-white rounded-md overflow-hidden border">
     {/* Sidebar / Lista */}
     {(!mobileView || modoMobile === 'lista') && (
       <div
@@ -568,7 +568,7 @@ return (
 
           {/* Conteúdo do chat ou mensagem */}
           {documentoSelecionado ? (
-            <div className={`flex flex-col ${mobileView ? 'h-[calc(100vh-64px)]' : 'h-full'}`}>
+            <div className={`flex flex-col ${mobileView ? 'h-[calc(100dvh-64px)]' : 'h-full'}`}>
               <ChatBox
                 doc={documentoSelecionado}
                 userData={userData}
