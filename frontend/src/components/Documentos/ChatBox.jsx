@@ -331,11 +331,15 @@ useEffect(() => {
   if (!doc?.comentarios_rel || !userData?.id) return;
 
   const timer = setTimeout(() => {
+    // const comentariosNaoLidos = doc.comentarios_rel.some(
+    //   (coment) =>
+    //     coment.usuario_id !== userData.id &&
+    //     !(coment.visualizado_por || []).includes(userData.id)
+    // );
     const comentariosNaoLidos = doc.comentarios_rel.some(
-      (coment) =>
-        coment.usuario_id !== userData.id &&
-        !(coment.visualizado_por || []).includes(userData.id)
-    );
+  (coment) =>
+    !(coment.visualizado_por || []).includes(userData.id)
+);
 
     if (!comentariosNaoLidos) return;
 
