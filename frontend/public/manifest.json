@@ -1,0 +1,21 @@
+{
+  "short_name": "DellmarDocs",
+  "name": "Dellmar Documentos",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/logo.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/comprovantes",
+  "background_color": "#333333",
+  "display": "standalone",
+  "scope": "/",
+  "theme_color": "#333333"
+}

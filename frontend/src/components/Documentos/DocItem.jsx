@@ -10,6 +10,15 @@ const DocItem = ({ doc, onClick, isActive }) => {
   const [menuAberto, setMenuAberto] = useState(false);
   const menuRef = useRef(null);
 
+  // Estado para detectar tela desktop
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsDesktop(window.innerWidth >= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   useEffect(() => {
     const handleClickFora = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
@@ -144,43 +153,45 @@ const DocItem = ({ doc, onClick, isActive }) => {
     >
       <button
         onClick={onClick}
-        className="cursor-pointer flex-1 px-4 py-3 text-left flex flex-col gap-1"
+        className="cursor-pointer flex-grow flex-shrink basis-0 min-w-0 px-4 py-3 text-left flex flex-col gap-1"
       >
         {/* Cabeçalho: Nome + CTe + Status */}
-        <div
-  className="flex flex-wrap justify-between items-center w-full gap-2"
->
-  {/* Texto limitado com tooltip */}
-  <div
-    className="text-sm text-gray-600 font-semibold truncate max-w-full sm:max-w-[300px]"
-    title={`${doc.nome} ${
-      doc.data_do_malote ? `+ Malote ${formatDateBr(doc.data_do_malote)}` : ''
-    } CTe ${doc.placa}`}
-  >
-    {doc.nome}
-    {doc.data_do_malote && (
-      <span className="text-gray-600 font-semibold">
-        {' '}
-        + Malote {formatDateBr(doc.data_do_malote)}
-      </span>
-    )}
-    <span className="text-gray-600 font-semibold"> | CTe {doc.placa}</span>
-  </div>
+        <div className="flex flex-wrap sm:flex-nowrap items-center w-full gap-2">
+          <div className="flex justify-between w-full flex-wrap items-center gap-2 max-w-full">
+            <div
+              className="text-sm text-gray-600 font-semibold truncate max-w-[40ch]"
+              title={`${doc.nome} ${
+                doc.data_do_malote ? `+ Malote ${formatDateBr(doc.data_do_malote)}` : ''
+              } CTe ${doc.placa}`}
+            >
+              {isDesktop
+                ? doc.nome.length > 40
+                  ? doc.nome.slice(0, 40) + '...'
+                  : doc.nome
+                : doc.nome}
 
-  {/* Status badge - força linha nova no sm: */}
-  <div
-    className={`text-[11px] font-medium whitespace-nowrap inline-flex items-center gap-1 px-2 py-0.5 rounded-full shadow-sm ${badge.className} w-20 sm:w-auto mt-1 sm:mt-0`}
-  >
-    {badge.icon}
-    {badge.label}
-  </div>
-</div>
+              {doc.data_do_malote && (
+                <span className="text-gray-600 font-semibold">
+                  {' '}
+                  + Malote {formatDateBr(doc.data_do_malote)}
+                </span>
+              )}
+              <span className="text-gray-600 font-semibold"> | CTe {doc.placa}</span>
+            </div>
 
+            <div
+              className={`text-[11px] font-medium whitespace-nowrap inline-flex items-center justify-center gap-1 px-2 py-0.5 rounded-full shadow-sm ${badge.className}`}
+            >
+              {badge.icon}
+              {badge.label}
+            </div>
+          </div>
+        </div>
 
         {/* Última mensagem + horário */}
         <div className="flex justify-between items-center text-xs text-gray-600">
           <div
-            className="truncate max-w-[80%]"
+            className="truncate max-w-[80%] min-w-0"
             title={
               doc.comentarios_rel?.length > 0
                 ? doc.comentarios_rel[doc.comentarios_rel.length - 1].texto
@@ -208,13 +219,13 @@ const DocItem = ({ doc, onClick, isActive }) => {
 
       {/* Contador de não visualizadas */}
       {totalNaoVisualizadas > 0 && (
-        <span className=" text-[10px] text-white bg-green-400 rounded-full px-2 py-0.5">
+        <span className="text-[10px] text-white bg-green-400 rounded-full px-2 py-0.5 whitespace-nowrap">
           {totalNaoVisualizadas}
         </span>
       )}
 
       {/* Menu de ações */}
-      <div className="relative pr-3" ref={menuRef}>
+      <div className="relative pr-3 flex-shrink-0" ref={menuRef}>
         <button
           onClick={() => setMenuAberto((prev) => !prev)}
           className="cursor-pointer p-1 text-gray-600 hover:text-black"
