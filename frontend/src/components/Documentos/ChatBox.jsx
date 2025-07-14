@@ -23,6 +23,8 @@ const ChatBox = ({
   modalReprovarAberto,
   autoScroll = false,
 }) => {
+
+  const [mensagemEnviada, setMensagemEnviada] = useState(false);
   const [comentario, setComentario] = useState('');
   const fileInputRef = useRef(null);
   const chatRef = useRef(null);
@@ -97,6 +99,7 @@ const ChatBox = ({
       if (docAtualizado) {
         setDocumentoSelecionado(docAtualizado);
       }
+      setMensagemEnviada(true);
     } catch (error) {
       console.error(error);
       toast.error('Erro ao enviar nova versão');
@@ -106,10 +109,6 @@ const ChatBox = ({
   const enviarComentario = async () => {
   const texto = comentario.trim();
   if (!texto) return;
-
-
-
-
   try {
     const res = await fetch(`${api}/documentos/${doc.id}/comentario`, {
       method: 'POST',
@@ -138,6 +137,8 @@ const ChatBox = ({
       if (docAtualizado) {
         setDocumentoSelecionado(docAtualizado);
       }
+
+      setMensagemEnviada(true);
     } catch (err) {
       console.error('Erro ao atualizar documento após comentário:', err);
     }
@@ -363,6 +364,13 @@ useEffect(() => {
 
 
 
+useEffect(() => {
+  if (mensagemEnviada && chatRef.current) {
+    chatRef.current.scrollTop = chatRef.current.scrollHeight;
+    setMensagemEnviada(false); // reseta a flag
+  }
+}, [mensagemEnviada]);
+
 
   return (
     <>
@@ -469,7 +477,7 @@ useEffect(() => {
                     enviarComentario();
                   }
                 }}
-                className="flex-1 text-black border px-3 py-2 rounded"
+                className="flex-1 text-black border w-full px-3 py-2 rounded"
               />
               <button
                 onClick={enviarComentario}

@@ -1,37 +1,26 @@
 export const Stepper = ({ status }) => {
   const steps = [
     { id: 'enviado', label: 'Enviado' },
-    { id: 'aprovado', label: 'Aprovado' },      // Passo 2: pode ser "Aprovado" ou "Reprovado"
+    { id: 'aprovado', label: 'Aprovado' },
     { id: 'saldo_liberado', label: 'Saldo Liberado' },
   ];
 
-  // Index do status atual
   let getStatusIndex = steps.findIndex((s) => s.id === status);
-
-  // Se reprovado, o índice do step será 1 (substituindo o aprovado)
-  if (status === 'reprovado') {
-    getStatusIndex = 1;
-  }
+  if (status === 'reprovado') getStatusIndex = 1;
 
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex items-center gap-2">
       {steps.map((step, index) => {
-        // Marca etapas completadas ou atual
         const isCompleted = index < getStatusIndex;
         const isCurrent = index === getStatusIndex;
-
-        // Label dinâmico para o segundo passo (index 1)
-        const label =
-          index === 1 && status === 'reprovado' ? 'Reprovado' : step.label;
-
-        // Estilo da bolinha para reprovado
         const isReprovadoStep = index === 1 && status === 'reprovado';
+        const label = isReprovadoStep ? 'Reprovado' : step.label;
 
         return (
-          <div key={step.id} className="flex items-center gap-2">
+          <div key={step.id} className="flex items-center gap-1">
             {/* Bolinha */}
             <div
-              className={`w-5 h-5 rounded-full flex items-center justify-center border
+              className={`w-4 h-4 rounded-full flex items-center justify-center border text-[10px]
                 ${
                   isReprovadoStep
                     ? 'bg-red-600 border-red-600 text-white'
@@ -45,7 +34,7 @@ export const Stepper = ({ status }) => {
 
             {/* Label */}
             <span
-              className={`text-sm ${
+              className={`text-xs ${
                 isReprovadoStep
                   ? 'text-red-600 font-semibold'
                   : isCurrent
@@ -58,10 +47,10 @@ export const Stepper = ({ status }) => {
               {label}
             </span>
 
-            {/* Linha, se não for o último e não estiver reprovado (para parar no reprovado) */}
+            {/* Linha (somente se for necessário) */}
             {index < steps.length - 1 && !(status === 'reprovado' && index === 1) && (
               <div
-                className={`w-8 h-0.5 ${
+                className={`w-4 h-0.5 ${
                   isCompleted || isCurrent ? 'bg-green-600' : 'bg-gray-300'
                 }`}
               ></div>

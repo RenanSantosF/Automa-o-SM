@@ -60,7 +60,7 @@ const DocItem = ({ doc, onClick, isActive }) => {
     }
   };
 
-    function formatDateBr(dataStr) {
+  function formatDateBr(dataStr) {
     const [year, month, day] = dataStr.split('-');
     return `${day}/${month}/${year}`;
   }
@@ -102,14 +102,18 @@ const DocItem = ({ doc, onClick, isActive }) => {
   };
 
   const naoVisualizadas = (doc.comentarios_rel || []).filter(
-    (comentario) => !comentario.visualizado_por?.includes(userData.id)
+    (comentario) =>
+      comentario.usuario?.id !== userData.id && // Ignora se foi enviado por você
+      !comentario.visualizado_por?.includes(userData.id)
   ).length;
 
   const naoVisualizadasArquivos = (doc.arquivos || []).filter(
-  (arquivo) => !arquivo.visualizado_por?.includes(userData.id)
-).length;
+    (arquivo) =>
+      arquivo.usuario?.id !== userData.id && // Ignora se foi enviado por você
+      !arquivo.visualizado_por?.includes(userData.id)
+  ).length;
 
-const totalNaoVisualizadas = naoVisualizadas + naoVisualizadasArquivos;
+  const totalNaoVisualizadas = naoVisualizadas + naoVisualizadasArquivos;
 
   // Combina arquivos e comentários, ordenados por data
   const itensChat = [...(doc.arquivos || []), ...(doc.comentarios_rel || [])]
@@ -143,29 +147,35 @@ const totalNaoVisualizadas = naoVisualizadas + naoVisualizadasArquivos;
         className="cursor-pointer flex-1 px-4 py-3 text-left flex flex-col gap-1"
       >
         {/* Cabeçalho: Nome + CTe + Status */}
-        <div className="flex justify-between items-center w-full gap-2">
-          {/* Texto limitado com tooltip */}
-          <div
-            className="text-sm  text-gray-600 font-semibold truncate max-w-[300px]"
-            title={`${doc.nome} ${
-              doc.data_do_malote ? `+ Malote ${formatDateBr(doc.data_do_malote)}` : ''
-            } CTe ${doc.placa}`}
-          >
-            {doc.nome}
-            {doc.data_do_malote && (
-              <span className="text-gray-600 font-semibold"> + Malote {formatDateBr(doc.data_do_malote)}</span>
-            )}
-            <span className="text-gray-600 font-semibold" > | CTe {doc.placa}</span>
-          </div>
+        <div
+  className="flex flex-wrap justify-between items-center w-full gap-2"
+>
+  {/* Texto limitado com tooltip */}
+  <div
+    className="text-sm text-gray-600 font-semibold truncate max-w-full sm:max-w-[300px]"
+    title={`${doc.nome} ${
+      doc.data_do_malote ? `+ Malote ${formatDateBr(doc.data_do_malote)}` : ''
+    } CTe ${doc.placa}`}
+  >
+    {doc.nome}
+    {doc.data_do_malote && (
+      <span className="text-gray-600 font-semibold">
+        {' '}
+        + Malote {formatDateBr(doc.data_do_malote)}
+      </span>
+    )}
+    <span className="text-gray-600 font-semibold"> | CTe {doc.placa}</span>
+  </div>
 
-          {/* Status badge sem quebra de linha */}
-          <div
-            className={`text-[11px] font-medium whitespace-nowrap inline-flex items-center gap-1 px-2 py-0.5 rounded-full shadow-sm ${badge.className}`}
-          >
-            {badge.icon}
-            {badge.label}
-          </div>
-        </div>
+  {/* Status badge - força linha nova no sm: */}
+  <div
+    className={`text-[11px] font-medium whitespace-nowrap inline-flex items-center gap-1 px-2 py-0.5 rounded-full shadow-sm ${badge.className} w-20 sm:w-auto mt-1 sm:mt-0`}
+  >
+    {badge.icon}
+    {badge.label}
+  </div>
+</div>
+
 
         {/* Última mensagem + horário */}
         <div className="flex justify-between items-center text-xs text-gray-600">
@@ -197,9 +207,9 @@ const totalNaoVisualizadas = naoVisualizadas + naoVisualizadasArquivos;
       </button>
 
       {/* Contador de não visualizadas */}
-      {totalNaoVisualizadas  > 0 && (
+      {totalNaoVisualizadas > 0 && (
         <span className=" text-[10px] text-white bg-green-400 rounded-full px-2 py-0.5">
-          {totalNaoVisualizadas }
+          {totalNaoVisualizadas}
         </span>
       )}
 
@@ -233,64 +243,6 @@ const totalNaoVisualizadas = naoVisualizadas + naoVisualizadasArquivos;
         </AnimatePresence>
       </div>
     </div>
-
-    // <div
-    //   className={`w-full flex justify-between items-center gap-2 transition relative ${
-    //     isActive ? 'bg-green-50 border-l-4 border-green-500' : 'hover:bg-green-100'
-    //   }`}
-    // >
-    //   <button
-    //     onClick={onClick}
-    //     className="cursor-pointer flex-1 px-4 py-3 text-left flex flex-col gap-1"
-    //   >
-    //     <div className="text-sm font-semibold text-gray-700">
-    //       {doc.nome} | CTe {doc.placa}
-    //     </div>
-
-    //     <div
-    //       className={`text-xs inline-flex items-center gap-1 px-2 py-1 rounded-sm w-fit ${badge.className}`}
-    //     >
-    //       {badge.icon}
-    //       {badge.label}
-    //     </div>
-    //   </button>
-
-    //   {naoVisualizadas > 0 && (
-    //     <span className="mr-2 text-xs text-white bg-green-500 rounded-full px-2 py-0.5">
-    //       {naoVisualizadas}
-    //     </span>
-    //   )}
-
-    //   {/* Menu de ações */}
-    //   <div className="relative pr-3" ref={menuRef}>
-    //     <button
-    //       onClick={() => setMenuAberto((prev) => !prev)}
-    //       className="cursor-pointer p-1 text-gray-600 hover:text-black"
-    //     >
-    //       <MoreVertical size={20} />
-    //     </button>
-
-    //     <AnimatePresence>
-    //       {menuAberto && (
-    //         <motion.div
-    //           initial={{ opacity: 0, scale: 0.95, y: -5 }}
-    //           animate={{ opacity: 1, scale: 1, y: 0 }}
-    //           exit={{ opacity: 0, scale: 0.95, y: -5 }}
-    //           transition={{ duration: 0.15 }}
-    //           className="  absolute right-3 top-8 z-20 bg-white border shadow-md rounded-md overflow-hidden w-44"
-    //         >
-    //           <button
-    //             onClick={handleDelete}
-    //             className="cursor-pointer w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition"
-    //           >
-    //             <Trash2 size={16} />
-    //             Deletar
-    //           </button>
-    //         </motion.div>
-    //       )}
-    //     </AnimatePresence>
-    //   </div>
-    // </div>
   );
 };
 

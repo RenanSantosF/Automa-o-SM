@@ -22,7 +22,7 @@ const limpar = () => {
 
 
   return (
-    <div className=" pl-4 mb-3  rounded-md  ">
+    <div className=" pl-4 mb-3 mr-4  rounded-md  ">
       <button
         onClick={() => setMostrar(!mostrar)}
         className="cursor-pointer flex items-center gap-2 text-green-500 font-semibold"
