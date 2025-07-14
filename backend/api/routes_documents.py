@@ -299,22 +299,6 @@ async def listar_todos_documentos(
     return documentos
 
 
-# @router.post("/{document_id}/marcar-visualizados")
-# async def marcar_comentarios_visualizados(
-#     document_id: int,
-#     user: User = Depends(get_current_user),
-#     db: Session = Depends(get_db)
-# ):
-#     comentarios = db.query(DocumentComment).filter(DocumentComment.document_id == document_id).all()
-
-#     for comentario in comentarios:
-#         if user.id not in (comentario.visualizado_por or []):
-#             comentario.visualizado_por = (comentario.visualizado_por or []) + [user.id]
-
-#     db.commit()
-#     # asyncio.create_task(notificar_atualizacao())
-#     return {"ok": True}
-
 @router.post("/{document_id}/marcar-visualizados")
 async def marcar_comentarios_visualizados(
     document_id: int,

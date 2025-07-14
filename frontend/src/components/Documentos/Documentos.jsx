@@ -59,6 +59,11 @@ const Documentos = () => {
     const agora = new Date();
 
     docList.forEach((doc) => {
+
+          // 🚫 Ignora notificações se for do setor "outros" e não criou o documento
+    if (userData.setor === 'outros' && doc.usuario_id !== userData.id) {
+      return;
+    }
       const novosArquivos = (doc.arquivos || []).filter((arquivo) => {
         const criadoEm = new Date(arquivo.criado_em);
         console.log('Verificando arquivo para notificação:', arquivo);
@@ -388,156 +393,6 @@ const Documentos = () => {
     userData.setor === 'outros'
       ? documentos.filter((doc) => doc.usuario_id === userData.id)
       : documentos;
-
-  // return (
-  //   <div className="flex h-[calc(100vh-20px)]  bg-white rounded-md overflow-hidden border">
-  //     {/* Sidebar (Lista) */}
-  //     <div className="w-[510px] bg-gray-100 border-r flex flex-col">
-  //       {/* Topo fixo: Upload + Filtros */}
-  //       <div className="sticky top-0 z-10 bg-gray-100  border-b space-y-4">
-  //         <UploadForm
-  //           isAuthenticated={isAuthenticated}
-  //           fetchDocumentos={() => fetchDocumentos(1)}
-  //         />
-  //         <Filtros filtros={filtros} setFiltros={setFiltros} />
-  //       </div>
-  //       {!wsConectado && wsTentouConectar && (
-  //         <div className="px-4 mt-2 pb-2 flex justify-start">
-  //           <button
-  //             onClick={async () => {
-  //               if (!reconnectingRef.current) {
-  //                 reconnectingRef.current = true;
-  //                 setReconnectLoading(true);
-  //                 try {
-  //                   conectarWebSocket();
-  //                   toast.success('Tentando reconectar...');
-  //                   setTimeout(() => {
-  //                     if (!socketRef.current || socketRef.current.readyState !== 1) {
-  //                       toast.error('Falha na reconexão');
-  //                     }
-  //                   }, 3000);
-  //                 } catch (err) {
-  //                   toast.error('Erro ao reconectar');
-  //                   console.error(err);
-  //                 } finally {
-  //                   setReconnectLoading(false);
-  //                   setTimeout(() => {
-  //                     reconnectingRef.current = false;
-  //                   }, 5000);
-  //                 }
-  //               }
-  //             }}
-  //             disabled={reconnectLoading}
-  //             className={`flex items-center gap-2 px-4 py-2 ${
-  //               reconnectLoading ? 'bg-red-100 cursor-not-allowed' : 'bg-red-50 hover:bg-red-100'
-  //             } text-red-600 text-sm rounded-md border border-red-200 shadow-sm transition`}
-  //           >
-  //             {reconnectLoading ? (
-  //               <svg
-  //                 className="animate-spin h-4 w-4 text-red-600"
-  //                 xmlns="http://www.w3.org/2000/svg"
-  //                 fill="none"
-  //                 viewBox="0 0 24 24"
-  //               >
-  //                 <circle
-  //                   className="opacity-25"
-  //                   cx="12"
-  //                   cy="12"
-  //                   r="10"
-  //                   stroke="currentColor"
-  //                   strokeWidth="4"
-  //                 />
-  //                 <path
-  //                   className="opacity-75"
-  //                   fill="currentColor"
-  //                   d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 100 16v-4l-3 3 3 3v-4a8 8 0 01-8-8z"
-  //                 />
-  //               </svg>
-  //             ) : (
-  //               <svg
-  //                 xmlns="http://www.w3.org/2000/svg"
-  //                 className="h-4 w-4"
-  //                 fill="none"
-  //                 viewBox="0 0 24 24"
-  //                 stroke="currentColor"
-  //                 strokeWidth={2}
-  //               >
-  //                 <path
-  //                   strokeLinecap="round"
-  //                   strokeLinejoin="round"
-  //                   d="M18.364 5.636l-1.414 1.414A9 9 0 106.05 17.95l1.414-1.414"
-  //                 />
-  //               </svg>
-  //             )}
-  //             <span>
-  //               {reconnectLoading ? 'Reconectando...' : 'Conexão perdida. Tente novamente'}
-  //             </span>
-  //           </button>
-  //         </div>
-  //       )}
-
-  //       {/* Lista scrollável */}
-  //       <div className="flex-1 overflow-y-auto">
-  //         <div className="flex w-full pt-2 justify-center ">
-  //           <span className="text-gray-500 font-medium ">Conversas</span>
-  //         </div>
-
-  //         <Sidebar
-  //           documentos={documentosFiltrados}
-  //           onSelecionar={selecionarDocumento}
-  //           documentoSelecionado={documentoSelecionado}
-  //         />
-
-  //         {hasMore && (
-  //           <div className="p-4 text-center">
-  //             <button
-  //               onClick={carregarMais}
-  //               className="mx-auto mt-4 flex items-center justify-center gap-2 px-3 py-1 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors duration-200"
-  //             >
-  //               <svg
-  //                 xmlns="http://www.w3.org/2000/svg"
-  //                 className="h-5 w-5"
-  //                 fill="none"
-  //                 viewBox="0 0 24 24"
-  //                 stroke="currentColor"
-  //                 strokeWidth={2}
-  //               >
-  //                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 5v14m7-7H5" />
-  //               </svg>
-  //               Carregar mais
-  //             </button>
-  //           </div>
-  //         )}
-  //         {!hasMore && documentos.length > 0 && (
-  //           <div className="p-4 text-center text-gray-400">Nada encontrado.</div>
-  //         )}
-  //       </div>
-  //     </div>
-
-  //     {/* ChatBox (Conversa) */}
-  //     <div className="flex-1 overflow-y-auto bg-white">
-  //       {documentoSelecionado ? (
-  //         <ChatBox
-  //           doc={documentoSelecionado}
-  //           userData={userData}
-  //           headers={headers}
-  //           setDocumentoSelecionado={setDocumentoSelecionado}
-  //           fetchDocumentos={fetchDocumentosCompletos}
-  //           motivoReprovacao={motivoReprovacao}
-  //           setMotivoReprovacao={setMotivoReprovacao}
-  //           setModalReprovarAberto={setModalReprovarAberto}
-  //           modalReprovarAberto={modalReprovarAberto}
-  //           autoScroll={autoScrollChat}
-  //         />
-  //       ) : (
-  //         <div className="h-full flex items-center justify-center text-gray-400 text-xl">
-  //           Selecione um documento para visualizar a conversa.
-  //         </div>
-  //       )}
-  //     </div>
-  //   </div>
-  // );
-
 
 return (
   <div className="flex h-[calc(100vh-20px)] bg-white rounded-md overflow-hidden border">
