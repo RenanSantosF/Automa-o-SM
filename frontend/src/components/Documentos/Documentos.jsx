@@ -155,7 +155,7 @@ const Documentos = () => {
       // }
       if (documentoSelecionadoRef.current?.id === doc.id) {
         setDocumentoSelecionado(doc);
-        setAutoScrollChat(false);
+        setAutoScrollChat(true);
       }
     });
   };
