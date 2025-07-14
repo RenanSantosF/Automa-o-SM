@@ -6,29 +6,28 @@ import './index.css';
 import { LoginProvider } from './Contexts/LoginContext.jsx';
 import { UserProvider } from './Contexts/RegisterContext.jsx';
 
+// 👇 Novo: Registro do PWA com vite-plugin-pwa
+import { registerSW } from 'virtual:pwa-register';
+
+registerSW({
+  onNeedRefresh() {
+    console.log('⚠️ Nova versão disponível. Atualize o app.');
+  },
+  onOfflineReady() {
+    console.log('✅ App pronto para uso offline.');
+  },
+});
+
 const rootElement = document.getElementById('root');
 
 if (rootElement) {
   createRoot(rootElement).render(
-    <React.StrictMode>
+    <StrictMode>
       <LoginProvider>
         <UserProvider>
           <App />
         </UserProvider>
       </LoginProvider>
-    </React.StrictMode>
+    </StrictMode>
   );
-}
-
-// 👇 REGISTRO DO SERVICE WORKER
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/service-worker.js')
-      .then(reg => {
-        console.log('✅ Service Worker registrado:', reg);
-      })
-      .catch(err => {
-        console.log('❌ Falha ao registrar o Service Worker:', err);
-      });
-  });
 }
