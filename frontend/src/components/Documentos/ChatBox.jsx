@@ -9,8 +9,6 @@ import { ModalReprovacao } from './ModalReprovacao';
 
 import { MdDateRange, MdAccessTime, MdPerson } from 'react-icons/md';
 
-
-
 const ChatBox = ({
   doc,
   userData,
@@ -23,7 +21,6 @@ const ChatBox = ({
   modalReprovarAberto,
   autoScroll = false,
 }) => {
-
   const [mensagemEnviada, setMensagemEnviada] = useState(false);
   const [comentario, setComentario] = useState('');
   const fileInputRef = useRef(null);
@@ -31,24 +28,21 @@ const ChatBox = ({
 
   const itensChat = [...(doc.arquivos || []), ...(doc.comentarios_rel || [])]
     .map((item) => {
-
       if (item.nome_arquivo) {
-  const extensao = item.nome_arquivo.split('.').pop().toLowerCase();
-  const ehImagem = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extensao);
+        const extensao = item.nome_arquivo.split('.').pop().toLowerCase();
+        const ehImagem = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extensao);
 
-  return {
-    id: `arq-${item.id}`,
-    tipo: 'arquivo',
-    nome: item.nome_arquivo,
-    criado_em: item.criado_em,
-    usuario: item.usuario?.username || 'Usuário desconhecido',
-    abrir: () => abrirArquivo(item.id),
-    ehImagem,
-    idArquivo: item.id, // necessário pra carregar blob
-  };
-}
-      
-      else {
+        return {
+          id: `arq-${item.id}`,
+          tipo: 'arquivo',
+          nome: item.nome_arquivo,
+          criado_em: item.criado_em,
+          usuario: item.usuario?.username || 'Usuário desconhecido',
+          abrir: () => abrirArquivo(item.id),
+          ehImagem,
+          idArquivo: item.id, // necessário pra carregar blob
+        };
+      } else {
         return {
           id: `com-${item.id}`,
           tipo: 'comentario',
@@ -107,47 +101,46 @@ const ChatBox = ({
   };
 
   const enviarComentario = async () => {
-  const texto = comentario.trim();
-  if (!texto) return;
-  try {
-    const res = await fetch(`${api}/documentos/${doc.id}/comentario`, {
-      method: 'POST',
-      headers: { ...headers, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ texto }),
-    });
-
-    if (!res.ok) {
-      toast.error('Erro ao enviar comentário');
-      return;
-    }
-
-    toast.success('Comentário enviado');
-    setComentario('');
-
-    // Marca como visualizado imediatamente após envio
-    await fetch(`${api}/documentos/${doc.id}/marcar-visualizados`, {
-      method: 'POST',
-      headers,
-    });
-
-    // Atualiza os documentos e o selecionado
+    const texto = comentario.trim();
+    if (!texto) return;
     try {
-      const novosDocs = await fetchDocumentos();
-      const docAtualizado = novosDocs.find((d) => d.id === doc.id);
-      if (docAtualizado) {
-        setDocumentoSelecionado(docAtualizado);
+      const res = await fetch(`${api}/documentos/${doc.id}/comentario`, {
+        method: 'POST',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ texto }),
+      });
+
+      if (!res.ok) {
+        toast.error('Erro ao enviar comentário');
+        return;
       }
 
-      setMensagemEnviada(true);
-    } catch (err) {
-      console.error('Erro ao atualizar documento após comentário:', err);
-    }
-  } catch (err) {
-    toast.error('Erro ao enviar comentário');
-    console.error(err);
-  }
-};
+      toast.success('Comentário enviado');
+      setComentario('');
 
+      // Marca como visualizado imediatamente após envio
+      await fetch(`${api}/documentos/${doc.id}/marcar-visualizados`, {
+        method: 'POST',
+        headers,
+      });
+
+      // Atualiza os documentos e o selecionado
+      try {
+        const novosDocs = await fetchDocumentos();
+        const docAtualizado = novosDocs.find((d) => d.id === doc.id);
+        if (docAtualizado) {
+          setDocumentoSelecionado(docAtualizado);
+        }
+
+        setMensagemEnviada(true);
+      } catch (err) {
+        console.error('Erro ao atualizar documento após comentário:', err);
+      }
+    } catch (err) {
+      toast.error('Erro ao enviar comentário');
+      console.error(err);
+    }
+  };
 
   const aprovar = async () => {
     if (
@@ -327,51 +320,45 @@ const ChatBox = ({
     }
   }, [autoScroll, doc?.comentarios_rel?.length, doc?.arquivos?.length]);
 
-useEffect(() => {
-  if (!doc?.comentarios_rel || !userData?.id) return;
+  useEffect(() => {
+    if (!doc?.comentarios_rel || !userData?.id) return;
 
-  const timer = setTimeout(() => {
-    const comentariosNaoLidos = doc.comentarios_rel.some(
-      (coment) =>
-        coment.usuario_id !== userData.id &&
-        !(coment.visualizado_por || []).includes(userData.id)
-    );
+    const timer = setTimeout(() => {
+      const comentariosNaoLidos = doc.comentarios_rel.some(
+        (coment) =>
+          coment.usuario_id !== userData.id && !(coment.visualizado_por || []).includes(userData.id)
+      );
 
-    if (!comentariosNaoLidos) return;
+      if (!comentariosNaoLidos) return;
 
-    fetch(`${api}/documentos/${doc.id}/marcar-visualizados`, {
-      method: 'POST',
-      headers,
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error('Erro ao marcar como lido');
-        const comentariosAtualizados = doc.comentarios_rel.map((c) =>
-          c.usuario_id !== userData.id &&
-          !(c.visualizado_por || []).includes(userData.id)
-            ? { ...c, visualizado_por: [...(c.visualizado_por || []), userData.id] }
-            : c
-        );
-
-        setDocumentoSelecionado({ ...doc, comentarios_rel: comentariosAtualizados });
+      fetch(`${api}/documentos/${doc.id}/marcar-visualizados`, {
+        method: 'POST',
+        headers,
       })
-      .catch((err) => {
-        console.error('Erro ao marcar comentários como visualizados:', err);
-      });
-  }, 3000); // 3000 milissegundos = 3 segundos
+        .then((res) => {
+          if (!res.ok) throw new Error('Erro ao marcar como lido');
+          const comentariosAtualizados = doc.comentarios_rel.map((c) =>
+            c.usuario_id !== userData.id && !(c.visualizado_por || []).includes(userData.id)
+              ? { ...c, visualizado_por: [...(c.visualizado_por || []), userData.id] }
+              : c
+          );
 
-  return () => clearTimeout(timer); // cancela se o efeito reiniciar
-}, [doc?.id, doc?.comentarios_rel]);
+          setDocumentoSelecionado({ ...doc, comentarios_rel: comentariosAtualizados });
+        })
+        .catch((err) => {
+          console.error('Erro ao marcar comentários como visualizados:', err);
+        });
+    }, 3000); // 3000 milissegundos = 3 segundos
 
+    return () => clearTimeout(timer); // cancela se o efeito reiniciar
+  }, [doc?.id, doc?.comentarios_rel]);
 
-
-
-useEffect(() => {
-  if (mensagemEnviada && chatRef.current) {
-    chatRef.current.scrollTop = chatRef.current.scrollHeight;
-    setMensagemEnviada(false); // reseta a flag
-  }
-}, [mensagemEnviada]);
-
+  useEffect(() => {
+    if (mensagemEnviada && chatRef.current) {
+      chatRef.current.scrollTop = chatRef.current.scrollHeight;
+      setMensagemEnviada(false); // reseta a flag
+    }
+  }, [mensagemEnviada]);
 
   return (
     <>
@@ -409,7 +396,6 @@ useEffect(() => {
             <Stepper status={doc.status} />
           </div>
         </div>
-
 
         {/* Ações */}
         {/* Ações */}
@@ -502,6 +488,8 @@ useEffect(() => {
                   const file = e.target.files[0];
                   if (file) {
                     uploadVersao(file);
+                    // Resetar o valor do input após o upload
+                    e.target.value = ''; // <- isto resolve o problema
                   }
                 }}
               />
