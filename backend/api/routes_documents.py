@@ -199,6 +199,9 @@ async def listar_aprovados(
     return documentos
 
 
+
+
+
 @router.get("/todos", response_model=List[DocumentSchema])
 async def listar_todos_documentos(
     usuario: Optional[str] = Query(None),
@@ -210,12 +213,12 @@ async def listar_todos_documentos(
     cliente: Optional[str] = Query(None),
     data_malote_inicial: Optional[str] = Query(None),
     data_malote_final: Optional[str] = Query(None),
+    manifesto_baixado: Optional[str] = Query(None),  # Alterei para snake_case aqui
 
     skip: int = 0,
-    limit: int = Query(500, ge=1, le=500),  # Começa com 50 por padrão, pode pedir mais no frontend
+    limit: int = Query(500, ge=1, le=500),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
-
 ):
     
     query = db.query(Document).options(
@@ -224,34 +227,27 @@ async def listar_todos_documentos(
         selectinload(Document.comentarios_rel).selectinload(DocumentComment.usuario),
     )
 
-    print(f"🔎 Limit recebido: {limit}")
+    print("Filtro manifesto_baixado recebido:", manifesto_baixado)
 
-
-    # Filtro por usuário (nome ou username)
     if usuario:
         usuario_lower = usuario.lower()
         query = query.join(Document.usuario).filter(
             or_(
                 func.lower(User.username).like(f"%{usuario_lower}%"),
-                
             )
         )
 
-    # Filtro status exato
     if status:
         query = query.filter(Document.status == status)
 
-    # Filtro por CTE (usando LIKE para aproximação)
     if cte:
         cte_like = f"%{cte.lower()}%"
         query = query.filter(func.lower(Document.placa).like(cte_like))
 
-    # Filtro por nome do documento (aproximação)
     if nome:
         nome_like = f"%{nome.lower()}%"
         query = query.filter(func.lower(Document.nome).like(nome_like))
 
-    # Filtro por data
     if data_inicial:
         try:
             dt_inicio = datetime.fromisoformat(data_inicial)
@@ -266,13 +262,10 @@ async def listar_todos_documentos(
         except Exception:
             pass
 
-
-    # Filtro por cliente (aproximação)
     if cliente:
         cli_like = f"%{cliente.lower()}%"
         query = query.filter(func.lower(Document.cliente).like(cli_like))
 
-    # Filtro por data_do_malote
     if data_malote_inicial:
         try:
             dm_inicio = datetime.fromisoformat(data_malote_inicial).date()
@@ -287,16 +280,130 @@ async def listar_todos_documentos(
         except Exception:
             pass
 
+    if manifesto_baixado is not None and manifesto_baixado != "":
+        manifesto_lower = manifesto_baixado.lower()
+        if manifesto_lower == "true":
+            manifesto_bool = True
+        elif manifesto_lower == "false":
+            manifesto_bool = False
+        else:
+            manifesto_bool = None
 
-    # Ordenar do mais recente para o mais antigo
+        if manifesto_bool is not None:
+            query = query.filter(Document.manifesto_baixado == manifesto_bool)
+            print(f"Aplicando filtro manifesto_baixado == {manifesto_bool}")
+
     query = query.order_by(Document.atualizado_em.desc())
-
-
-    # Paginação
     query = query.offset(skip).limit(limit)
 
     documentos = query.all()
     return documentos
+
+
+
+# @router.get("/todos", response_model=List[DocumentSchema])
+# async def listar_todos_documentos(
+#     usuario: Optional[str] = Query(None),
+#     status: Optional[str] = Query(None),
+#     cte: Optional[str] = Query(None),
+#     nome: Optional[str] = Query(None),
+#     data_inicial: Optional[str] = Query(None),
+#     data_final: Optional[str] = Query(None),
+#     cliente: Optional[str] = Query(None),
+#     data_malote_inicial: Optional[str] = Query(None),
+#     data_malote_final: Optional[str] = Query(None),
+#     manifesto: Optional[bool] = Query(None),
+
+#     skip: int = 0,
+#     limit: int = Query(500, ge=1, le=500),  # Começa com 50 por padrão, pode pedir mais no frontend
+#     db: Session = Depends(get_db),
+#     user: User = Depends(get_current_user),
+
+# ):
+    
+#     query = db.query(Document).options(
+#         selectinload(Document.usuario),
+#         selectinload(Document.arquivos).selectinload(DocumentFile.usuario),
+#         selectinload(Document.comentarios_rel).selectinload(DocumentComment.usuario),
+#     )
+
+#     print(f"🔎 Limit recebido: {limit}")
+
+
+#     # Filtro por usuário (nome ou username)
+#     if usuario:
+#         usuario_lower = usuario.lower()
+#         query = query.join(Document.usuario).filter(
+#             or_(
+#                 func.lower(User.username).like(f"%{usuario_lower}%"),
+                
+#             )
+#         )
+
+#     # Filtro status exato
+#     if status:
+#         query = query.filter(Document.status == status)
+
+#     # Filtro por CTE (usando LIKE para aproximação)
+#     if cte:
+#         cte_like = f"%{cte.lower()}%"
+#         query = query.filter(func.lower(Document.placa).like(cte_like))
+
+#     # Filtro por nome do documento (aproximação)
+#     if nome:
+#         nome_like = f"%{nome.lower()}%"
+#         query = query.filter(func.lower(Document.nome).like(nome_like))
+
+#     # Filtro por data
+#     if data_inicial:
+#         try:
+#             dt_inicio = datetime.fromisoformat(data_inicial)
+#             query = query.filter(Document.criado_em >= dt_inicio)
+#         except Exception:
+#             pass
+
+#     if data_final:
+#         try:
+#             dt_fim = datetime.fromisoformat(data_final) + timedelta(days=1)
+#             query = query.filter(Document.criado_em < dt_fim)
+#         except Exception:
+#             pass
+
+
+#     # Filtro por cliente (aproximação)
+#     if cliente:
+#         cli_like = f"%{cliente.lower()}%"
+#         query = query.filter(func.lower(Document.cliente).like(cli_like))
+
+#     # Filtro por data_do_malote
+#     if data_malote_inicial:
+#         try:
+#             dm_inicio = datetime.fromisoformat(data_malote_inicial).date()
+#             query = query.filter(Document.data_do_malote >= dm_inicio)
+#         except Exception:
+#             pass
+
+#     if data_malote_final:
+#         try:
+#             dm_fim = datetime.fromisoformat(data_malote_final).date()
+#             query = query.filter(Document.data_do_malote <= dm_fim)
+#         except Exception:
+#             pass
+
+#     if manifesto is not None:
+#         query = query.filter(Document.manifesto_baixado == manifesto)
+
+
+
+#     # Ordenar do mais recente para o mais antigo
+#     query = query.order_by(Document.atualizado_em.desc())
+
+
+#     # Paginação
+#     query = query.offset(skip).limit(limit)
+
+#     documentos = query.all()
+#     return documentos
 
 
 @router.post("/{document_id}/marcar-visualizados")
@@ -509,6 +616,31 @@ async def baixar_documento(
     asyncio.create_task(notificar_atualizacao())
 
     return {"msg": "Documento marcado como baixado"}
+
+
+@router.post("/{doc_id}/manifesto-baixado")
+async def marcar_manifesto_baixado(
+    doc_id: int,
+    db: Session = Depends(get_db),
+    usuario: User = Depends(get_current_user),
+):
+    # Apenas usuários do setor 'expedicao' podem marcar como baixado
+    if usuario.setor != "expedicao":
+        raise HTTPException(status_code=403, detail="Não autorizado")
+
+    documento = db.query(Document).filter(Document.id == doc_id).first()
+    if not documento:
+        raise HTTPException(status_code=404, detail="Documento não encontrado")
+
+    # Atualiza o campo booleano
+    documento.manifesto_baixado = True
+    documento.atualizado_em = datetime.now(timezone.utc)
+
+    db.commit()
+
+    asyncio.create_task(notificar_atualizacao())
+
+    return {"msg": "Manifesto marcado como baixado com sucesso"}
 
 
 # ----- 📄 Visualizar Arquivo -----

@@ -4,6 +4,7 @@ import { MdCheckCircle, MdCancel, MdSend, MdAttachMoney } from 'react-icons/md';
 import { MoreVertical, Trash2 } from 'lucide-react';
 import { useLogin } from '../../Contexts/LoginContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import { FaDownload } from 'react-icons/fa';
 
 const DocItem = ({ doc, onClick, isActive }) => {
   const { userData } = useLogin();
@@ -162,35 +163,40 @@ const DocItem = ({ doc, onClick, isActive }) => {
       >
         {/* Cabeçalho: Nome + CTe + Status */}
         <div className="flex flex-wrap sm:flex-nowrap items-center w-full gap-2">
-          <div className="flex justify-between w-full flex-wrap items-center gap-2 max-w-full">
-            <div
-              className="text-sm text-gray-600 font-semibold truncate max-w-[40ch]"
-              title={`${doc.nome} ${
-                doc.data_do_malote ? `+ Malote ${formatDateBr(doc.data_do_malote)}` : ''
-              } CTe ${doc.placa}`}
-            >
-              {isDesktop
-                ? doc.nome.length > 40
-                  ? doc.nome.slice(0, 40) + '...'
-                  : doc.nome
-                : doc.nome}
+<div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-x-4 gap-y-1 w-full items-center">
+  {/* Coluna 1: Nome + Malote + CTe */}
+  <div className="text-sm text-gray-600 font-semibold truncate max-w-[65ch]">
+    {isDesktop
+      ? doc.nome.length > 60
+        ? doc.nome.slice(0, 60) + '...'
+        : doc.nome
+      : doc.nome}
 
-              {doc.data_do_malote && (
-                <span className="text-gray-600 font-semibold">
-                  {' '}
-                  + Malote {formatDateBr(doc.data_do_malote)}
-                </span>
-              )}
-              <span className="text-gray-600 font-semibold"> | CTe {doc.placa}</span>
-            </div>
+    {doc.data_do_malote && (
+      <span className="text-gray-600 font-semibold">
+        {' '}+ Malote {formatDateBr(doc.data_do_malote)}
+      </span>
+    )}
+    <span className="text-gray-600 font-semibold"> | CTe {doc.placa}</span>
+  </div>
 
-            <div
-              className={`text-[11px] font-medium whitespace-nowrap inline-flex items-center justify-center gap-1 px-2 py-0.5 rounded-full shadow-sm ${badge.className}`}
-            >
-              {badge.icon}
-              {badge.label}
-            </div>
-          </div>
+  {/* Coluna 2: Status + ícone */}
+  <div className="flex items-center gap-2 justify-start md:justify-end">
+    <div
+      className={`text-[11px] font-medium whitespace-nowrap inline-flex items-center justify-center gap-1 px-2 py-0.5 rounded-full shadow-sm ${badge.className}`}
+    >
+      {badge.icon}
+      {badge.label}
+    </div>
+
+    {doc.manifesto_baixado ? (
+      <FaDownload size={12} className="text-green-500" title="Manifesto baixado" />
+    ) : (
+      <FaDownload size={12} className="text-yellow-500" title="Manifesto pendente" />
+    )}
+  </div>
+</div>
+
         </div>
 
         {/* Última mensagem + horário */}

@@ -50,110 +50,108 @@ const Documentos = () => {
     dataMaloteFinal: '',
     dataInicial: '',
     dataFinal: '',
+    manifestoBaixado: '',
   });
 
   const [modalReprovarAberto, setModalReprovarAberto] = useState(null);
   const [motivoReprovacao, setMotivoReprovacao] = useState({});
-const verificarNotificacoes = (docList) => {
-  const agora = new Date();
+  const verificarNotificacoes = (docList) => {
+    const agora = new Date();
 
-  docList.forEach((doc) => {
-    const ignorarNotificacoes =
-      doc.usuario_id === userData.id || (userData.setor === 'outros' && doc.usuario_id !== userData.id);
+    docList.forEach((doc) => {
+      const ignorarNotificacoes =
+        doc.usuario_id === userData.id ||
+        (userData.setor === 'outros' && doc.usuario_id !== userData.id);
 
-    // 🔔 Notificar novos ARQUIVOS (se permitido)
-    if (!ignorarNotificacoes) {
-      const novosArquivos = (doc.arquivos || []).filter((arquivo) => {
-        const criadoEm = new Date(arquivo.criado_em);
-        const segundos = (agora - criadoEm) / 1000;
-        return (
-          arquivo.usuario?.id !== userData.id &&
-          !arquivosNotificados.current.has(arquivo.id) &&
-          segundos < 100
-        );
-      });
-
-      for (const arquivo of novosArquivos) {
-        console.log('🔔 Notificando arquivo:', arquivo.id, arquivo.nome_arquivo);
-        if (Notification.permission === 'granted') {
-          const notification = new Notification(`📎 Novo arquivo enviado`, {
-            body: arquivo.nome_arquivo || 'Arquivo novo enviado',
-            icon: '/icone-mensagem.png',
-            tag: `arquivo-${arquivo.id}`,
-          });
-          notification.onclick = () => {
-            localStorage.setItem('documentoParaAbrir', doc.id);
-            window.focus();
-          };
-        }
-        arquivosNotificados.current.add(arquivo.id);
-      }
-
-      // 🔔 Notificar novos COMENTÁRIOS
-      const novosComentarios = (doc.comentarios_rel || []).filter((coment) => {
-        const criadoEm = new Date(coment.criado_em);
-        const segundos = (agora - criadoEm) / 1000;
-        return (
-          coment.usuario_id !== userData.id &&
-          !comentariosNotificados.current.has(coment.id) &&
-          segundos < 100
-        );
-      });
-
-      for (const coment of novosComentarios) {
-        console.log('🔔 Notificando comentário:', coment.id, coment.texto);
-        if (Notification.permission === 'granted') {
-          const notification = new Notification(
-            `📨 Nova mensagem de ${coment.usuario?.username || 'Usuário'}`,
-            {
-              body: coment.texto || 'Comentário novo.',
-              icon: '/icone-mensagem.png',
-              tag: `comentario-${coment.id}`,
-            }
+      // 🔔 Notificar novos ARQUIVOS (se permitido)
+      if (!ignorarNotificacoes) {
+        const novosArquivos = (doc.arquivos || []).filter((arquivo) => {
+          const criadoEm = new Date(arquivo.criado_em);
+          const segundos = (agora - criadoEm) / 1000;
+          return (
+            arquivo.usuario?.id !== userData.id &&
+            !arquivosNotificados.current.has(arquivo.id) &&
+            segundos < 100
           );
+        });
 
-          notification.onclick = () => {
-            localStorage.setItem('documentoParaAbrir', doc.id);
-            window.focus();
-          };
+        for (const arquivo of novosArquivos) {
+          console.log('🔔 Notificando arquivo:', arquivo.id, arquivo.nome_arquivo);
+          if (Notification.permission === 'granted') {
+            const notification = new Notification(`📎 Novo arquivo enviado`, {
+              body: arquivo.nome_arquivo || 'Arquivo novo enviado',
+              icon: '/icone-mensagem.png',
+              tag: `arquivo-${arquivo.id}`,
+            });
+            notification.onclick = () => {
+              localStorage.setItem('documentoParaAbrir', doc.id);
+              window.focus();
+            };
+          }
+          arquivosNotificados.current.add(arquivo.id);
         }
 
-        comentariosNotificados.current.add(coment.id);
-      }
+        // 🔔 Notificar novos COMENTÁRIOS
+        const novosComentarios = (doc.comentarios_rel || []).filter((coment) => {
+          const criadoEm = new Date(coment.criado_em);
+          const segundos = (agora - criadoEm) / 1000;
+          return (
+            coment.usuario_id !== userData.id &&
+            !comentariosNotificados.current.has(coment.id) &&
+            segundos < 100
+          );
+        });
 
-      // 🔔 Notificar NOVOS DOCUMENTOS
-      const criadoEm = new Date(doc.criado_em);
-      const segundos = (agora - criadoEm) / 1000;
+        for (const coment of novosComentarios) {
+          console.log('🔔 Notificando comentário:', coment.id, coment.texto);
+          if (Notification.permission === 'granted') {
+            const notification = new Notification(
+              `📨 Nova mensagem de ${coment.usuario?.username || 'Usuário'}`,
+              {
+                body: coment.texto || 'Comentário novo.',
+                icon: '/icone-mensagem.png',
+                tag: `comentario-${coment.id}`,
+              }
+            );
 
-      if (
-        !documentosNotificados.current.has(doc.id) &&
-        segundos < 100
-      ) {
-        documentosNotificados.current.add(doc.id);
+            notification.onclick = () => {
+              localStorage.setItem('documentoParaAbrir', doc.id);
+              window.focus();
+            };
+          }
 
-        if (Notification.permission === 'granted') {
-          const notification = new Notification(`📄 Novo documento: ${doc.nome}`, {
-            body: `Enviado por ${doc.usuario?.username || 'usuário'}`,
-            icon: '/icone-mensagem.png',
-            tag: `documento-${doc.id}`,
-          });
+          comentariosNotificados.current.add(coment.id);
+        }
 
-          notification.onclick = () => {
-            localStorage.setItem('documentoParaAbrir', doc.id);
-            window.focus();
-          };
+        // 🔔 Notificar NOVOS DOCUMENTOS
+        const criadoEm = new Date(doc.criado_em);
+        const segundos = (agora - criadoEm) / 1000;
+
+        if (!documentosNotificados.current.has(doc.id) && segundos < 100) {
+          documentosNotificados.current.add(doc.id);
+
+          if (Notification.permission === 'granted') {
+            const notification = new Notification(`📄 Novo documento: ${doc.nome}`, {
+              body: `Enviado por ${doc.usuario?.username || 'usuário'}`,
+              icon: '/icone-mensagem.png',
+              tag: `documento-${doc.id}`,
+            });
+
+            notification.onclick = () => {
+              localStorage.setItem('documentoParaAbrir', doc.id);
+              window.focus();
+            };
+          }
         }
       }
-    }
 
-    // ✅ Sempre atualiza o chat, independentemente de quem criou
-    if (documentoSelecionadoRef.current?.id === doc.id) {
-      setDocumentoSelecionado(doc);
-      setAutoScrollChat(true);
-    }
-  });
-};
-
+      // ✅ Sempre atualiza o chat, independentemente de quem criou
+      if (documentoSelecionadoRef.current?.id === doc.id) {
+        setDocumentoSelecionado(doc);
+        setAutoScrollChat(true);
+      }
+    });
+  };
 
   const headers = {
     Authorization: `Bearer ${localStorage.getItem('token')}`,
@@ -192,6 +190,10 @@ const verificarNotificacoes = (docList) => {
     }
     if (filtros.dataMaloteFinal) {
       params.append('data_malote_final', filtros.dataMaloteFinal);
+    }
+
+    if (filtros.manifestoBaixado !== '') {
+      params.append('manifesto_baixado', filtros.manifestoBaixado); // 'true' ou 'false'
     }
 
     if (filtros.dataInicial) params.append('data_inicial', filtros.dataInicial);
@@ -394,7 +396,9 @@ const verificarNotificacoes = (docList) => {
       {/* Sidebar / Lista */}
       {(!mobileView || modoMobile === 'lista') && (
         <div
-          className={`bg-white border-r border-gray-200 flex flex-col ${mobileView ? 'w-full' : 'w-[510px]'}`}
+          className={`bg-white border-r border-gray-200 flex flex-col ${
+            mobileView ? 'w-full' : 'w-[710px]'
+          }`}
         >
           {/* Topo fixo: Upload + Filtros */}
           <div className="sticky top-0 z-10 bg-white border-b space-y-4">
@@ -500,17 +504,14 @@ const verificarNotificacoes = (docList) => {
             />
 
             {documentosFiltrados.length === 0 && !manualLoading && (
-  <div className="text-center text-gray-400 py-6">
-    Nenhum comprovante encontrado.
-  </div>
-)}
+              <div className="text-center text-gray-400 py-6">Nenhum comprovante encontrado.</div>
+            )}
 
-{documentosFiltrados.length > 0 && !hasMore && (
-  <div className="text-center text-gray-400 py-4">
-    todos os documentos já foram carregados.
-  </div>
-)}
-
+            {documentosFiltrados.length > 0 && !hasMore && (
+              <div className="text-center text-gray-400 py-4">
+                todos os documentos já foram carregados.
+              </div>
+            )}
 
             {hasMore && (
               <div className="p-4 text-center">
@@ -532,7 +533,6 @@ const verificarNotificacoes = (docList) => {
                 </button>
               </div>
             )}
-
           </div>
         </div>
       )}

@@ -99,7 +99,11 @@ class Document(Base):
     data_do_malote = Column(Date, nullable=False)
     criado_em = Column(DateTime, default=func.now())
     atualizado_em = Column(DateTime, nullable=False, default=func.now(), onupdate=func.now())
-  # NOVO CAMPO
+  
+  
+    manifesto_baixado = Column(Boolean, default=False)  
+
+
     status = Column(String, default="enviado")
 
     usuario = relationship("User")
@@ -108,19 +112,6 @@ class Document(Base):
 
 
 
-# class DocumentFile(Base):
-#     __tablename__ = "document_files"
-
-#     id = Column(Integer, primary_key=True, index=True)
-#     document_id = Column(Integer, ForeignKey("documents.id"))
-#     nome_arquivo = Column(String, nullable=False)
-#     caminho_arquivo = Column(String, nullable=False)
-#     criado_em = Column(DateTime, default=func.now())
-
-#     usuario_id = Column(Integer, ForeignKey("users.id"))   # Novo campo
-#     usuario = relationship("User")                         # Relacionamento com usuário
-
-#     document = relationship("Document", back_populates="arquivos")
 
 class DocumentFile(Base):
     __tablename__ = "document_files"

@@ -67,6 +67,35 @@ const ChatBox = ({
     }
   };
 
+  const baixarManifesto = async () => {
+    if (userData.setor !== 'expedicao' || doc.manifesto_baixado) {
+      toast.error('Ação não permitida.');
+      return;
+    }
+
+    try {
+      const res = await fetch(`${api}/documentos/${doc.id}/manifesto-baixado`, {
+        method: 'POST',
+        headers,
+      });
+
+      if (!res.ok) {
+        toast.error('Erro ao marcar manifesto como baixado');
+        return;
+      }
+
+      await enviarComentarioAutom('baixou o manifesto.');
+      toast.success('Manifesto marcado como baixado');
+
+      const novosDocs = await fetchDocumentos();
+      const atualizado = novosDocs.find((d) => d.id === doc.id);
+      if (atualizado) setDocumentoSelecionado(atualizado);
+    } catch (err) {
+      toast.error('Erro ao marcar manifesto como baixado');
+      console.error(err);
+    }
+  };
+
   const uploadVersao = async (novoArquivo) => {
     if (!novoArquivo) {
       toast.error('Selecione um arquivo');
@@ -307,7 +336,7 @@ const ChatBox = ({
     }
   };
 
-  const podeComentar = userData.setor === 'ocorrencia' || userData.id === doc.usuario_id;
+  const podeComentar = userData.setor === 'ocorrencia' || userData.setor === 'expedicao' || userData.id === doc.usuario_id;
 
   function formatDateBr(dataStr) {
     const [year, month, day] = dataStr.split('-');
@@ -392,7 +421,19 @@ const ChatBox = ({
             </div>
           )}
 
-          <div className="pt-2">
+          <div className="pt-2 space-y-2">
+            <div className="pb-2">
+              {doc.manifesto_baixado ? (
+                <span className="inline-block bg-green-200/60 text-green-800 text-[12px] font-semibold px-2 py-[2px] rounded-md tracking-wide">
+                  ✔ Manifesto baixado
+                </span>
+              ) : (
+                <span className="inline-block bg-yellow-200/60 text-yellow-900 text-[12px] font-semibold px-2 py-[2px] rounded-md tracking-wide">
+                  ⏳ Manifesto não baixado
+                </span>
+              )}
+            </div>
+
             <Stepper status={doc.status} />
           </div>
         </div>
@@ -439,6 +480,16 @@ const ChatBox = ({
             >
               <FaExternalLinkAlt size={14} />
               Liberar Saldo
+            </button>
+          )}
+
+          {userData.setor === 'expedicao' && !doc.manifesto_baixado && (
+            <button
+              onClick={baixarManifesto}
+              className="cursor-pointer flex items-center gap-1 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 border border-yellow-300 px-3 py-1.5 rounded-md shadow-sm transition"
+            >
+              <FaExternalLinkAlt size={14} />
+              Baixar Manifesto
             </button>
           )}
         </div>

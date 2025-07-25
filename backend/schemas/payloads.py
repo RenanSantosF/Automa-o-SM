@@ -131,6 +131,7 @@ class DocumentSchema(BaseModel):
     criado_em: datetime
     atualizado_em: Optional[datetime] = None  #
     status: str
+    manifesto_baixado: Optional[bool] = False
     usuario: UserSchema  # <-- Adicione isso
     arquivos: List[DocumentFileSchema] = []
     comentarios_rel: List[DocumentCommentSchema] = []

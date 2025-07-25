@@ -6,20 +6,21 @@ import Input from '../Input/Input';
 const Filtros = ({ filtros, setFiltros }) => {
   const [mostrar, setMostrar] = useState(false);
 
-const limpar = () => {
-  setFiltros({
-    usuario: '',
-    status: '',
-    cte: '',
-    nome: '',
-    cliente: '',
-    dataMaloteInicial: '',
-    dataMaloteFinal: '',
-    dataInicial: '',
-    dataFinal: '',
-  });
-};
-
+  const limpar = () => {
+    setFiltros({
+      usuario: '',
+      status: '',
+      cte: '',
+      nome: '',
+      cliente: '',
+      dataMaloteInicial: '',
+      dataMaloteFinal: '',
+      dataInicial: '',
+      dataFinal: '',
+      manifestoBaixado: '',
+    });
+    setMostrar(false); // Fecha os filtros
+  };
 
   return (
     <div className=" pl-4 mb-3 mr-4  rounded-md  ">
@@ -102,25 +103,39 @@ const limpar = () => {
                   onChange={(e) => setFiltros((f) => ({ ...f, dataFinal: e.target.value }))}
                 />
               </div>
+<div className="flex flex-wrap w-full gap-3">
+  <select
+    className="flex-1 min-w-[200px] border cursor-pointer bg-gray-100 text-black border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+    value={filtros.status}
+    onChange={(e) => setFiltros((f) => ({ ...f, status: e.target.value }))}
+  >
+    <option value="">Todos os status</option>
+    <option value="enviado">Enviado</option>
+    <option value="aprovado">Aprovado</option>
+    <option value="reprovado">Reprovado</option>
+    <option value="saldo_liberado">Saldo Liberado</option>
+  </select>
 
-              <select
-                className="border cursor-pointer bg-gray-100 text-black border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-                value={filtros.status}
-                onChange={(e) => setFiltros((f) => ({ ...f, status: e.target.value }))}
-              >
-                <option value="">Todos os status</option>
-                <option value="enviado">Enviado</option>
-                <option value="aprovado">Aprovado</option>
-                <option value="reprovado">Reprovado</option>
-                <option value="saldo_liberado">Saldo Liberado</option>
-              </select>
+  <select
+    className="flex-1 min-w-[200px] border cursor-pointer bg-gray-100 text-black border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+    value={filtros.manifestoBaixado}
+    onChange={(e) =>
+      setFiltros((f) => ({ ...f, manifestoBaixado: e.target.value.toLowerCase() }))
+    }
+  >
+    <option value="">Todos os manifestos</option>
+    <option value="true">Manifesto Baixado</option>
+    <option value="false">Manifesto Não Baixado</option>
+  </select>
 
-              <button
-                onClick={limpar}
-                className="bg-red-600 cursor-pointer hover:bg-red-700 text-white px-4 py-2 rounded text-sm mt-2"
-              >
-                Limpar Filtros
-              </button>
+  <button
+    onClick={limpar}
+    className="min-w-[200px] flex-1 bg-red-600 cursor-pointer hover:bg-red-700 text-white px-4 py-2 rounded text-sm"
+  >
+    Limpar
+  </button>
+</div>
+
             </div>
           </motion.div>
         )}

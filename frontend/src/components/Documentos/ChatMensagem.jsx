@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { FaExternalLinkAlt } from 'react-icons/fa';
 import { formatDate } from './utils';
@@ -9,18 +10,28 @@ const api = import.meta.env.VITE_API_URL;
 const ChatMensagem = ({ item, currentUser }) => {
   const isMe = item.usuario === currentUser;
   const [imagemUrl, setImagemUrl] = useState(null);
+  const [imagemCarregada, setImagemCarregada] = useState(false);
+  const [imagemErro, setImagemErro] = useState(false);
 
   useEffect(() => {
+    let url = null;
+
     if (item.tipo === 'arquivo' && item.ehImagem) {
       fetch(`${api}/documentos/${item.idArquivo}/visualizar`, {
         headers: item.headers,
       })
         .then((res) => res.blob())
         .then((blob) => {
-          const url = URL.createObjectURL(blob);
+          url = URL.createObjectURL(blob);
           setImagemUrl(url);
         })
-        .catch(() => setImagemUrl(null));
+        .catch(() => {
+          setImagemErro(true);
+        });
+
+      return () => {
+        if (url) URL.revokeObjectURL(url);
+      };
     }
   }, [item]);
 
@@ -33,19 +44,33 @@ const ChatMensagem = ({ item, currentUser }) => {
         style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
       >
         {item.tipo === 'arquivo' ? (
-          item.ehImagem && imagemUrl ? (
-            <Zoom>
-              <img
-                src={imagemUrl}
-                alt={item.nome}
-                className="rounded cursor-zoom-in"
-                style={{
-                  maxWidth: '100%',
-                  maxHeight: '280px',
-                  objectFit: 'contain',
-                }}
-              />
-            </Zoom>
+          item.ehImagem && imagemUrl && !imagemErro ? (
+            <>
+              {!imagemCarregada && (
+                <div className="w-40 h-40 flex items-center justify-center bg-gray-100 text-sm text-gray-500 animate-pulse rounded">
+                  Carregando imagem...
+                </div>
+              )}
+              <div style={{ display: imagemCarregada ? 'block' : 'none' }}>
+                <Zoom>
+                  <img
+                    src={imagemUrl}
+                    alt={item.nome}
+                    onLoad={() => setImagemCarregada(true)}
+                    onError={() => {
+                      setImagemErro(true);
+                      setImagemCarregada(true);
+                    }}
+                    className="rounded cursor-zoom-in"
+                    style={{
+                      maxWidth: '100%',
+                      maxHeight: '280px',
+                      objectFit: 'contain',
+                    }}
+                  />
+                </Zoom>
+              </div>
+            </>
           ) : (
             <button
               onClick={item.abrir}
