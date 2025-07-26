@@ -102,11 +102,15 @@ export default function UsersPanel() {
     }
   }
 
-  const usuariosFiltrados = usuarios.filter(
-    (u) =>
-      u.username.toLowerCase().includes(filtro.toLowerCase()) ||
-      u.email.toLowerCase().includes(filtro.toLowerCase())
+const usuariosFiltrados = usuarios.filter((u) => {
+  const username = u.username || '';
+  const email = u.email || '';
+  return (
+    username.toLowerCase().includes(filtro.toLowerCase()) ||
+    email.toLowerCase().includes(filtro.toLowerCase())
   );
+});
+
 
   return (
     <motion.div
