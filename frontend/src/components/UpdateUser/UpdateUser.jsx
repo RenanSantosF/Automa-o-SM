@@ -200,11 +200,23 @@ export default function UpdateUser() {
           </span>
         </div>
 
+
         <div className="flex flex-col">
+  <label className="text-sm text-gray-300 mb-1 flex gap-1">
+    <FiServer /> Setor
+  </label>
+  <div className="bg-[#2b2b2b] border border-gray-600 rounded-lg px-3 py-2 text-white opacity-60 cursor-default select-none">
+    {form.setor.charAt(0).toUpperCase() + form.setor.slice(1)}
+  </div>
+</div>
+
+
+        {/* <div className="flex flex-col">
           <label className="text-sm text-gray-300 mb-1 flex gap-1">
             <FiServer /> Setor
           </label>
           <select
+          disabled="true"
             name="setor"
             value={form.setor}
             onChange={handleChange}
@@ -216,8 +228,8 @@ export default function UpdateUser() {
               </option>
             ))}
           </select>
-        </div>
-
+        </div> */}
+{/* 
         <AnimatePresence>
           {form.setor !== setorInicial && (
             <motion.div
@@ -242,7 +254,7 @@ export default function UpdateUser() {
               />
             </motion.div>
           )}
-        </AnimatePresence>
+        </AnimatePresence> */}
 
         <button
           type="button"

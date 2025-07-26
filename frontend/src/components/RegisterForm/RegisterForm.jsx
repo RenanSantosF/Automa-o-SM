@@ -4,7 +4,7 @@ import { FiUser, FiKey, FiServer, FiCheckCircle, FiLoader, FiEye, FiEyeOff } fro
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 
-const setores = ['ocorrencia', 'expedicao', 'outros'];
+const setores = ['ocorrencia', 'expedicao', 'outros', "admin"];
 
 export default function RegisterForm() {
   const { register, loading, error: registerError } = useUser();

@@ -9,6 +9,7 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 import os
 from utils.get_current_user import get_current_user
+from models import Document, DocumentFile, DocumentComment
 
 SECRET_KEY = os.getenv("SECRET_KEY")      # pega a chave secreta
 ALGORITHM = os.getenv("ALGORITHM")     
@@ -117,3 +118,67 @@ def update_user(
     db.refresh(current_user)
 
     return current_user
+
+
+@router.get("/usuarios", response_model=list[UserOut])
+def listar_usuarios(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    # ⚠️ Opcional: Verifique se o current_user tem permissão (ex: admin)
+    usuarios = db.query(User).all()
+    return usuarios
+
+@router.delete("/usuarios/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+def deletar_usuario(user_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    usuario = db.query(User).filter(User.id == user_id).first()
+
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+
+    # Deleta arquivos relacionados aos documentos do usuário
+    documentos = db.query(Document).filter(Document.usuario_id == user_id).all()
+    for doc in documentos:
+        # Deleta arquivos do documento
+        db.query(DocumentFile).filter(DocumentFile.document_id == doc.id).delete()
+
+        # Deleta comentários do documento
+        db.query(DocumentComment).filter(DocumentComment.document_id == doc.id).delete()
+
+    # Deleta os documentos do usuário
+    db.query(Document).filter(Document.usuario_id == user_id).delete()
+
+    # Por fim, deleta o usuário
+    db.delete(usuario)
+    db.commit()
+
+    return None
+
+
+@router.put("/usuarios/{user_id}", response_model=UserOut)
+def atualizar_usuario(user_id: int, dados: UserUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    # ⚠️ Opcional: Verifique se o current_user tem permissão (ex: admin)
+    usuario = db.query(User).filter(User.id == user_id).first()
+
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+
+    if dados.email is not None:
+        email_existente = db.query(User).filter(User.email == dados.email, User.id != user_id).first()
+        if email_existente:
+            raise HTTPException(status_code=400, detail="Email já está em uso por outro usuário")
+        usuario.email = dados.email
+
+    if dados.senha:
+        usuario.senha = hash_password(dados.senha)
+
+    if dados.setor:
+        usuario.setor = dados.setor
+
+    if dados.usuario_apisul is not None:
+        usuario.usuario_apisul = dados.usuario_apisul
+
+    if dados.senha_apisul is not None:
+        usuario.senha_apisul = dados.senha_apisul
+
+    db.commit()
+    db.refresh(usuario)
+
+    return usuario

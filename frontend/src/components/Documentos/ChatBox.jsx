@@ -68,7 +68,7 @@ const ChatBox = ({
   };
 
   const baixarManifesto = async () => {
-    if (userData.setor !== 'expedicao' || doc.manifesto_baixado) {
+    if (!['expedicao', 'admin'].includes(userData.setor) || doc.manifesto_baixado) {
       toast.error('Ação não permitida.');
       return;
     }
@@ -173,10 +173,13 @@ const ChatBox = ({
 
   const aprovar = async () => {
     if (
-      (doc.status !== 'enviado' && doc.status !== 'reprovado') ||
-      userData.setor !== 'ocorrencia'
+      !['enviado', 'reprovado'].includes(doc.status) ||
+      !['ocorrencia', 'admin'].includes(userData.setor)
     ) {
+      console.log(userData.setor);
+      console.log(doc.status);
       toast.error('Ação não permitida.');
+
       return;
     }
 
@@ -211,7 +214,7 @@ const ChatBox = ({
       toast.error('Documento não pode ser reprovado nesse status.');
       return;
     }
-    if (userData.setor !== 'ocorrencia') {
+    if (!['ocorrencia', 'admin'].includes(userData.setor)) {
       toast.error('Ação não permitida.');
       return;
     }
@@ -253,7 +256,7 @@ const ChatBox = ({
   };
 
   const liberarSaldo = async () => {
-    if (doc.status !== 'aprovado' || userData.setor !== 'expedicao') {
+    if (doc.status !== 'aprovado' || !['expedicao', 'admin'].includes(userData.setor)) {
       toast.error('Ação não permitida.');
       return;
     }
@@ -336,7 +339,8 @@ const ChatBox = ({
     }
   };
 
-  const podeComentar = userData.setor === 'ocorrencia' || userData.setor === 'expedicao' || userData.id === doc.usuario_id;
+  const podeComentar =
+    ['ocorrencia', 'expedicao', 'admin'].includes(userData.setor) || userData.id === doc.usuario_id;
 
   function formatDateBr(dataStr) {
     const [year, month, day] = dataStr.split('-');
@@ -441,27 +445,29 @@ const ChatBox = ({
         {/* Ações */}
         {/* Ações */}
         <div className="flex flex-wrap gap-2 px-4 py-3 border-b border-gray-200 bg-white text-sm">
-          {userData.id === doc.usuario_id && doc.status === 'reprovado' && (
-            <button
-              onClick={solicitarAprovacao}
-              className="cursor-pointer flex items-center gap-1 bg-blue-100 hover:bg-blue-200 text-blue-800 border border-blue-300 px-3 py-1.5 rounded-md shadow-sm transition"
-            >
-              <FaPaperPlane size={14} />
-              Solicitar Aprovação Novamente
-            </button>
-          )}
+{(userData.id === doc.usuario_id || userData.setor === 'admin') && doc.status === 'reprovado' && (
+  <button
+    onClick={solicitarAprovacao}
+    className="cursor-pointer flex items-center gap-1 bg-blue-100 hover:bg-blue-200 text-blue-800 border border-blue-300 px-3 py-1.5 rounded-md shadow-sm transition"
+  >
+    <FaPaperPlane size={14} />
+    Solicitar Aprovação Novamente
+  </button>
+)}
 
-          {userData.setor === 'ocorrencia' && ['enviado', 'reprovado'].includes(doc.status) && (
-            <button
-              onClick={aprovar}
-              className="cursor-pointer flex items-center gap-1 bg-green-100 hover:bg-green-200 text-green-800 border border-green-300 px-3 py-1.5 rounded-md shadow-sm transition"
-            >
-              <FaPaperPlane size={14} />
-              Aprovar
-            </button>
-          )}
 
-          {userData.setor === 'ocorrencia' &&
+          {['ocorrencia', 'admin'].includes(userData.setor) &&
+            ['enviado', 'reprovado'].includes(doc.status) && (
+              <button
+                onClick={aprovar}
+                className="cursor-pointer flex items-center gap-1 bg-green-100 hover:bg-green-200 text-green-800 border border-green-300 px-3 py-1.5 rounded-md shadow-sm transition"
+              >
+                <FaPaperPlane size={14} />
+                Aprovar
+              </button>
+            )}
+
+          {['ocorrencia', 'admin'].includes(userData.setor) &&
             ['enviado', 'aprovado'].includes(doc.status) &&
             doc.status !== 'saldo_liberado' && (
               <button
@@ -473,7 +479,7 @@ const ChatBox = ({
               </button>
             )}
 
-          {userData.setor === 'expedicao' && doc.status === 'aprovado' && (
+          {['expedicao', 'admin'].includes(userData.setor) && doc.status === 'aprovado' && (
             <button
               onClick={liberarSaldo}
               className="cursor-pointer flex items-center gap-1 bg-blue-100 hover:bg-blue-200 text-blue-800 border border-blue-300 px-3 py-1.5 rounded-md shadow-sm transition"
@@ -483,7 +489,7 @@ const ChatBox = ({
             </button>
           )}
 
-          {userData.setor === 'expedicao' && !doc.manifesto_baixado && (
+          {['expedicao', 'admin'].includes(userData.setor) && !doc.manifesto_baixado && (
             <button
               onClick={baixarManifesto}
               className="cursor-pointer flex items-center gap-1 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 border border-yellow-300 px-3 py-1.5 rounded-md shadow-sm transition"

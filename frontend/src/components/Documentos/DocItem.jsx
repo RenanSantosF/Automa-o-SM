@@ -5,11 +5,14 @@ import { MoreVertical, Trash2 } from 'lucide-react';
 import { useLogin } from '../../Contexts/LoginContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaDownload } from 'react-icons/fa';
+import { toast } from 'react-toastify';
 
 const DocItem = ({ doc, onClick, isActive }) => {
   const { userData } = useLogin();
   const [menuAberto, setMenuAberto] = useState(false);
   const menuRef = useRef(null);
+  const [modalAberto, setModalAberto] = useState(false);
+  const [confirmando, setConfirmando] = useState(false);
 
   // Estado para detectar tela desktop
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
@@ -78,21 +81,16 @@ const DocItem = ({ doc, onClick, isActive }) => {
   const badge = getStatusBadge();
 
   const handleDelete = async () => {
-    const precisaSenha = ['aprovado', 'saldo_liberado'].includes(status);
-    let autorizado = true;
-
-    if (precisaSenha) {
-      const senha = prompt('Este documento exige uma senha para ser deletado.\nDigite a senha:');
-      if (senha !== '985509') {
-        alert('Senha incorreta. A exclusão foi cancelada.');
-        autorizado = false;
-      }
+    if (userData.setor !== 'admin') {
+      toast.error('Apenas administradores podem deletar documentos.');
+      return;
     }
 
-    if (!autorizado) return;
+    setModalAberto(true); // abre o modal
+  };
 
-    const confirmado = window.confirm(`Tem certeza que deseja deletar o documento "${doc.nome}"?`);
-    if (!confirmado) return;
+  const confirmarDelete = async () => {
+    setConfirmando(true);
 
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/documentos/${doc.id}`, {
@@ -103,13 +101,54 @@ const DocItem = ({ doc, onClick, isActive }) => {
       });
 
       if (!res.ok) throw new Error();
-      alert('Documento deletado com sucesso.');
-      window.location.reload(); // ou chame fetchDocumentos() externamente
+
+      toast.success('Documento deletado com sucesso!');
+      setModalAberto(false);
+      // Aguarda animação de saída antes do reload
+      setTimeout(() => {
+        window.location.reload();
+      }, 300); // tempo da animação em ms
     } catch (err) {
-      alert('Erro ao deletar o documento.');
+      toast.error('Erro ao deletar documento.');
       console.error(err);
+    } finally {
+      setConfirmando(false);
     }
   };
+
+  // const handleDelete = async () => {
+  //   const precisaSenha = ['aprovado', 'saldo_liberado'].includes(status);
+  //   let autorizado = true;
+
+  //   if (precisaSenha) {
+  //     const senha = prompt('Este documento exige uma senha para ser deletado.\nDigite a senha:');
+  //     if (senha !== '985509') {
+  //       alert('Senha incorreta. A exclusão foi cancelada.');
+  //       autorizado = false;
+  //     }
+  //   }
+
+  //   if (!autorizado) return;
+
+  //   const confirmado = window.confirm(`Tem certeza que deseja deletar o documento "${doc.nome}"?`);
+  //   if (!confirmado) return;
+
+  //   try {
+  //     const res = await fetch(`${import.meta.env.VITE_API_URL}/documentos/${doc.id}`, {
+  //       method: 'DELETE',
+  //       headers: {
+  //         Authorization: `Bearer ${localStorage.getItem('token')}`,
+  //       },
+  //     });
+
+  //     if (!res.ok) throw new Error();
+  //     alert('Documento deletado com sucesso.');
+  //     window.location.reload(); // ou chame fetchDocumentos() externamente
+  //   } catch (err) {
+  //     alert('Erro ao deletar o documento.');
+  //     console.error(err);
+  //   }
+  // };
 
   const naoVisualizadas = (doc.comentarios_rel || []).filter(
     (comentario) =>
@@ -163,40 +202,40 @@ const DocItem = ({ doc, onClick, isActive }) => {
       >
         {/* Cabeçalho: Nome + CTe + Status */}
         <div className="flex flex-wrap sm:flex-nowrap items-center w-full gap-2">
-<div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-x-4 gap-y-1 w-full items-center">
-  {/* Coluna 1: Nome + Malote + CTe */}
-  <div className="text-sm text-gray-600 font-semibold truncate max-w-[65ch]">
-    {isDesktop
-      ? doc.nome.length > 60
-        ? doc.nome.slice(0, 60) + '...'
-        : doc.nome
-      : doc.nome}
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-x-4 gap-y-1 w-full items-center">
+            {/* Coluna 1: Nome + Malote + CTe */}
+            <div className="text-sm text-gray-600 font-semibold truncate max-w-[65ch]">
+              {isDesktop
+                ? doc.nome.length > 60
+                  ? doc.nome.slice(0, 60) + '...'
+                  : doc.nome
+                : doc.nome}
 
-    {doc.data_do_malote && (
-      <span className="text-gray-600 font-semibold">
-        {' '}+ Malote {formatDateBr(doc.data_do_malote)}
-      </span>
-    )}
-    <span className="text-gray-600 font-semibold"> | CTe {doc.placa}</span>
-  </div>
+              {doc.data_do_malote && (
+                <span className="text-gray-600 font-semibold">
+                  {' '}
+                  + Malote {formatDateBr(doc.data_do_malote)}
+                </span>
+              )}
+              <span className="text-gray-600 font-semibold"> | CTe {doc.placa}</span>
+            </div>
 
-  {/* Coluna 2: Status + ícone */}
-  <div className="flex items-center gap-2 justify-start md:justify-end">
-    <div
-      className={`text-[11px] font-medium whitespace-nowrap inline-flex items-center justify-center gap-1 px-2 py-0.5 rounded-full shadow-sm ${badge.className}`}
-    >
-      {badge.icon}
-      {badge.label}
-    </div>
+            {/* Coluna 2: Status + ícone */}
+            <div className="flex items-center gap-2 justify-start md:justify-end">
+              <div
+                className={`text-[11px] font-medium whitespace-nowrap inline-flex items-center justify-center gap-1 px-2 py-0.5 rounded-full shadow-sm ${badge.className}`}
+              >
+                {badge.icon}
+                {badge.label}
+              </div>
 
-    {doc.manifesto_baixado ? (
-      <FaDownload size={12} className="text-green-500" title="Manifesto baixado" />
-    ) : (
-      <FaDownload size={12} className="text-yellow-500" title="Manifesto pendente" />
-    )}
-  </div>
-</div>
-
+              {doc.manifesto_baixado ? (
+                <FaDownload size={12} className="text-green-500" title="Manifesto baixado" />
+              ) : (
+                <FaDownload size={12} className="text-yellow-500" title="Manifesto pendente" />
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Última mensagem + horário */}
@@ -269,6 +308,45 @@ const DocItem = ({ doc, onClick, isActive }) => {
           )}
         </AnimatePresence>
       </div>
+
+      <AnimatePresence>
+        {modalAberto && (
+          <motion.div
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="bg-white rounded-lg p-6 max-w-sm w-full shadow-lg text-center"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+            >
+              <h2 className="text-lg font-semibold text-gray-800 mb-4">Confirmar exclusão</h2>
+              <p className="text-sm text-gray-600 mb-6">
+                Tem certeza que deseja deletar o documento <strong>{doc.nome}</strong>?
+              </p>
+              <div className="flex justify-center gap-4">
+                <button
+                  className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded"
+                  onClick={() => setModalAberto(false)}
+                  disabled={confirmando}
+                >
+                  Cancelar
+                </button>
+                <button
+                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
+                  onClick={confirmarDelete}
+                  disabled={confirmando}
+                >
+                  {confirmando ? 'Deletando...' : 'Deletar'}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

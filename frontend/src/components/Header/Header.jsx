@@ -4,27 +4,34 @@ import { FaHome, FaFileInvoice } from 'react-icons/fa';
 import { FaFileSignature } from 'react-icons/fa6';
 import { useLogin } from '../../Contexts/LoginContext';
 import { motion } from 'framer-motion';
-
-const menuItems = [
-  { label: 'Monitoramento', path: '/', icon: <FaHome /> },
-  { label: 'Importação NFe', path: '/nfe', icon: <FaFileInvoice /> },
-  { label: 'Comprovantes', path: '/comprovantes', icon: <FaFileSignature /> },
-];
+import { FiUsers } from 'react-icons/fi';
 
 const Header = ({ isOpen, setIsOpen }) => {
   const { userData, logout } = useLogin();
   const location = useLocation();
 
   const isActive = (path) => location.pathname === path;
-
-  const toggleSidebar = () => {
-    setIsOpen(!isOpen);
-  };
-
+  const toggleSidebar = () => setIsOpen(!isOpen);
   const setor = userData?.setor?.toLowerCase();
 
+  // ✅ Criação dinâmica do menu
+  const menuItems = [
+    { label: 'Monitoramento', path: '/', icon: <FaHome /> },
+    { label: 'Importação NFe', path: '/nfe', icon: <FaFileInvoice /> },
+    { label: 'Comprovantes', path: '/comprovantes', icon: <FaFileSignature /> },
+  ];
+
+  // ✅ Adiciona Painel de Usuários só se for admin
+  if (setor === 'admin') {
+    menuItems.push({
+      label: 'Painel de Usuários',
+      path: '/painel-usuarios',
+      icon: <FiUsers />,
+    });
+  }
+
   const isLiberado = (label) => {
-    if (setor === 'expedicao') return true;
+    if (setor === 'admin' || setor === 'expedicao') return true;
     return label === 'Comprovantes';
   };
 

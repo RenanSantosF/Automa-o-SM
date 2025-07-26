@@ -1,5 +1,3 @@
-
-
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useLogin } from './Contexts/LoginContext';
 import { useEffect, useState } from 'react';
@@ -17,13 +15,12 @@ import NaoAutorizado from './pages/NaoAutorizado';
 import PrivateRoute from './components/PrivateRoute/PrivateRoute';
 import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer } from 'react-toastify';
+import PainelUsuarios from './pages/PainelUsuarios';
 
 function App() {
   const { isAuthenticated } = useLogin();
   const [isOpen, setIsOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-
-
 
   useEffect(() => {
     const handleResize = () => {
@@ -91,6 +88,14 @@ function App() {
                   element={
                     <PrivateRoute>
                       <Comprovantes />
+                    </PrivateRoute>
+                  }
+                />
+                <Route
+                  path="/painel-usuarios"
+                  element={
+                    <PrivateRoute allowedSetores={['admin']}>
+                      <PainelUsuarios />
                     </PrivateRoute>
                   }
                 />

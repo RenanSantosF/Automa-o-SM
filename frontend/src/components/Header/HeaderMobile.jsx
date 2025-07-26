@@ -5,12 +5,7 @@ import { FaHome, FaFileInvoice } from 'react-icons/fa';
 import { FaFileSignature } from 'react-icons/fa6';
 import { useLogin } from '../../Contexts/LoginContext';
 import { motion, AnimatePresence } from 'framer-motion';
-
-const menuItems = [
-  { label: 'Monitoramento', path: '/', icon: <FaHome /> },
-  { label: 'Importação NFe', path: '/nfe', icon: <FaFileInvoice /> },
-  { label: 'Comprovantes', path: '/comprovantes', icon: <FaFileSignature /> },
-];
+import { FiUsers } from 'react-icons/fi';
 
 const sidebarVariants = {
   hidden: { x: '-100%' },
@@ -23,12 +18,27 @@ const HeaderMobile = () => {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const isActive = (path) => location.pathname === path;
-
   const toggleMenu = () => setMenuOpen((v) => !v);
 
   const setor = userData?.setor?.toLowerCase();
+
+  // Cria dinamicamente os itens do menu conforme setor
+  const menuItems = [
+    { label: 'Monitoramento', path: '/', icon: <FaHome /> },
+    { label: 'Importação NFe', path: '/nfe', icon: <FaFileInvoice /> },
+    { label: 'Comprovantes', path: '/comprovantes', icon: <FaFileSignature /> },
+  ];
+
+  if (setor === 'admin') {
+    menuItems.push({
+      label: 'Painel de Usuários',
+      path: '/painel-usuarios',
+      icon: <FiUsers />,
+    });
+  }
+
   const isLiberado = (label) => {
-    if (setor === 'expedicao') return true;
+    if (setor === 'admin' || setor === 'expedicao') return true;
     return label === 'Comprovantes';
   };
 
@@ -70,9 +80,6 @@ const HeaderMobile = () => {
                   <img src="/logo.png" alt="Logo" className="w-8" />
                   <span className="font-bold text-lg">Dellmar Docs</span>
                 </div>
-                {/* <button onClick={toggleMenu} aria-label="Fechar menu" className="text-white text-3xl">
-                  <IoClose />
-                </button> */}
               </div>
 
               <div className="flex-1 overflow-y-auto px-2 py-4 flex flex-col gap-1">
