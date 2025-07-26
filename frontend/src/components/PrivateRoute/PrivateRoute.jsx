@@ -1,14 +1,13 @@
+import { Navigate } from 'react-router-dom';
+import { useLogin } from '../../Contexts/LoginContext';
+
+
 const PrivateRoute = ({ children, allowedSetores = [] }) => {
   const { isAuthenticated, userData } = useLogin();
   const setor = userData?.setor?.toLowerCase();
 
   if (!isAuthenticated) {
     return <Navigate to="/" />;
-  }
-
-  // Admin tem acesso a tudo
-  if (setor === 'admin') {
-    return children;
   }
 
   // Se não tem restrição de setor, libera
@@ -24,3 +23,5 @@ const PrivateRoute = ({ children, allowedSetores = [] }) => {
   // 🔒 Bloqueado — redireciona para Comprovantes ou página de erro
   return <Navigate to="/nao-autorizado" />;
 };
+
+export default PrivateRoute;

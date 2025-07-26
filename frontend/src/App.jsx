@@ -62,7 +62,8 @@ function App() {
                 <Route
                   path="/"
                   element={
-                    <PrivateRoute allowedSetores={['expedicao']}>
+                    <PrivateRoute allowedSetores={['expedicao', 'admin']}>
+
                       <SolicitacaoMonitoramento />
                     </PrivateRoute>
                   }
@@ -70,7 +71,8 @@ function App() {
                 <Route
                   path="/nfe"
                   element={
-                    <PrivateRoute allowedSetores={['expedicao']}>
+                    <PrivateRoute allowedSetores={['expedicao', 'admin']}>
+
                       <ImportacaoNFE />
                     </PrivateRoute>
                   }
