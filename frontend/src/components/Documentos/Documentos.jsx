@@ -39,6 +39,7 @@ const Documentos = () => {
   const [reconnectLoading, setReconnectLoading] = useState(false);
   const [mobileView, setMobileView] = useState(window.innerWidth < 1050);
   const [modoMobile, setModoMobile] = useState('lista'); // 'lista' ou 'chat'
+  const [loadingChat, setLoadingChat] = useState(false);
 
   const [filtros, setFiltros] = useState({
     usuario: '',
@@ -228,6 +229,27 @@ const Documentos = () => {
     }
   };
 
+  // Função para atualizar apenas o documento recebido
+  const atualizarDocumento = (docAtualizado) => {
+    setDocumentos((prevDocs) => {
+      const map = new Map(prevDocs.map((d) => [d.id, d]));
+      map.set(docAtualizado.id, docAtualizado); // substitui ou adiciona
+      return Array.from(map.values()).sort(
+        (a, b) =>
+          new Date(b.atualizado_em || b.criado_em) - new Date(a.atualizado_em || a.criado_em)
+      );
+    });
+
+    // Atualiza também o documento aberto no chat, se for o mesmo
+    if (documentoSelecionadoRef.current?.id === docAtualizado.id) {
+      setDocumentoSelecionado(docAtualizado);
+      setAutoScrollChat(true);
+    }
+
+    // Notificações
+    verificarNotificacoes([docAtualizado]);
+  };
+
   useEffect(() => {
     setDocumentos([]);
     // fetchDocumentos(1);
@@ -263,12 +285,35 @@ const Documentos = () => {
     socket.onmessage = async (event) => {
       try {
         const data = JSON.parse(event.data);
+
+        // Se for atualização de documentos
+        if (data?.tipo === 'documento_atualizado') {
+          console.log('📡 Documento atualizado recebido via WS:', data.documento);
+          atualizarDocumento(data.documento);
+        }
+
+        // Se for atualização geral (todos documentos)
         if (data?.tipo === 'documentos_atualizados') {
           console.log('📡 Atualização recebida via WebSocket');
           const atualizados = await fetchDocumentosCompletos();
           if (atualizados) {
             verificarNotificacoes(atualizados);
           }
+        }
+
+        // NOVO: tratar documento deletado
+        if (data?.tipo === 'documento_deletado') {
+          console.log('🗑 Documento deletado recebido via WS:', data.id);
+
+          setDocumentos((prevDocs) => prevDocs.filter((d) => d.id !== data.id));
+
+          // Fecha o chat se estiver aberto no documento deletado
+          if (documentoSelecionadoRef.current?.id === data.id) {
+            setDocumentoSelecionado(null);
+            if (mobileView) setModoMobile('lista');
+          }
+
+          toast.info('Um documento foi deletado.');
         }
       } catch (err) {
         console.error('Erro ao processar mensagem WebSocket:', err);
@@ -330,6 +375,7 @@ const Documentos = () => {
 
   const selecionarDocumento = async (doc) => {
     try {
+      setLoadingChat(true);
       // Chama backend para marcar visualizado
       await fetch(`${api}/documentos/${doc.id}/marcar-visualizados`, {
         method: 'POST',
@@ -365,12 +411,9 @@ const Documentos = () => {
     } catch (err) {
       console.error('Erro ao marcar como visualizado', err);
       toast.error('Erro ao marcar documento como visualizado.');
+    } finally {
+      setLoadingChat(false); // termina o loading
     }
-  };
-
-  const voltarParaLista = () => {
-    setModoMobile('lista');
-    setDocumentoSelecionado(null);
   };
 
   // Atualiza mobileView ao redimensionar janela
@@ -573,8 +616,17 @@ const Documentos = () => {
             )}
 
             {/* Conteúdo do chat ou mensagem */}
-            {documentoSelecionado ? (
-              <div className={`flex flex-col ${mobileView ? 'h-[calc(100dvh-64px)]' : 'h-full'}`}>
+            <div className={`flex flex-col ${mobileView ? 'h-[calc(100dvh-64px)]' : 'h-full'}`}>
+              {loadingChat ? (
+                <div className="flex-1 flex flex-col items-center justify-center text-gray-500">
+                  <div className="mb-4 text-lg">Carregando conversa...</div>
+                  <div className="flex space-x-2">
+                    <span className="w-3 h-3 bg-green-500 rounded-full animate-bounce delay-0"></span>
+                    <span className="w-3 h-3 bg-green-500 rounded-full animate-bounce delay-200"></span>
+                    <span className="w-3 h-3 bg-green-500 rounded-full animate-bounce delay-400"></span>
+                  </div>
+                </div>
+              ) : documentoSelecionado ? (
                 <ChatBox
                   doc={documentoSelecionado}
                   userData={userData}
@@ -587,12 +639,12 @@ const Documentos = () => {
                   modalReprovarAberto={modalReprovarAberto}
                   autoScroll={autoScrollChat}
                 />
-              </div>
-            ) : (
-              <div className="h-full flex items-center justify-center text-gray-400 text-xl">
-                Selecione um documento para visualizar a conversa.
-              </div>
-            )}
+              ) : (
+                <div className="flex-1 flex items-center justify-center text-gray-400 text-xl">
+                  Selecione um documento para visualizar a conversa.
+                </div>
+              )}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

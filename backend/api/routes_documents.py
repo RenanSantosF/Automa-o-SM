@@ -1,7 +1,3 @@
-
-
-
-
 from fastapi import (
     APIRouter,
     Depends,
@@ -16,8 +12,7 @@ from fastapi import (
     Query
 )
 
-
-
+from schemas.payloads import DocumentCommentSchema
 from sqlalchemy import func, or_
 from database import SessionLocal
 from sqlalchemy.orm import Session, selectinload
@@ -34,6 +29,9 @@ from fastapi.responses import FileResponse
 import os
 import mimetypes
 import asyncio
+from fastapi.encoders import jsonable_encoder
+import json
+from sqlalchemy.orm import selectinload
 
 
 SECRET_KEY = os.getenv("SECRET_KEY", "sua_chave_secreta_aqui")
@@ -64,9 +62,7 @@ class ConnectionManager:
             except Exception:
                 pass  # Erro silencioso na conexão
 
-
 manager = ConnectionManager()
-
 
 def get_user_from_token(token: str, db: Session):
     try:
@@ -79,10 +75,65 @@ def get_user_from_token(token: str, db: Session):
     except JWTError:
         return None
 
-
-
 async def notificar_atualizacao():
     await manager.broadcast('{"tipo":"documentos_atualizados"}')
+
+
+
+
+
+
+async def notificar_documento_atualizado(doc_id: int):
+    with SessionLocal() as db:
+        doc = db.query(Document).options(
+            selectinload(Document.usuario),
+            selectinload(Document.arquivos).selectinload(DocumentFile.usuario),
+            selectinload(Document.comentarios_rel).selectinload(DocumentComment.usuario),
+        ).filter(Document.id == doc_id).first()
+        if not doc:
+            return
+
+        payload = {
+            "tipo": "documento_atualizado",
+            "documento": jsonable_encoder(doc)
+        }
+        await manager.broadcast(json.dumps(payload))
+
+
+async def notificar_documento_deletado(doc_id: int):
+    payload = {"tipo": "documento_deletado", "id": doc_id}
+    await manager.broadcast(json.dumps(payload))
+
+
+async def notificar_novo_documento(doc: Document):
+    payload = {
+        "tipo": "documento_atualizado",  # pode reaproveitar o mesmo tipo que atualizarDocumento usa
+        "documento": {
+            "id": doc.id,
+            "usuario_id": doc.usuario_id,
+            "nome": doc.nome,
+            "placa": doc.placa,
+            "cliente": doc.cliente,
+            "data_do_malote": str(doc.data_do_malote),
+            "status": doc.status,
+            "criado_em": doc.criado_em.isoformat(),
+            "atualizado_em": doc.atualizado_em.isoformat() if doc.atualizado_em else None,
+            "arquivos": [
+                {
+                    "id": doc.arquivos[0].id,
+                    "nome_arquivo": doc.arquivos[0].nome_arquivo,
+                    "criado_em": doc.arquivos[0].criado_em.isoformat(),
+                    "usuario_id": doc.arquivos[0].usuario_id,
+                    "visualizado_por": [],
+                }
+            ],
+            "comentarios_rel": [],
+        },
+    }
+    # aqui envia via WebSocket para todos os clientes conectados
+    await manager.broadcast(json.dumps(payload))
+
+
 
 
 @router.websocket("/ws/documentos")
@@ -122,7 +173,6 @@ async def websocket_documentos(websocket: WebSocket):
         print(f"🔌 WebSocket desconectado: {username}")
     finally:
         manager.disconnect(websocket)
-
 
 @router.post("/upload")
 async def upload_documento(
@@ -164,10 +214,10 @@ async def upload_documento(
     db.add(versao)
     db.commit()
 
-    asyncio.create_task(notificar_atualizacao())
+    asyncio.create_task(notificar_novo_documento(doc))
+
 
     return {"id_documento": doc.id, "status": doc.status}
-
 
 
 # ----- 🔍 Listagens -----
@@ -197,10 +247,6 @@ async def listar_aprovados(
     documentos = db.query(Document).filter(Document.status == "aprovado").all()
 
     return documentos
-
-
-
-
 
 @router.get("/todos", response_model=List[DocumentSchema])
 async def listar_todos_documentos(
@@ -300,6 +346,42 @@ async def listar_todos_documentos(
     return documentos
 
 
+
+
+
+MAX_MESSAGES = 50  # limite máximo por carregamento
+
+@router.get("/documentos/{doc_id}/mensagens", response_model=List[DocumentCommentSchema])
+async def listar_mensagens(
+    doc_id: int,
+    skip: int = 0,
+    limit: int = Query(20, ge=1, le=MAX_MESSAGES),
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    # Conta o total de mensagens para este documento
+    total_mensagens = db.query(func.count(DocumentComment.id))\
+                       .filter(DocumentComment.documento_id == doc_id)\
+                       .scalar()
+
+    # Consulta as mensagens mais recentes primeiro (mas vamos inverter depois)
+    query = db.query(DocumentComment)\
+              .filter(DocumentComment.documento_id == doc_id)\
+              .order_by(DocumentComment.criado_em.desc())\
+              .offset(skip)\
+              .limit(limit)\
+              .options(selectinload(DocumentComment.usuario))
+    
+    mensagens = query.all()
+    
+    # Inverte a ordem para exibir do mais antigo para o mais recente
+    return {
+        "mensagens": list(reversed(mensagens)),
+        "total": total_mensagens,
+        "tem_mais": (skip + limit) < total_mensagens
+    }
+
+
 @router.post("/{document_id}/marcar-visualizados")
 async def marcar_comentarios_visualizados(
     document_id: int,
@@ -337,10 +419,6 @@ async def marcar_comentarios_visualizados(
     return {"ok": True}
 
 
-
-
-
-
 # ----- ✔️ Ações -----
 @router.post("/{doc_id}/aprovar")
 async def aprovar_documento(
@@ -360,7 +438,9 @@ async def aprovar_documento(
     doc.atualizado_em = datetime.now(timezone.utc)
     db.commit()
 
-    asyncio.create_task(notificar_atualizacao())
+    # asyncio.create_task(notificar_atualizacao())
+    asyncio.create_task(notificar_documento_atualizado(doc.id))
+
 
     return {"msg": "Documento aprovado"}
 
@@ -384,7 +464,8 @@ async def reprovar_documento(
     print(doc)
     db.commit()
 
-    asyncio.create_task(notificar_atualizacao())
+    asyncio.create_task(notificar_documento_atualizado(doc.id))
+
 
     return {"msg": "Documento reprovado"}
 
@@ -410,7 +491,7 @@ async def adicionar_comentario(
     doc.atualizado_em = datetime.now(timezone.utc)
     db.commit()
 
-    asyncio.create_task(notificar_atualizacao())
+    asyncio.create_task(notificar_documento_atualizado(doc.id))
 
     return {"msg": "Comentário adicionado com sucesso", "comentario_id": novo_coment.id}
 
@@ -440,7 +521,8 @@ async def upload_nova_versao(
     doc.atualizado_em = datetime.now(timezone.utc)
     db.commit()
 
-    asyncio.create_task(notificar_atualizacao())
+    asyncio.create_task(notificar_documento_atualizado(doc.id))
+
 
     return {"msg": "Nova versão enviada", "id_versao": nova_versao.id}
 
@@ -465,7 +547,8 @@ async def solicitar_aprovacao(
     doc.atualizado_em = datetime.now(timezone.utc)
     db.commit()
 
-    asyncio.create_task(notificar_atualizacao())
+    asyncio.create_task(notificar_documento_atualizado(doc.id))
+
 
     return {"msg": "Solicitação de aprovação enviada"}
 
@@ -488,7 +571,8 @@ async def liberar_saldo(
     doc.atualizado_em = datetime.now(timezone.utc)
     db.commit()
 
-    asyncio.create_task(notificar_atualizacao())
+    asyncio.create_task(notificar_documento_atualizado(doc.id))
+
 
     return {"msg": "Saldo liberado para o documento"}
 
@@ -510,7 +594,8 @@ async def baixar_documento(
     doc.atualizado_em = datetime.now(timezone.utc)
     db.commit()
 
-    asyncio.create_task(notificar_atualizacao())
+    asyncio.create_task(notificar_documento_atualizado(doc.id))
+
 
     return {"msg": "Documento marcado como baixado"}
 
@@ -535,7 +620,7 @@ async def marcar_manifesto_baixado(
 
     db.commit()
 
-    asyncio.create_task(notificar_atualizacao())
+    asyncio.create_task(notificar_documento_atualizado(documento))
 
     return {"msg": "Manifesto marcado como baixado com sucesso"}
 
@@ -590,7 +675,7 @@ async def deletar_documento(
     db.commit()
 
     print("Delete: documento deletado, enviando notificação websocket...")
-    asyncio.create_task(notificar_atualizacao())
+    asyncio.create_task(notificar_documento_deletado(doc.id))
     print("Delete: notificação disparada")
 
 

@@ -1,0 +1,8 @@
+<Application xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'>
+  <VisualElements
+      ShowNameOnSquare150x150Logo='off'
+      Square150x150Logo='FiveM.app\citizen\VisualElements\VisualElements_150.png'
+      Square70x70Logo='FiveM.app\citizen\VisualElements\VisualElements_70.png'
+      ForegroundText='dark'
+      BackgroundColor='#F57F00'/>
+</Application>

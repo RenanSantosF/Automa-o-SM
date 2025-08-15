@@ -116,40 +116,6 @@ const DocItem = ({ doc, onClick, isActive }) => {
     }
   };
 
-  // const handleDelete = async () => {
-  //   const precisaSenha = ['aprovado', 'saldo_liberado'].includes(status);
-  //   let autorizado = true;
-
-  //   if (precisaSenha) {
-  //     const senha = prompt('Este documento exige uma senha para ser deletado.\nDigite a senha:');
-  //     if (senha !== '985509') {
-  //       alert('Senha incorreta. A exclusão foi cancelada.');
-  //       autorizado = false;
-  //     }
-  //   }
-
-  //   if (!autorizado) return;
-
-  //   const confirmado = window.confirm(`Tem certeza que deseja deletar o documento "${doc.nome}"?`);
-  //   if (!confirmado) return;
-
-  //   try {
-  //     const res = await fetch(`${import.meta.env.VITE_API_URL}/documentos/${doc.id}`, {
-  //       method: 'DELETE',
-  //       headers: {
-  //         Authorization: `Bearer ${localStorage.getItem('token')}`,
-  //       },
-  //     });
-
-  //     if (!res.ok) throw new Error();
-  //     alert('Documento deletado com sucesso.');
-  //     window.location.reload(); // ou chame fetchDocumentos() externamente
-  //   } catch (err) {
-  //     alert('Erro ao deletar o documento.');
-  //     console.error(err);
-  //   }
-  // };
-
   const naoVisualizadas = (doc.comentarios_rel || []).filter(
     (comentario) =>
       comentario.usuario?.id !== userData.id && // Ignora se foi enviado por você

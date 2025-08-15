@@ -52,7 +52,7 @@ const ChatBox = ({
         };
       }
     })
-    .sort((a, b) => new Date(a.criado_em) - new Date(b.criado_em));
+    .sort((a, b) => new Date(a.criado_em || 0) - new Date(b.criado_em || 0));
 
   const abrirArquivo = async (arqId) => {
     try {
@@ -445,16 +445,16 @@ const ChatBox = ({
         {/* Ações */}
         {/* Ações */}
         <div className="flex flex-wrap gap-2 px-4 py-3 border-b border-gray-200 bg-white text-sm">
-{(userData.id === doc.usuario_id || userData.setor === 'admin') && doc.status === 'reprovado' && (
-  <button
-    onClick={solicitarAprovacao}
-    className="cursor-pointer flex items-center gap-1 bg-blue-100 hover:bg-blue-200 text-blue-800 border border-blue-300 px-3 py-1.5 rounded-md shadow-sm transition"
-  >
-    <FaPaperPlane size={14} />
-    Solicitar Aprovação Novamente
-  </button>
-)}
-
+          {(userData.id === doc.usuario_id || userData.setor === 'admin') &&
+            doc.status === 'reprovado' && (
+              <button
+                onClick={solicitarAprovacao}
+                className="cursor-pointer flex items-center gap-1 bg-blue-100 hover:bg-blue-200 text-blue-800 border border-blue-300 px-3 py-1.5 rounded-md shadow-sm transition"
+              >
+                <FaPaperPlane size={14} />
+                Solicitar Aprovação Novamente
+              </button>
+            )}
 
           {['ocorrencia', 'admin'].includes(userData.setor) &&
             ['enviado', 'reprovado'].includes(doc.status) && (
@@ -508,6 +508,7 @@ const ChatBox = ({
               <ChatMensagem key={item.id} item={item} currentUser={userData.username} />
             ))}
           </div>
+
           {podeComentar && (
             <div className="p-4 border-t bg-white border-gray-200 flex items-center gap-2">
               <input
@@ -573,3 +574,4 @@ const ChatBox = ({
 };
 
 export default ChatBox;
+
