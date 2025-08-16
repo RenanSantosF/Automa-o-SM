@@ -2,7 +2,7 @@ import UpdateUser from '../components/UpdateUser/UpdateUser';
 
 const AtualizaUsuario = () => {
   return (
-    <div className="p-6">
+    <div className="p-2">
       <UpdateUser />
     </div>
   );

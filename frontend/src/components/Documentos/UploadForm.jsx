@@ -65,7 +65,7 @@ const UploadForm = ({ isAuthenticated, fetchDocumentos }) => {
       <button
         disabled={!isAuthenticated}
         onClick={() => setMostrar(!mostrar)}
-        className={`cursor-pointer w-full flex items-center justify-center gap-2 px-4 py-2 rounded-md text-white ${
+        className={`cursor-pointer w-full flex items-center justify-center gap-2 px-4 py-2 rounded-sm text-white ${
           isAuthenticated ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-400 cursor-not-allowed'
         }`}
       >

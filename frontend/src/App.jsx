@@ -16,6 +16,8 @@ import PrivateRoute from './components/PrivateRoute/PrivateRoute';
 import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer } from 'react-toastify';
 import PainelUsuarios from './pages/PainelUsuarios';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 
 function App() {
   const { isAuthenticated } = useLogin();
@@ -55,7 +57,8 @@ function App() {
           <Routes>
             {/* 🔓 Pública */}
             <Route path="/registro" element={<RegistroUsuario />} />
-
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             {/* 🔒 Privadas */}
             {isAuthenticated ? (
               <>

@@ -49,43 +49,85 @@ export function LoginProvider({ children }) {
     }
   }, []);
 
+  // const login = async (usuario, senha) => {
+  //   try {
+  //     const response = await fetch(`${api}/login`, {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+  //       body: new URLSearchParams({ username: usuario, password: senha }),
+  //     });
+
+  //     if (!response.ok) {
+  //       throw new Error('Usuário ou senha inválidos');
+  //     }
+
+  //     const data = await response.json();
+  //     localStorage.setItem('token', data.access_token);
+
+  //     // ✅ Após login, faz fetch em /me para pegar os dados completos
+  //     const res = await fetch(`${api}/me`, {
+  //       headers: {
+  //         Authorization: `Bearer ${data.access_token}`,
+  //       },
+  //     });
+
+  //     if (!res.ok) {
+  //       throw new Error('Erro ao buscar dados do usuário');
+  //     }
+
+  //     const userInfo = await res.json();
+
+  //     setUserData(userInfo);
+  //     setIsAuthenticated(true);
+  //   } catch (error) {
+  //     console.error(error);
+  //     setIsAuthenticated(false);
+  //     setUserData(null);
+  //     throw error;
+  //   }
+  // };
+
+
+
   const login = async (usuario, senha) => {
-    try {
-      const response = await fetch(`${api}/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({ username: usuario, password: senha }),
-      });
+  try {
+    const response = await fetch(`${api}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ username: usuario, password: senha }),
+    });
 
-      if (!response.ok) {
+    if (!response.ok) {
+      if (response.status === 401 || response.status === 400) {
         throw new Error('Usuário ou senha inválidos');
+      } else {
+        throw new Error('Erro ao conectar com o servidor');
       }
-
-      const data = await response.json();
-      localStorage.setItem('token', data.access_token);
-
-      // ✅ Após login, faz fetch em /me para pegar os dados completos
-      const res = await fetch(`${api}/me`, {
-        headers: {
-          Authorization: `Bearer ${data.access_token}`,
-        },
-      });
-
-      if (!res.ok) {
-        throw new Error('Erro ao buscar dados do usuário');
-      }
-
-      const userInfo = await res.json();
-
-      setUserData(userInfo);
-      setIsAuthenticated(true);
-    } catch (error) {
-      console.error(error);
-      setIsAuthenticated(false);
-      setUserData(null);
-      throw error;
     }
-  };
+
+    const data = await response.json();
+    localStorage.setItem('token', data.access_token);
+
+    // Busca dados do usuário
+    const res = await fetch(`${api}/me`, {
+      headers: { Authorization: `Bearer ${data.access_token}` },
+    });
+
+    if (!res.ok) throw new Error('Erro ao buscar dados do usuário');
+
+    const userInfo = await res.json();
+    setUserData(userInfo);
+    setIsAuthenticated(true);
+  } catch (err) {
+    if (err instanceof TypeError) {
+      // Geralmente "Failed to fetch" indica problema de conexão
+      throw new Error('Erro de conexão');
+    }
+    throw err;
+  }
+};
+
+
 
   const logout = () => {
     localStorage.removeItem('token');

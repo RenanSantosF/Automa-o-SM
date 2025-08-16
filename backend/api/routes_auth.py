@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, HTTPException, status, Depends, BackgroundTasks
 from sqlalchemy.orm import Session
 from core.dependencies import get_db # Função para obter sessão do DB
 from utils.hash import hash_password, verify_password
@@ -10,6 +10,11 @@ from jose import JWTError, jwt
 import os
 from utils.get_current_user import get_current_user
 from models import Document, DocumentFile, DocumentComment
+from datetime import timedelta
+
+from utils.email import enviar_email_recuperacao
+
+
 
 SECRET_KEY = os.getenv("SECRET_KEY")      # pega a chave secreta
 ALGORITHM = os.getenv("ALGORITHM")     
@@ -182,3 +187,64 @@ def atualizar_usuario(user_id: int, dados: UserUpdate, db: Session = Depends(get
     db.refresh(usuario)
 
     return usuario
+
+
+
+
+
+
+
+from pydantic import BaseModel
+
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+@router.post("/forgot-password")
+def forgot_password(payload: ForgotPasswordRequest, db: Session = Depends(get_db)):
+    email = payload.email
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="E-mail não encontrado")
+
+    reset_token = create_access_token(
+        data={"sub": user.username, "action": "reset_password"},
+        expires_delta=timedelta(minutes=15)
+    )
+
+    reset_link = f"{os.getenv('FRONTEND_URL')}reset-password?token={reset_token}"
+
+    enviar_email_recuperacao(user.email, reset_link)
+
+    return {"msg": "Se o e-mail existir no sistema, enviaremos instruções para redefinir a senha."}
+
+
+
+
+from pydantic import BaseModel
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    nova_senha: str
+
+@router.post("/reset-password")
+def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db)):
+    try:
+        payload_data = jwt.decode(
+            payload.token,
+            os.getenv("SECRET_KEY"),
+            algorithms=[os.getenv("ALGORITHM")]
+        )
+        if payload_data.get("action") != "reset_password":
+            raise HTTPException(status_code=400, detail="Token inválido")
+        username = payload_data.get("sub")
+    except JWTError:
+        raise HTTPException(status_code=400, detail="Token inválido ou expirado")
+
+    user = db.query(User).filter(User.username == username).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+
+    user.senha = hash_password(payload.nova_senha)
+    db.commit()
+
+    return {"msg": "Senha alterada com sucesso!"}

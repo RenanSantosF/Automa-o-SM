@@ -37,3 +37,40 @@ def enviar_email_com_anexos(destinatario: str, arquivos: List[str], assunto="NF-
 
     except Exception as e:
         print(f"[ERRO] Falha ao enviar e-mail: {e}")
+
+
+
+
+
+def enviar_email_recuperacao(destinatario: str, link: str):
+    try:
+        msg = EmailMessage()
+        msg["Subject"] = "Recuperação de senha"
+        msg["From"] = os.getenv("EMAIL_REMETENTE")
+        msg["To"] = destinatario
+
+        corpo = f"""
+Olá,
+
+Recebemos uma solicitação para redefinir sua senha.
+Clique no link abaixo para criar uma nova senha (válido por 15 minutos):
+
+{link}
+
+Se você não solicitou esta alteração, ignore este e-mail.
+
+Atenciosamente,
+Equipe do Sistema
+"""
+        msg.set_content(corpo)
+
+        with smtplib.SMTP(os.getenv("SMTP_SERVER"), int(os.getenv("SMTP_PORT"))) as smtp:
+            smtp.ehlo()
+            smtp.starttls()
+            smtp.login(os.getenv("EMAIL_REMETENTE"), os.getenv("EMAIL_SENHA"))
+            smtp.send_message(msg)
+
+        print(f"[OK] E-mail de recuperação enviado para {destinatario}")
+
+    except Exception as e:
+        print(f"[ERRO] Falha ao enviar e-mail de recuperação: {e}")

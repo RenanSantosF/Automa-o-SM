@@ -61,7 +61,7 @@ export default function RegisterForm() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      className="flex items-center justify-center min-h-screen bg-[#333]"
+      className="flex items-center justify-center bg-[#333]"
     >
       <form
         onSubmit={handleSubmit}
@@ -228,10 +228,13 @@ export default function RegisterForm() {
           </motion.div>
         </AnimatePresence>
 
+          <div className='flex justify-end'>
+
+          
         <button
           type="submit"
           disabled={loading}
-          className={`cursor-pointer w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl ${loading ? 'bg-green-800 cursor-wait' : 'bg-green-600 hover:bg-green-700 transition-all'} text-white font-medium`}
+          className={`cursor-pointer flex items-center justify-center gap-2 px-6 py-2 rounded-md ${loading ? 'bg-green-800 cursor-wait' : 'bg-green-600 hover:bg-green-700 transition-all'} text-white font-medium`}
         >
           {loading ? (
             <>
@@ -243,6 +246,7 @@ export default function RegisterForm() {
             </>
           )}
         </button>
+        </div>
 
         {(error || registerError) && (
           <p className="text-red-500 text-center text-sm border border-red-500 p-2 rounded-lg bg-red-500/10">

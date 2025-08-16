@@ -7,7 +7,7 @@ import {
   FiLoader,
   FiEye,
   FiEyeOff,
-  FiShield
+  FiShield,
 } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -142,7 +142,7 @@ export default function UpdateUser() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      className="flex items-center justify-center min-h-screen bg-[#333]"
+      className="flex items-center justify-center  bg-[#333]"
     >
       <form
         onSubmit={handleSubmit}
@@ -200,61 +200,14 @@ export default function UpdateUser() {
           </span>
         </div>
 
-
         <div className="flex flex-col">
-  <label className="text-sm text-gray-300 mb-1 flex gap-1">
-    <FiServer /> Setor
-  </label>
-  <div className="bg-[#2b2b2b] border border-gray-600 rounded-lg px-3 py-2 text-white opacity-60 cursor-default select-none">
-    {form.setor.charAt(0).toUpperCase() + form.setor.slice(1)}
-  </div>
-</div>
-
-
-        {/* <div className="flex flex-col">
           <label className="text-sm text-gray-300 mb-1 flex gap-1">
             <FiServer /> Setor
           </label>
-          <select
-          disabled="true"
-            name="setor"
-            value={form.setor}
-            onChange={handleChange}
-            className="bg-[#2b2b2b] border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-600"
-          >
-            {setores.map((setor) => (
-              <option key={setor} value={setor}>
-                {setor.charAt(0).toUpperCase() + setor.slice(1)}
-              </option>
-            ))}
-          </select>
-        </div> */}
-{/* 
-        <AnimatePresence>
-          {form.setor !== setorInicial && (
-            <motion.div
-              key="senhaConfirmSetor"
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
-              className="flex flex-col overflow-hidden"
-            >
-              <label className="text-sm text-gray-300 mb-1 flex gap-1">
-                <FiShield /> Confirmar senha para mudar o setor
-              </label>
-              <input
-                type="password"
-                name="senhaConfirmSetor"
-                value={senhaConfirmSetor}
-                onChange={(e) => setSenhaConfirmSetor(e.target.value)}
-                placeholder="••••••••"
-                className="bg-[#2b2b2b] border border-red-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-red-600"
-                required
-              />
-            </motion.div>
-          )}
-        </AnimatePresence> */}
+          <div className="bg-[#2b2b2b] border border-gray-600 rounded-lg px-3 py-2 text-white opacity-60 cursor-default select-none">
+            {form.setor.charAt(0).toUpperCase() + form.setor.slice(1)}
+          </div>
+        </div>
 
         <button
           type="button"
@@ -264,66 +217,70 @@ export default function UpdateUser() {
           {mostrarApisul ? 'Ocultar campos Apisul' : 'Utiliza Apisul?'}
         </button>
 
-        <div className='overflow-hidden'>
-
-        
-        <AnimatePresence>
-          {mostrarApisul && (
-            <motion.div
-              key="apisul-fields"
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
-              className="space-y-4"
-            >
-              <div className="flex flex-col">
-                <label className="text-sm text-gray-300 mb-1 flex gap-1">
-                  <FiUser /> Usuário Apisul
-                </label>
-                <input
-                  type="text"
-                  name="usuario_apisul"
-                  value={form.usuario_apisul}
-                  onChange={handleChange}
-                  placeholder="login.apisul"
-                  className="bg-[#2b2b2b] border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-600"
-                />
-              </div>
-              <div className="flex flex-col">
-                <label className="text-sm text-gray-300 mb-1 flex gap-1">
-                  <FiKey /> Senha Apisul
-                </label>
-                <input
-                  type="password"
-                  name="senha_apisul"
-                  value={form.senha_apisul}
-                  onChange={handleChange}
-                  placeholder="••••••••"
-                  className="bg-[#2b2b2b] border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-600"
-                />
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-          </div>
-        <button
-          type="submit"
-          disabled={loading}
-          className={`cursor-pointer w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl 
-            ${loading ? 'bg-green-800 cursor-wait' : 'bg-green-600 hover:bg-green-700 transition-all'} 
+        <div className="overflow-hidden">
+          <AnimatePresence>
+            {mostrarApisul && (
+              <motion.div
+                key="apisul-fields"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+                className="space-y-4"
+              >
+                <div className="flex flex-col">
+                  <label className="text-sm text-gray-300 mb-1 flex gap-1">
+                    <FiUser /> Usuário Apisul
+                  </label>
+                  <input
+                    type="text"
+                    name="usuario_apisul"
+                    value={form.usuario_apisul}
+                    onChange={handleChange}
+                    placeholder="login.apisul"
+                    className="bg-[#2b2b2b] border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-600"
+                  />
+                </div>
+                <div className="flex flex-col">
+                  <label className="text-sm text-gray-300 mb-1 flex gap-1">
+                    <FiKey /> Senha Apisul
+                  </label>
+                  <input
+                    type="password"
+                    name="senha_apisul"
+                    value={form.senha_apisul}
+                    onChange={handleChange}
+                    placeholder="••••••••"
+                    className="bg-[#2b2b2b] border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-600"
+                  />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+        <div className='w-full flex justify-end'>
+          <button
+            type="submit"
+            disabled={loading}
+            className={`cursor-pointer flex items-center justify-center gap-2 px-8 py-2 rounded-md 
+            ${
+              loading
+                ? 'bg-green-800 cursor-wait'
+                : 'bg-green-500 hover:bg-green-600 transition-all'
+            } 
             text-white font-medium`}
-        >
-          {loading ? (
-            <>
-              <FiLoader className="animate-spin" /> Atualizando...
-            </>
-          ) : (
-            <>
-              <FiCheckCircle /> Atualizar
-            </>
-          )}
-        </button>
+          >
+            {loading ? (
+              <>
+                <FiLoader className="animate-spin" /> Atualizando...
+              </>
+            ) : (
+              <>
+                <FiCheckCircle /> Salvar
+              </>
+            )}
+          </button>
+        </div>
 
         {successMessage && (
           <p className="text-green-500 text-center text-sm border border-green-500 p-2 rounded-lg bg-green-500/10">

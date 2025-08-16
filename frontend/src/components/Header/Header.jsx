@@ -14,22 +14,15 @@ const Header = ({ isOpen, setIsOpen }) => {
   const toggleSidebar = () => setIsOpen(!isOpen);
   const setor = userData?.setor?.toLowerCase();
 
-  // ✅ Criação dinâmica do menu
+  // ✅ Menu fixo (Painel de Usuários sempre aparece)
   const menuItems = [
     { label: 'Monitoramento', path: '/', icon: <FaHome /> },
     { label: 'Importação NFe', path: '/nfe', icon: <FaFileInvoice /> },
     { label: 'Comprovantes', path: '/comprovantes', icon: <FaFileSignature /> },
+    { label: 'Painel de Usuários', path: '/painel-usuarios', icon: <FiUsers /> },
   ];
 
-  // ✅ Adiciona Painel de Usuários só se for admin
-  if (setor === 'admin') {
-    menuItems.push({
-      label: 'Painel de Usuários',
-      path: '/painel-usuarios',
-      icon: <FiUsers />,
-    });
-  }
-
+  // ✅ Define permissão
   const isLiberado = (label) => {
     if (setor === 'admin' || setor === 'expedicao') return true;
     return label === 'Comprovantes';
@@ -37,52 +30,52 @@ const Header = ({ isOpen, setIsOpen }) => {
 
   return (
     <motion.aside
-      animate={{ width: isOpen ? 260 : 80 }}
-      transition={{ duration: 0.4, type: 'spring', damping: 12 }}
+      animate={{ width: isOpen ? 240 : 78 }}
+      transition={{ duration: 0.3, type: 'spring', damping: 12 }}
       className="fixed top-0 left-0 h-screen 
-                 bg-[#1f1f1f]/80 backdrop-blur-md 
-                 border-r-1 border-gray-500 shadow-lg 
+                 bg-[#181818] backdrop-blur-sm
+                 border-r border-gray-800 shadow-lg 
                  flex flex-col justify-between z-50 overflow-hidden"
     >
       <div>
-        {/* Header do Sidebar */}
-        <div className="flex items-center gap-3 px-4 py-5 border-b border-gray-700">
-          <button onClick={toggleSidebar} className="cursor-pointer text-white hover:text-green-400">
-            <IoMenu size={26} />
+        {/* Header */}
+        <div className="flex items-center gap-3 px-4 py-4 border-b border-gray-800">
+          <button onClick={toggleSidebar} className="text-gray-300 hover:text-green-400">
+            <IoMenu size={22} />
           </button>
           {isOpen && (
             <motion.span
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="flex gap-2 text-green-200 text-xl font-bold whitespace-nowrap"
+              className="flex gap-2 text-green-300 text-lg font-semibold whitespace-nowrap"
             >
-              <img src="/logo.png" className="w-8" alt="Logo" />
+              <img src="/logo.png" className="w-7" alt="Logo" />
               Dellmar Docs
             </motion.span>
           )}
         </div>
 
-        {/* Menu Principal */}
-        <nav className="flex flex-col gap-1 px-2 mt-6">
+        {/* Menu */}
+        <nav className="flex flex-col gap-0.5 px-2 mt-5">
           {menuItems.map((item, index) => {
             const liberado = isLiberado(item.label);
 
             const baseClasses = `
-              flex items-center gap-3 px-4 py-3 rounded-lg 
+              flex items-center gap-3 px-3 py-2.5 rounded-md text-sm
               ${liberado
                 ? isActive(item.path)
-                  ? 'bg-gradient-to-r from-green-600 to-green-800 text-white shadow-lg'
-                  : 'text-gray-300 hover:bg-green-800 hover:text-white transition-all'
-                : 'text-gray-500 bg-gray-700/30 cursor-not-allowed'
+                  ? 'bg-green-700/80 text-white shadow-md'
+                  : 'text-gray-300 hover:bg-green-900 hover:text-white transition-all'
+                : 'text-gray-500/70 bg-gray-800/20 cursor-not-allowed'
               }
             `;
 
             return (
               <motion.div
                 key={item.path}
-                initial={{ opacity: 0, x: -10 }}
+                initial={{ opacity: 0, x: -8 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.08 }}
+                transition={{ delay: index * 0.06 }}
                 title={liberado ? '' : 'Indisponível para seu setor'}
               >
                 {liberado ? (
@@ -119,18 +112,18 @@ const Header = ({ isOpen, setIsOpen }) => {
       </div>
 
       {/* Footer */}
-      <div className="px-4 py-4 border-t border-gray-700 flex flex-col gap-2">
+      <div className="px-3 py-4 border-t border-gray-800 flex flex-col gap-2">
         {/* Meus Dados */}
         <Link
           to="/updateusuario"
-          className={`flex items-center gap-3 px-4 py-2 rounded-lg 
+          className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm
             ${
               isActive('/updateusuario')
-                ? 'bg-gradient-to-r from-green-600 to-green-800 text-white shadow-lg'
-                : 'text-gray-300 hover:bg-green-800 hover:text-white transition-all'
+                ? 'bg-green-700/80 text-white shadow-md'
+                : 'text-gray-300 hover:bg-green-900 hover:text-white transition-all'
             }`}
         >
-          <IoPersonCircleOutline size={20} />
+          <IoPersonCircleOutline size={18} />
           {isOpen && <span className="whitespace-nowrap">Meus Dados</span>}
         </Link>
 
@@ -138,19 +131,19 @@ const Header = ({ isOpen, setIsOpen }) => {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="text-xs text-gray-400 whitespace-nowrap"
+            className="text-xs text-gray-500 whitespace-nowrap"
           >
             Logado como:
-            <span className="text-white ml-1">{userData.username}</span>
+            <span className="text-gray-200 ml-1">{userData.username}</span>
           </motion.div>
         )}
 
-        {/* Botão Sair */}
+        {/* Sair */}
         <button
           onClick={logout}
-          className="cursor-pointer w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-all"
+          className="cursor-pointer w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-red-500 text-white hover:bg-red-600 transition-all text-sm"
         >
-          <IoLogOutOutline size={18} />
+          <IoLogOutOutline size={16} />
           {isOpen && 'Sair'}
         </button>
       </div>

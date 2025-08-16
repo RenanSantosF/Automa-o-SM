@@ -9,19 +9,20 @@ export default function LoginModal() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-    try {
-      await login(username, password);
-      // Se quiser, aqui pode resetar campos ou fechar modal
-    } catch {
-      setError('Usuário ou senha inválidos');
-    } finally {
-      setLoading(false);
-    }
-  };
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setError('');
+  setLoading(true);
+  try {
+    await login(username, password);
+  } catch (err) {
+    // Mostra a mensagem real do erro vindo do LoginContext
+    setError(err.message || 'Erro desconhecido');
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div className="fixed inset-0 backdrop-blur-sm flex justify-center items-center z-50">
@@ -98,6 +99,12 @@ export default function LoginModal() {
             </>
           )}
         </button>
+
+        <p className="text-sm text-gray-400 text-center">
+          <a href="/forgot-password" className="text-green-500 hover:underline">
+            Esqueci minha senha
+          </a>
+        </p>
       </form>
     </div>
   );
