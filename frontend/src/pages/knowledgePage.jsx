@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import axios from 'axios';
-import { useLogin } from "../Contexts/LoginContext"
+import { useLogin } from '../Contexts/LoginContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import { FiEdit2, FiTrash2, FiPlusCircle, FiX } from 'react-icons/fi';
-
+import ImageResize from 'quill-image-resize-module-react';
+import Quill from 'quill';
 
 // 🔹 Modal claro com fundo escurecido translúcido
 function Modal({ isOpen, onClose, children }) {
@@ -41,7 +42,6 @@ function Modal({ isOpen, onClose, children }) {
 }
 
 export default function KnowledgePage() {
-
   const [title, setTitle] = useState('');
   const [type, setType] = useState('tutorial');
   const [content, setContent] = useState('');
@@ -58,8 +58,7 @@ export default function KnowledgePage() {
 
   const { userData } = useLogin();
 
-const setor = userData?.setor?.toLowerCase(); // garante minúscula e evita undefined
-
+  const setor = userData?.setor?.toLowerCase(); // garante minúscula e evita undefined
 
   const token = localStorage.getItem('token');
   // const setor = localStorage.getItem('setor');
@@ -113,6 +112,8 @@ const setor = userData?.setor?.toLowerCase(); // garante minúscula e evita unde
     };
   }, []);
 
+  Quill.register('modules/imageResize', ImageResize);
+
   const modules = {
     toolbar: {
       container: [
@@ -125,6 +126,10 @@ const setor = userData?.setor?.toLowerCase(); // garante minúscula e evita unde
         ['link', 'image', 'clean'],
       ],
       handlers: { image: imageHandler },
+    },
+    imageResize: {
+      parchment: Quill.import('parchment'),
+      modules: ['Resize', 'DisplaySize'], // permite arrastar e ver dimensões
     },
   };
 
@@ -233,7 +238,10 @@ const setor = userData?.setor?.toLowerCase(); // garante minúscula e evita unde
               {e.type === 'tutorial' ? '📘 Tutorial' : '🧩 Solução de Erro'}
             </p>
             <p className="text-xs text-gray-400 mt-1">
-              🕒 {new Date(e.created_at).toLocaleString('pt-BR')}
+              🕒{' '}
+              {new Date(new Date(e.created_at).getTime() - 3 * 60 * 60 * 1000).toLocaleString(
+                'pt-BR'
+              )}
             </p>
           </motion.div>
         ))}
@@ -323,7 +331,7 @@ const setor = userData?.setor?.toLowerCase(); // garante minúscula e evita unde
         {viewEntry && (
           <div className="flex flex-col h-full">
             <div className="flex justify-between items-center p-4 border-b border-gray-300 sticky top-0 bg-white/90 z-10">
-              <div >
+              <div>
                 <h2 className="text-lg font-semibold text-green-600">{viewEntry.title}</h2>
                 <p className="text-xs text-gray-500 mb-3">
                   {viewEntry.type === 'tutorial' ? '📘 Tutorial' : '🧩 Solução de Erro'}
