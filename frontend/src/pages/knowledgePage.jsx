@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import axios from 'axios';
+import { useLogin } from "../Contexts/LoginContext"
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import { FiEdit2, FiTrash2, FiPlusCircle, FiX } from 'react-icons/fi';
+
 
 // 🔹 Modal claro com fundo escurecido translúcido
 function Modal({ isOpen, onClose, children }) {
@@ -39,6 +41,7 @@ function Modal({ isOpen, onClose, children }) {
 }
 
 export default function KnowledgePage() {
+
   const [title, setTitle] = useState('');
   const [type, setType] = useState('tutorial');
   const [content, setContent] = useState('');
@@ -52,8 +55,14 @@ export default function KnowledgePage() {
   const [hasMore, setHasMore] = useState(false);
 
   const quillRef = useRef();
+
+  const { userData } = useLogin();
+
+const setor = userData?.setor?.toLowerCase(); // garante minúscula e evita undefined
+
+
   const token = localStorage.getItem('token');
-  const setor = localStorage.getItem('setor');
+  // const setor = localStorage.getItem('setor');
 
   const api = axios.create({
     baseURL: `${import.meta.env.VITE_API_URL}/knowledge`,

@@ -49,43 +49,6 @@ export function LoginProvider({ children }) {
     }
   }, []);
 
-  // const login = async (usuario, senha) => {
-  //   try {
-  //     const response = await fetch(`${api}/login`, {
-  //       method: 'POST',
-  //       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-  //       body: new URLSearchParams({ username: usuario, password: senha }),
-  //     });
-
-  //     if (!response.ok) {
-  //       throw new Error('Usuário ou senha inválidos');
-  //     }
-
-  //     const data = await response.json();
-  //     localStorage.setItem('token', data.access_token);
-
-  //     // ✅ Após login, faz fetch em /me para pegar os dados completos
-  //     const res = await fetch(`${api}/me`, {
-  //       headers: {
-  //         Authorization: `Bearer ${data.access_token}`,
-  //       },
-  //     });
-
-  //     if (!res.ok) {
-  //       throw new Error('Erro ao buscar dados do usuário');
-  //     }
-
-  //     const userInfo = await res.json();
-
-  //     setUserData(userInfo);
-  //     setIsAuthenticated(true);
-  //   } catch (error) {
-  //     console.error(error);
-  //     setIsAuthenticated(false);
-  //     setUserData(null);
-  //     throw error;
-  //   }
-  // };
 
 
 
