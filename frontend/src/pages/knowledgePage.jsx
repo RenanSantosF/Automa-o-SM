@@ -5,10 +5,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import 'react-quill-new/dist/quill.snow.css';
 import { FiEdit2, FiTrash2, FiPlusCircle, FiX } from 'react-icons/fi';
 
+
 import ReactQuill, { Quill } from 'react-quill-new';
-import ImageResize from 'quill-image-resize-module-react';
-
-
+import 'react-quill-new/dist/quill.snow.css';
+import ImageResize from 'quill-image-resize';
+Quill.register('modules/imageResize', ImageResize);
 
 
 // 🔹 Modal claro com fundo escurecido translúcido
@@ -115,26 +116,27 @@ export default function KnowledgePage() {
     };
   }, []);
 
-  Quill.register('modules/imageResize', ImageResize);
 
-  const modules = {
-    toolbar: {
-      container: [
-        [{ font: [] }],
-        [{ header: [1, 2, 3, 4, false] }],
-        ['bold', 'italic', 'underline', 'strike', 'blockquote'],
-        [{ color: [] }, { background: [] }],
-        [{ align: [] }],
-        [{ list: 'ordered' }, { list: 'bullet' }],
-        ['link', 'image', 'clean'],
-      ],
-      handlers: { image: imageHandler },
-    },
-    imageResize: {
-      parchment: Quill.import('parchment'),
-      modules: ['Resize', 'DisplaySize'], // permite arrastar e ver dimensões
-    },
-  };
+const modules = {
+  toolbar: {
+    container: [
+      [{ font: [] }],
+      [{ header: [1, 2, 3, 4, false] }],
+      ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+      [{ color: [] }, { background: [] }],
+      [{ align: [] }],
+      [{ list: 'ordered' }, { list: 'bullet' }],
+      ['link', 'image', 'clean'],
+    ],
+    handlers: { image: imageHandler }, // seu handler de upload
+  },
+  imageResize: {
+    parchment: Quill.import('parchment'),
+    modules: ['Resize', 'DisplaySize', 'Toolbar'], // módulos que deseja habilitar
+  },
+};
+
+
 
   const formats = [
     'header',
@@ -148,7 +150,6 @@ export default function KnowledgePage() {
     'color',
     'background',
     'list',
-    'bullet',
     'align',
     'link',
     'image',
