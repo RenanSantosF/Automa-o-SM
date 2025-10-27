@@ -2,11 +2,14 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import axios from 'axios';
 import { useLogin } from '../Contexts/LoginContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import { FiEdit2, FiTrash2, FiPlusCircle, FiX } from 'react-icons/fi';
+
+import ReactQuill, { Quill } from 'react-quill-new';
 import ImageResize from 'quill-image-resize-module-react';
-import Quill from 'quill';
+
+
+
 
 // 🔹 Modal claro com fundo escurecido translúcido
 function Modal({ isOpen, onClose, children }) {
