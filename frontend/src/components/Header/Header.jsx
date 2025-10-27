@@ -1,109 +1,133 @@
 import { Link, useLocation } from 'react-router-dom';
 import { IoLogOutOutline, IoMenu, IoPersonCircleOutline } from 'react-icons/io5';
 import { FaHome, FaFileInvoice } from 'react-icons/fa';
-import { FaFileSignature } from 'react-icons/fa6';
+import { FaFileSignature, FaTruck } from 'react-icons/fa6';
 import { useLogin } from '../../Contexts/LoginContext';
 import { motion } from 'framer-motion';
 import { FiUsers } from 'react-icons/fi';
+import { useState } from 'react';
 
 const Header = ({ isOpen, setIsOpen }) => {
   const { userData, logout } = useLogin();
   const location = useLocation();
+  const [openSubmenu, setOpenSubmenu] = useState(null);
+  const setor = userData?.setor?.toLowerCase();
 
   const isActive = (path) => location.pathname === path;
   const toggleSidebar = () => setIsOpen(!isOpen);
-  const setor = userData?.setor?.toLowerCase();
 
-  // ✅ Menu fixo (Painel de Usuários sempre aparece)
-  const menuItems = [
-    { label: 'Monitoramento', path: '/', icon: <FaHome /> },
-    { label: 'Importação NFe', path: '/nfe', icon: <FaFileInvoice /> },
-    { label: 'Comprovantes', path: '/comprovantes', icon: <FaFileSignature /> },
-    { label: 'Painel de Usuários', path: '/painel-usuarios', icon: <FiUsers /> },
-  ];
+const menuItems = [
+  { label: 'Monitoramento', path: '/', icon: <FaHome /> },
+  { label: 'Importação NFe', path: '/nfe', icon: <FaFileInvoice /> },
+  { label: 'Comprovantes', path: '/comprovantes', icon: <FaFileSignature /> },
+  { label: 'Base de Conhecimento', path: '/knowledge', icon: <FiUsers /> }, // nova aba
+  
+  { 
+    label: 'Cargas', 
+    icon: <FaTruck />, 
+    subItems: [
+      { label: 'Cargas', path: '/cargas' },
+      { label: 'Registros de Ocorrências', path: '/ocorrencias' },
+    ]
+  },
+  { label: 'Painel de Usuários', path: '/painel-usuarios', icon: <FiUsers /> },
+];
 
-  // ✅ Define permissão
-  const isLiberado = (label) => {
-    if (setor === 'admin' || setor === 'expedicao') return true;
-    return label === 'Comprovantes';
-  };
+// Permissões
+const isLiberado = (label) => {
+  if (label === 'Cargas') return false; // bloqueado para todos
+  if (setor === 'admin' || setor === 'expedicao') return true;
+  return ['Comprovantes', 'Base de Conhecimento'].includes(label);
+};
+
 
   return (
     <motion.aside
-      animate={{ width: isOpen ? 240 : 78 }}
+      animate={{ width: isOpen ? 260 : 78 }}
       transition={{ duration: 0.3, type: 'spring', damping: 12 }}
-      className="fixed top-0 left-0 h-screen 
-                 bg-[#181818] backdrop-blur-sm
-                 border-r border-gray-800 shadow-lg 
-                 flex flex-col justify-between z-50 overflow-hidden"
+      className="fixed top-0 left-0 h-screen bg-[#181818] border-r border-gray-800 shadow-lg flex flex-col justify-between z-50 overflow-hidden"
     >
+      {/* Topo */}
       <div>
-        {/* Header */}
         <div className="flex items-center gap-3 px-4 py-4 border-b border-gray-800">
           <button onClick={toggleSidebar} className="text-gray-300 hover:text-green-400">
             <IoMenu size={22} />
           </button>
           {isOpen && (
-            <motion.span
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="flex gap-2 text-green-300 text-lg font-semibold whitespace-nowrap"
-            >
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-2 text-green-300 text-lg font-bold">
               <img src="/logo.png" className="w-7" alt="Logo" />
               Dellmar Docs
-            </motion.span>
+            </motion.div>
           )}
         </div>
 
         {/* Menu */}
-        <nav className="flex flex-col gap-0.5 px-2 mt-5">
-          {menuItems.map((item, index) => {
+        <nav className="flex flex-col mt-5 px-2 gap-1">
+          {menuItems.map((item, idx) => {
             const liberado = isLiberado(item.label);
+            const active = isActive(item.path);
+            const hasSubmenu = item.subItems && item.subItems.length > 0;
 
             const baseClasses = `
               flex items-center gap-3 px-3 py-2.5 rounded-md text-sm
               ${liberado
-                ? isActive(item.path)
-                  ? 'bg-green-700/80 text-white shadow-md'
-                  : 'text-gray-300 hover:bg-green-900 hover:text-white transition-all'
+                ? active ? 'bg-green-700/80 text-white shadow-md' : 'text-gray-300 hover:bg-green-900 hover:text-white transition-all'
                 : 'text-gray-500/70 bg-gray-800/20 cursor-not-allowed'
               }
             `;
 
             return (
-              <motion.div
-                key={item.path}
-                initial={{ opacity: 0, x: -8 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.06 }}
-                title={liberado ? '' : 'Indisponível para seu setor'}
-              >
-                {liberado ? (
-                  <Link to={item.path} className={baseClasses}>
-                    {item.icon}
-                    {isOpen && (
-                      <motion.span
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="font-medium whitespace-nowrap"
-                      >
-                        {item.label}
-                      </motion.span>
-                    )}
-                  </Link>
+              <motion.div key={item.label} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: idx * 0.05 }}>
+                {hasSubmenu ? (
+                  <>
+                    <div
+                      className={`${baseClasses} cursor-pointer flex justify-between items-center`}
+                      onClick={() => setOpenSubmenu(openSubmenu === item.label ? null : item.label)}
+                    >
+                      <div className="flex items-center gap-3">
+                        {item.icon}
+                        {isOpen && <span className="font-medium">{item.label}</span>}
+                      </div>
+                      {isOpen && <span className={`transition-transform ${openSubmenu === item.label ? 'rotate-90' : 'rotate-0'}`}>▶</span>}
+                    </div>
+{isOpen && openSubmenu === item.label && (
+  <div className="ml-6 flex flex-col gap-1 mt-1">
+    {item.subItems.map(sub => {
+      const liberadoSub = false; // bloqueado para todos
+      return liberadoSub ? (
+        <Link
+          key={sub.path}
+          to={sub.path}
+          className={`text-gray-300 hover:text-white text-sm ${isActive(sub.path) ? 'font-semibold' : ''}`}
+        >
+          {sub.label}
+        </Link>
+      ) : (
+        <div
+          key={sub.path}
+          className="text-gray-500/70 text-sm cursor-not-allowed line-through opacity-50"
+          title="Indisponível"
+        >
+          {sub.label}
+        </div>
+      );
+    })}
+  </div>
+)}
+
+                  </>
                 ) : (
-                  <div className={baseClasses}>
-                    {item.icon}
-                    {isOpen && (
-                      <motion.span
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="font-medium whitespace-nowrap line-through opacity-50"
-                      >
-                        {item.label}
-                      </motion.span>
-                    )}
-                  </div>
+                  liberado ? (
+                    <Link to={item.path} className={baseClasses}>
+                      {item.icon}
+                      {isOpen && <span className="font-medium">{item.label}</span>}
+                    </Link>
+                  ) : (
+                    <div className={baseClasses}>
+                      {item.icon}
+                      {isOpen && <span className="font-medium line-through opacity-50">{item.label}</span>}
+                    </div>
+                  )
                 )}
               </motion.div>
             );
@@ -113,32 +137,21 @@ const Header = ({ isOpen, setIsOpen }) => {
 
       {/* Footer */}
       <div className="px-3 py-4 border-t border-gray-800 flex flex-col gap-2">
-        {/* Meus Dados */}
         <Link
           to="/updateusuario"
           className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm
-            ${
-              isActive('/updateusuario')
-                ? 'bg-green-700/80 text-white shadow-md'
-                : 'text-gray-300 hover:bg-green-900 hover:text-white transition-all'
-            }`}
+            ${isActive('/updateusuario') ? 'bg-green-700/80 text-white shadow-md' : 'text-gray-300 hover:bg-green-900 hover:text-white transition-all'}`}
         >
           <IoPersonCircleOutline size={18} />
-          {isOpen && <span className="whitespace-nowrap">Meus Dados</span>}
+          {isOpen && <span>Meus Dados</span>}
         </Link>
 
         {isOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-xs text-gray-500 whitespace-nowrap"
-          >
-            Logado como:
-            <span className="text-gray-200 ml-1">{userData.username}</span>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-xs text-gray-400">
+            Logado como: <span className="text-gray-200 ml-1">{userData.username}</span>
           </motion.div>
         )}
 
-        {/* Sair */}
         <button
           onClick={logout}
           className="cursor-pointer w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-red-500 text-white hover:bg-red-600 transition-all text-sm"

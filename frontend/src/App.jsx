@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import LoginModal from './components/LoginModal/LoginModal';
 import Header from './components/Header/Header';
 import HeaderMobile from './components/Header/HeaderMobile';
-
+import OcorrenciasPage from './pages/ocorrenciasPage';
 import SolicitacaoMonitoramento from './pages/SolicitacaoMonitoramento';
 import ImportacaoNFE from './pages/ImportacaoNFE';
 import RegistroUsuario from './pages/Registro';
@@ -18,6 +18,8 @@ import { ToastContainer } from 'react-toastify';
 import PainelUsuarios from './pages/PainelUsuarios';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import CargasPage from './pages/CargasPage';
+import KnowledgePage from "./pages/knowledgePage"
 
 function App() {
   const { isAuthenticated } = useLogin();
@@ -66,7 +68,6 @@ function App() {
                   path="/"
                   element={
                     <PrivateRoute allowedSetores={['expedicao', 'admin']}>
-
                       <SolicitacaoMonitoramento />
                     </PrivateRoute>
                   }
@@ -75,7 +76,6 @@ function App() {
                   path="/nfe"
                   element={
                     <PrivateRoute allowedSetores={['expedicao', 'admin']}>
-
                       <ImportacaoNFE />
                     </PrivateRoute>
                   }
@@ -96,6 +96,33 @@ function App() {
                     </PrivateRoute>
                   }
                 />
+                {/* Cargas com subsessões */}
+                <Route
+                  path="/cargas"
+                  element={
+                    <PrivateRoute allowedSetores={['expedicao', 'admin']}>
+                      <CargasPage />
+                    </PrivateRoute>
+                  }
+                />
+                <Route
+                  path="/ocorrencias"
+                  element={
+                    <PrivateRoute allowedSetores={['expedicao', 'admin']}>
+                      <OcorrenciasPage />
+                    </PrivateRoute>
+                  }
+                />
+                <Route
+  path="/knowledge"
+  element={
+    <PrivateRoute>
+      <KnowledgePage />
+    </PrivateRoute>
+  }
+/>
+
+
                 <Route
                   path="/painel-usuarios"
                   element={

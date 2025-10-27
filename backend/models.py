@@ -1,4 +1,4 @@
-from sqlalchemy import Column,Boolean, ForeignKey, Integer, String, Text, DateTime, Float, JSON
+from sqlalchemy import Numeric, Column,Boolean, ForeignKey, Integer, String, Text, DateTime, Float, JSON
 from sqlalchemy.sql import func
 from database import Base  # ou como você estiver importando sua base declarativa
 from sqlalchemy.orm import relationship
@@ -84,6 +84,7 @@ class User(Base):
 
     usuario_apisul = Column(String, nullable=True)
     senha_apisul = Column(String, nullable=True)
+    knowledge_entries = relationship("Knowledge", back_populates="author")
 
 
 
@@ -144,3 +145,70 @@ class DocumentComment(Base):
 
     document = relationship("Document", back_populates="comentarios_rel")
     usuario = relationship("User")
+
+
+# Gestão de cargas
+
+
+class Carga(Base):
+    __tablename__ = "cargas"
+
+    id = Column(Integer, primary_key=True, index=True)
+    data_carregamento = Column(Date, nullable=False)
+    origem = Column(String, nullable=False)
+    destino = Column(String, nullable=False)
+    rota = Column(String, nullable=False)
+    valor_frete = Column(Numeric(10, 2), nullable=False)
+
+    # status geral da carga (normal, recusada, show, atraso)
+    status = Column(String, default="normal")
+    observacao_cliente = Column(String, nullable=True)
+
+    criado_em = Column(DateTime, default=func.now())
+    atualizado_em = Column(DateTime, nullable=False, default=func.now(), onupdate=func.now())
+
+    # Relacionamentos
+    ocorrencias = relationship("OcorrenciaCarga", back_populates="carga")
+
+
+class TipoOcorrencia(Base):
+    __tablename__ = "tipos_ocorrencia"
+
+    id = Column(Integer, primary_key=True, index=True)
+    nome = Column(String, nullable=False)  # ex: Recusa de carga, No show, Atraso na apresentação
+    descricao = Column(String, nullable=True)
+
+    criado_em = Column(DateTime, default=func.now())
+    atualizado_em = Column(DateTime, nullable=False, default=func.now(), onupdate=func.now())
+
+    motivos = relationship("MotivoOcorrencia", back_populates="tipo")
+
+
+class MotivoOcorrencia(Base):
+    __tablename__ = "motivos_ocorrencia"
+
+    id = Column(Integer, primary_key=True, index=True)
+    tipo_id = Column(Integer, ForeignKey("tipos_ocorrencia.id"), nullable=False)
+    nome = Column(String, nullable=False)  # ex: "Falha mecânica", "Alto custo operacional"
+    responsabilidade_cliente = Column(Boolean, default=False)
+
+    criado_em = Column(DateTime, default=func.now())
+    atualizado_em = Column(DateTime, nullable=False, default=func.now(), onupdate=func.now())
+
+    tipo = relationship("TipoOcorrencia", back_populates="motivos")
+    ocorrencias = relationship("OcorrenciaCarga", back_populates="motivo")
+
+
+class OcorrenciaCarga(Base):
+    __tablename__ = "ocorrencias_carga"
+
+    id = Column(Integer, primary_key=True, index=True)
+    carga_id = Column(Integer, ForeignKey("cargas.id"), nullable=False)
+    motivo_id = Column(Integer, ForeignKey("motivos_ocorrencia.id"), nullable=False)
+    observacao = Column(String, nullable=True)
+
+    criado_em = Column(DateTime, default=func.now())
+    atualizado_em = Column(DateTime, nullable=False, default=func.now(), onupdate=func.now())
+
+    carga = relationship("Carga", back_populates="ocorrencias")
+    motivo = relationship("MotivoOcorrencia", back_populates="ocorrencias")

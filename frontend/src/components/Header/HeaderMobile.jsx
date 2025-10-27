@@ -28,6 +28,12 @@ const HeaderMobile = () => {
     { label: 'Importação NFe', path: '/nfe', icon: <FaFileInvoice /> },
     { label: 'Comprovantes', path: '/comprovantes', icon: <FaFileSignature /> },
     { label: 'Painel de Usuários', path: '/painel-usuarios', icon: <FiUsers /> },
+  {
+  label: 'Base de Conhecimento',
+  path: '/knowledge', // rota da página
+  icon: <FiUsers /> // você pode trocar para outro ícone
+}
+  
   ];
 
   // Permissão

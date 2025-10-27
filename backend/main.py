@@ -3,8 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from core.config import origins
 from models import Base
 from database import engine
-from api import routes_status_importa_nfe, routes_upload, routes_execucoes, routes_importar_nfe, routes_auth, routes_documents
+from api import routes_status_importa_nfe, routes_gestor_cargas, routes_upload, routes_execucoes, routes_importar_nfe, routes_auth, routes_documents
 import workers.fila_worker  # inicia thread worker
+from api import routes_knowledge
 
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -29,6 +30,9 @@ app.include_router(routes_importar_nfe.router, prefix="/api")
 app.include_router(routes_status_importa_nfe.router, prefix="/api")
 app.include_router(routes_documents.router, prefix="/api")
 app.include_router(routes_auth.router, prefix="/api")
+app.include_router(routes_gestor_cargas.router, prefix="/api")
+app.include_router(routes_knowledge.router, prefix="/api")
+app.mount("/static", StaticFiles(directory="uploads"), name="static")
 
 
 # Define o caminho absoluto para a pasta frontend
