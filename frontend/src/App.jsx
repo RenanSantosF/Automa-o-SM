@@ -7,7 +7,7 @@ import Header from './components/Header/Header';
 import HeaderMobile from './components/Header/HeaderMobile';
 import OcorrenciasPage from './pages/ocorrenciasPage';
 import SolicitacaoMonitoramento from './pages/SolicitacaoMonitoramento';
-import ImportacaoNFE from './pages/ImportacaoNFE';
+
 import RegistroUsuario from './pages/Registro';
 import AtualizaUsuario from './pages/AtualizaUsuario';
 import Comprovantes from './pages/Comprovantes';
@@ -20,6 +20,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import CargasPage from './pages/CargasPage';
 import KnowledgePage from "./pages/knowledgePage"
+import NfeDownloadPage from './pages/NfeDownloadPage';
 
 function App() {
   const { isAuthenticated } = useLogin();
@@ -72,14 +73,7 @@ function App() {
                     </PrivateRoute>
                   }
                 />
-                <Route
-                  path="/nfe"
-                  element={
-                    <PrivateRoute allowedSetores={['expedicao', 'admin']}>
-                      <ImportacaoNFE />
-                    </PrivateRoute>
-                  }
-                />
+
                 <Route
                   path="/updateusuario"
                   element={
@@ -118,6 +112,15 @@ function App() {
   element={
     <PrivateRoute>
       <KnowledgePage />
+    </PrivateRoute>
+  }
+/>
+
+<Route
+  path="/nfe-download"
+  element={
+    <PrivateRoute allowedSetores={['expedicao', 'admin']}>
+      <NfeDownloadPage />
     </PrivateRoute>
   }
 />

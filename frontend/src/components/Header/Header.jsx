@@ -6,6 +6,8 @@ import { useLogin } from '../../Contexts/LoginContext';
 import { motion } from 'framer-motion';
 import { FiUsers } from 'react-icons/fi';
 import { useState } from 'react';
+import { IoDocumentTextOutline } from "react-icons/io5";
+
 
 const Header = ({ isOpen, setIsOpen }) => {
   const { userData, logout } = useLogin();
@@ -18,10 +20,10 @@ const Header = ({ isOpen, setIsOpen }) => {
 
 const menuItems = [
   { label: 'Monitoramento', path: '/', icon: <FaHome /> },
-  { label: 'Importação NFe', path: '/nfe', icon: <FaFileInvoice /> },
+
   { label: 'Comprovantes', path: '/comprovantes', icon: <FaFileSignature /> },
-  { label: 'Base de Conhecimento', path: '/knowledge', icon: <FiUsers /> }, // nova aba
-  
+  { label: 'Base de Conhecimento', path: '/knowledge', icon: <IoDocumentTextOutline /> }, // nova aba
+  { label: 'Baixar NFes', path: '/nfe-download', icon: <FaFileInvoice /> }, // novo item
   { 
     label: 'Cargas', 
     icon: <FaTruck />, 

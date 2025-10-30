@@ -3,9 +3,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from core.config import origins
 from models import Base
 from database import engine
-from api import routes_status_importa_nfe, routes_gestor_cargas, routes_upload, routes_execucoes, routes_importar_nfe, routes_auth, routes_documents
+from api import routes_gestor_cargas, routes_upload, routes_execucoes, routes_auth, routes_documents
 import workers.fila_worker  # inicia thread worker
 from api import routes_knowledge
+from api import routes_nfe_download
+
+
 
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -26,8 +29,7 @@ app.add_middleware(
 # Rotas API
 app.include_router(routes_upload.router, prefix="/api")
 app.include_router(routes_execucoes.router, prefix="/api")
-app.include_router(routes_importar_nfe.router, prefix="/api")
-app.include_router(routes_status_importa_nfe.router, prefix="/api")
+app.include_router(routes_nfe_download.router, prefix="/api")
 app.include_router(routes_documents.router, prefix="/api")
 app.include_router(routes_auth.router, prefix="/api")
 app.include_router(routes_gestor_cargas.router, prefix="/api")

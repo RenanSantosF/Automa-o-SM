@@ -6,6 +6,7 @@ import { FaFileSignature } from 'react-icons/fa6';
 import { useLogin } from '../../Contexts/LoginContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiUsers } from 'react-icons/fi';
+import { IoDocumentTextOutline } from 'react-icons/io5';
 
 const sidebarVariants = {
   hidden: { x: '-100%' },
@@ -25,15 +26,14 @@ const HeaderMobile = () => {
   // Menu fixo, Painel de Usuários sempre aparece
   const menuItems = [
     { label: 'Monitoramento', path: '/', icon: <FaHome /> },
-    { label: 'Importação NFe', path: '/nfe', icon: <FaFileInvoice /> },
     { label: 'Comprovantes', path: '/comprovantes', icon: <FaFileSignature /> },
+    { label: 'Baixar NFes', path: '/nfe-download', icon: <FaFileInvoice /> }, // novo item
+    {
+      label: 'Base de Conhecimento',
+      path: '/knowledge', // rota da página
+      icon: <IoDocumentTextOutline />, // você pode trocar para outro ícone
+    },
     { label: 'Painel de Usuários', path: '/painel-usuarios', icon: <FiUsers /> },
-  {
-  label: 'Base de Conhecimento',
-  path: '/knowledge', // rota da página
-  icon: <FiUsers /> // você pode trocar para outro ícone
-}
-  
   ];
 
   // Permissão
@@ -90,11 +90,12 @@ const HeaderMobile = () => {
                   const liberado = isLiberado(item.label);
                   const baseClasses = `
                     flex items-center gap-2 px-3 py-2 rounded-md text-sm
-                    ${liberado
-                      ? isActive(item.path)
-                        ? 'bg-green-700/80 text-white shadow-md'
-                        : 'text-gray-300 hover:bg-green-900 hover:text-white transition-all'
-                      : 'text-gray-500/70 bg-gray-800/20 cursor-not-allowed'
+                    ${
+                      liberado
+                        ? isActive(item.path)
+                          ? 'bg-green-700/80 text-white shadow-md'
+                          : 'text-gray-300 hover:bg-green-900 hover:text-white transition-all'
+                        : 'text-gray-500/70 bg-gray-800/20 cursor-not-allowed'
                     }
                   `;
 

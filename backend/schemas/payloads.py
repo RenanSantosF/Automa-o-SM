@@ -39,14 +39,8 @@ class PayloadReprocessar(BaseModel):
 
 
 
-class NFeCreate(BaseModel):
-    chave: str
 
-class CTeCreate(BaseModel):
-    nome: str
-    xml: str
-    solicitacao_id: str  # 🔥 Adicionado aqui
-    notas: List[NFeCreate]
+
 
     class Config:
         orm_mode = True

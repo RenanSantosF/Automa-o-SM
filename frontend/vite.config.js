@@ -52,6 +52,7 @@ export default defineConfig({
     }),
 
   ],
+  
     server: {
     host: '0.0.0.0', // ← permite acesso externo
     port: 5173,       // ← porta padrão do Vite

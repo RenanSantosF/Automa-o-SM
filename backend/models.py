@@ -41,35 +41,8 @@ class Execucao(Base):
 
 
 
-class CTe(Base):
-    __tablename__ = "ctes"
-
-    id = Column(Integer, primary_key=True, index=True)
-    nome = Column(String, nullable=False)
-    xml = Column(Text, nullable=False)
-
-    solicitacao_id = Column(String, nullable=False)  # 🔥 Novo campo para agrupar solicitações
-
-    notas = relationship("NFe", back_populates="cte", cascade="all, delete-orphan")
 
 
-class NFe(Base):
-    __tablename__ = "nfes"
-
-    id = Column(Integer, primary_key=True, index=True)
-    chave = Column(String, index=True, nullable=False)
-    cte_id = Column(Integer, ForeignKey("ctes.id"), nullable=False)
-    baixado = Column(Boolean, default=False)
-
-    # 🔥 Novo campo de status
-    status = Column(String, default="processando")  
-    # Valores possíveis: 'processando', 'sucesso', 'erro'
-
-    # 🔥 Novo campo de histórico (array de strings)
-    historico = Column(JSON, default=[])
-
-    # 🔗 Relacionamento
-    cte = relationship("CTe", back_populates="notas")
 
 
 # models.py
