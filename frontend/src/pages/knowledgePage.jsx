@@ -57,6 +57,7 @@ export default function KnowledgePage() {
   const [editingId, setEditingId] = useState(null);
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const quillRef = useRef();
 
@@ -72,24 +73,57 @@ export default function KnowledgePage() {
     headers: { Authorization: `Bearer ${token}` },
   });
 
-  // 🔹 Buscar registros com limite/paginação
-  const fetchEntries = async (newOffset = 0) => {
-    try {
-      const res = await api.get('/', {
-        params: { q: search, limit: 50, offset: newOffset },
-      });
-      if (newOffset === 0) setEntries(res.data);
-      else setEntries((prev) => [...prev, ...res.data]);
-      setHasMore(res.data.length === 50);
-      setOffset(newOffset);
-    } catch {
-      alert('Erro ao carregar registros.');
-    }
-  };
 
-  useEffect(() => {
+  function normalizeString(str) {
+  return str
+    .normalize("NFD") // separa acentos das letras
+    .replace(/[\u0300-\u036f]/g, "") // remove os acentos
+    .toLowerCase();
+}
+
+
+  // 🔹 Buscar registros com limite/paginação
+const fetchEntries = async (newOffset = 0) => {
+  setLoading(true);
+  try {
+    const res = await api.get('/', {
+      params: { q: search, limit: 50, offset: newOffset },
+    });
+
+    const normalizedSearch = normalizeString(search);
+    const filtered = res.data.filter((entry) => {
+      const title = normalizeString(entry.title);
+      const content = normalizeString(entry.content || '');
+  const terms = normalizedSearch.split(/\s+/).filter(Boolean); // divide busca por palavras
+
+  // retorna true se TODAS as palavras aparecerem
+  return terms.every(
+    (term) => title.includes(term) || content.includes(term)
+  );
+    });
+
+    if (newOffset === 0) setEntries(filtered);
+    else setEntries((prev) => [...prev, ...filtered]);
+
+    setHasMore(res.data.length === 50);
+    setOffset(newOffset);
+  } catch {
+    alert('Erro ao carregar registros.');
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+
+useEffect(() => {
+  const delayDebounce = setTimeout(() => {
     fetchEntries(0);
-  }, [search]);
+  }, 500);
+
+  return () => clearTimeout(delayDebounce);
+}, [search]);
+
 
   // 🔹 Upload imagem
   const imageHandler = useCallback(() => {
@@ -224,35 +258,49 @@ const modules = {
         value={search}
         onChange={(e) => setSearch(e.target.value)}
       />
+{/* 🔹 Lista */}
+<div className="bg-white rounded-md divide-y divide-gray-200 border border-gray-300">
+  {loading ? (
+    <p className="text-center text-gray-500 py-4 animate-pulse">
+      Carregando resultados...
+    </p>
+  ) : (
+    <>
+      {entries.map((e) => (
+        <motion.div
+          key={e.id}
+          whileHover={{ scale: 1.01 }}
+          className="p-4 cursor-pointer hover:bg-gray-50 transition"
+          onClick={() => {
+            setViewEntry(e);
+            setViewModalOpen(true);
+          }}
+        >
+          <h2 className="font-semibold text-gray-800">{e.title}</h2>
+          <p className="text-xs text-gray-500">
+            {e.type === 'tutorial' ? '📘 Tutorial' : '🧩 Solução de Erro'}
+          </p>
+          <p className="text-xs text-gray-400 mt-1">
+            🕒{' '}
+            {new Date(
+              new Date(e.created_at).getTime() - 3 * 60 * 60 * 1000
+            ).toLocaleString('pt-BR')}
+          </p>
+        </motion.div>
+      ))}
 
-      {/* 🔹 Lista */}
-      <div className="bg-white rounded-md divide-y divide-gray-200 border border-gray-300">
-        {entries.map((e) => (
-          <motion.div
-            key={e.id}
-            whileHover={{ scale: 1.01 }}
-            className="p-4 cursor-pointer hover:bg-gray-50 transition"
-            onClick={() => {
-              setViewEntry(e);
-              setViewModalOpen(true);
-            }}
-          >
-            <h2 className="font-semibold text-gray-800">{e.title}</h2>
-            <p className="text-xs text-gray-500">
-              {e.type === 'tutorial' ? '📘 Tutorial' : '🧩 Solução de Erro'}
-            </p>
-            <p className="text-xs text-gray-400 mt-1">
-              🕒{' '}
-              {new Date(new Date(e.created_at).getTime() - 3 * 60 * 60 * 1000).toLocaleString(
-                'pt-BR'
-              )}
-            </p>
-          </motion.div>
-        ))}
-      </div>
+      {entries.length === 0 && (
+        <p className="text-center text-gray-500 py-6">
+          Nenhum resultado encontrado. Tente buscar com as palavras exatas.
+        </p>
+      )}
+    </>
+  )}
+</div>
+
 
       {/* 🔹 Botão carregar mais */}
-      {hasMore && (
+      {hasMore && !loading && (
         <button
           onClick={() => fetchEntries(offset + 50)}
           className="mt-3 w-full py-2 text-center bg-white border border-gray-300 hover:bg-gray-50 rounded-md cursor-pointer transition"
@@ -368,12 +416,7 @@ const modules = {
                     </button>
                   </>
                 )}
-                {/* <button
-                  onClick={() => setViewModalOpen(false)}
-                  className="text-gray-500 hover:text-gray-700 cursor-pointer"
-                >
-                  <FiX size={22} />
-                </button> */}
+
               </div>
             </div>
 
