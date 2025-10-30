@@ -74,12 +74,14 @@ export default function KnowledgePage() {
   });
 
 
-  function normalizeString(str) {
+function normalizeString(str) {
   return str
-    .normalize("NFD") // separa acentos das letras
-    .replace(/[\u0300-\u036f]/g, "") // remove os acentos
+    .normalize("NFD")               // separa acentos das letras
+    .replace(/[\u0300-\u036f]/g, "") // remove acentos
+    .replace(/ç/g, "c")             // substitui ç por c
     .toLowerCase();
 }
+
 
 
   // 🔹 Buscar registros com limite/paginação
