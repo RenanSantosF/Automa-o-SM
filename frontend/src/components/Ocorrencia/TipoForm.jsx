@@ -8,24 +8,16 @@ const TipoForm = ({ initialData = {}, onSubmit, onClose }) => {
 
   useEffect(() => {
     setFormData({ nome: "", descricao: "", ...initialData });
-    if (initialData.id) {
-      setMostrar(true);
-    }
+    if (initialData.id) setMostrar(true);
   }, [initialData]);
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      await onSubmit(formData); // espera o backend
-      setMostrar(false);        // fecha só depois do sucesso
-      setFormData({ nome: "", descricao: "" });
-    } catch (err) {
-      console.error("Erro ao salvar tipo:", err);
-    }
+    await onSubmit(formData);
+    setMostrar(false);
+    setFormData({ nome: "", descricao: "" });
   };
 
   const handleClose = () => {
@@ -38,7 +30,7 @@ const TipoForm = ({ initialData = {}, onSubmit, onClose }) => {
     <div className="relative z-10">
       <button
         onClick={() => setMostrar(true)}
-        className="flex items-center gap-2 bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg text-white transition"
+        className="flex items-center gap-2 bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg text-white shadow transition"
       >
         <MdAddBox size={20} />
         {initialData.id ? "Editar Tipo" : "Incluir Tipo"}
@@ -47,83 +39,77 @@ const TipoForm = ({ initialData = {}, onSubmit, onClose }) => {
       <AnimatePresence>
         {mostrar && (
           <>
-            {/* Fundo escuro */}
             <motion.div
-              className="fixed inset-0 bg-black/70 z-40"
+              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={handleClose}
             />
-            {/* Modal */}
-            <motion.div
+            <motion.form
+              onSubmit={handleSubmit}
               className="fixed inset-0 z-50 flex items-center justify-center p-4"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
             >
-              <form
-                onSubmit={handleSubmit}
-                className="relative bg-[#333] p-6 rounded-2xl shadow-lg w-full max-w-md flex flex-col gap-4 text-white"
+              <div
+                className="relative bg-white p-6 rounded-2xl shadow-xl w-full max-w-md flex flex-col gap-4 text-gray-700"
                 onClick={(e) => e.stopPropagation()}
               >
-                {/* Botão fechar */}
                 <button
                   type="button"
                   onClick={handleClose}
-                  className="absolute top-4 right-4 text-gray-300 hover:text-white"
+                  className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
                 >
-                  <MdClose size={26} />
+                  <MdClose size={24} />
                 </button>
 
-                <h2 className="text-xl font-bold mb-2">
+                <h2 className="text-xl font-semibold text-green-700">
                   {initialData.id ? "Editar Tipo" : "Novo Tipo de Ocorrência"}
                 </h2>
 
-                {/* Campo Nome */}
-                <label className="flex flex-col">
-                  Nome:
+                <label className="flex flex-col gap-1">
+                  <span className="text-sm font-medium">Nome</span>
                   <input
                     type="text"
                     name="nome"
                     value={formData.nome}
                     onChange={handleChange}
-                    className="mt-1 p-2 rounded-md bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-green-500"
                     required
                   />
                 </label>
 
-                {/* Campo Descrição */}
-                <label className="flex flex-col">
-                  Descrição:
+                <label className="flex flex-col gap-1">
+                  <span className="text-sm font-medium">Descrição</span>
                   <input
                     type="text"
                     name="descricao"
                     value={formData.descricao}
                     onChange={handleChange}
-                    className="mt-1 p-2 rounded-md bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-green-500"
                     required
                   />
                 </label>
 
-                {/* Botões */}
-                <div className="flex justify-end gap-2">
+                <div className="flex justify-end gap-2 mt-2">
                   <button
                     type="button"
                     onClick={handleClose}
-                    className="px-4 py-2 rounded-md bg-gray-600 hover:bg-gray-700 transition"
+                    className="px-4 py-2 rounded-md bg-gray-100 text-gray-600 hover:bg-gray-200 transition"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 rounded-md bg-green-600 hover:bg-green-700 transition"
+                    className="px-4 py-2 rounded-md bg-green-600 text-white hover:bg-green-700 transition"
                   >
                     Salvar
                   </button>
                 </div>
-              </form>
-            </motion.div>
+              </div>
+            </motion.form>
           </>
         )}
       </AnimatePresence>

@@ -27,11 +27,14 @@ const HeaderMobile = () => {
   const menuItems = [
     { label: 'Monitoramento', path: '/', icon: <FaHome /> },
     { label: 'Comprovantes', path: '/comprovantes', icon: <FaFileSignature /> },
-    { label: 'Baixar NFes', path: '/nfe-download', icon: <FaFileInvoice /> }, // novo item
+    { label: 'Baixar NFes', path: '/nfe-download', icon: <FaFileInvoice /> },
+    { label: 'Base de Conhecimento', path: '/knowledge', icon: <IoDocumentTextOutline /> },
     {
-      label: 'Base de Conhecimento',
-      path: '/knowledge', // rota da página
-      icon: <IoDocumentTextOutline />, // você pode trocar para outro ícone
+      label: 'Cargas',
+      subItems: [
+        { label: 'Cargas', path: '/cargas' },
+        { label: 'Cadastros de Ocorrências', path: '/ocorrencias' },
+      ],
     },
     { label: 'Painel de Usuários', path: '/painel-usuarios', icon: <FiUsers /> },
   ];
@@ -87,38 +90,46 @@ const HeaderMobile = () => {
               {/* Menu Items */}
               <div className="flex-1 overflow-y-auto px-2 py-4 flex flex-col gap-1">
                 {menuItems.map((item) => {
-                  const liberado = isLiberado(item.label);
-                  const baseClasses = `
-                    flex items-center gap-2 px-3 py-2 rounded-md text-sm
-                    ${
-                      liberado
-                        ? isActive(item.path)
-                          ? 'bg-green-700/80 text-white shadow-md'
-                          : 'text-gray-300 hover:bg-green-900 hover:text-white transition-all'
-                        : 'text-gray-500/70 bg-gray-800/20 cursor-not-allowed'
-                    }
-                  `;
+                  const hasSubmenu = item.subItems && item.subItems.length > 0;
+                  const liberado = true; // todos liberados
+
+                  if (hasSubmenu) {
+                    return (
+                      <div key={item.label} className="flex flex-col gap-1">
+                        <span className="px-3 py-2 text-gray-300 font-medium">{item.label}</span>
+                        <div className="ml-4 flex flex-col gap-1">
+                          {item.subItems.map((sub) => (
+                            <Link
+                              key={sub.path}
+                              to={sub.path}
+                              onClick={() => setMenuOpen(false)}
+                              className={`text-gray-300 hover:text-white text-sm px-3 py-2 rounded-md ${
+                                isActive(sub.path) ? 'bg-green-700/80 font-semibold' : ''
+                              }`}
+                            >
+                              {sub.label}
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  }
 
                   return liberado ? (
                     <Link
                       key={item.path}
                       to={item.path}
                       onClick={() => setMenuOpen(false)}
-                      className={baseClasses}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm ${
+                        isActive(item.path)
+                          ? 'bg-green-700/80 text-white shadow-md'
+                          : 'text-gray-300 hover:bg-green-900 hover:text-white transition-all'
+                      }`}
                     >
                       {item.icon}
                       <span>{item.label}</span>
                     </Link>
-                  ) : (
-                    <div
-                      key={item.path}
-                      className={baseClasses}
-                      title="Indisponível para seu setor"
-                    >
-                      {item.icon}
-                      <span className="line-through opacity-50">{item.label}</span>
-                    </div>
-                  );
+                  ) : null;
                 })}
 
                 {/* Meus Dados */}

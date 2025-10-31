@@ -128,20 +128,24 @@ class Carga(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     data_carregamento = Column(Date, nullable=False)
-    origem = Column(String, nullable=False)
-    destino = Column(String, nullable=False)
+    uf_origem = Column(String(2), nullable=False)
+    cidade_origem = Column(String, nullable=False)
+    uf_destino = Column(String(2), nullable=False)
+    cidade_destino = Column(String, nullable=False)
     rota = Column(String, nullable=False)
     valor_frete = Column(Numeric(10, 2), nullable=False)
-
-    # status geral da carga (normal, recusada, show, atraso)
     status = Column(String, default="normal")
     observacao_cliente = Column(String, nullable=True)
-
     criado_em = Column(DateTime, default=func.now())
     atualizado_em = Column(DateTime, nullable=False, default=func.now(), onupdate=func.now())
 
-    # Relacionamentos
-    ocorrencias = relationship("OcorrenciaCarga", back_populates="carga")
+    # Relacionamentos com cascade
+    ocorrencias = relationship(
+        "OcorrenciaCarga",
+        back_populates="carga",
+        cascade="all, delete-orphan"  # <<<<<< aqui é o importante
+    )
+
 
 
 class TipoOcorrencia(Base):
@@ -179,7 +183,6 @@ class OcorrenciaCarga(Base):
     carga_id = Column(Integer, ForeignKey("cargas.id"), nullable=False)
     motivo_id = Column(Integer, ForeignKey("motivos_ocorrencia.id"), nullable=False)
     observacao = Column(String, nullable=True)
-
     criado_em = Column(DateTime, default=func.now())
     atualizado_em = Column(DateTime, nullable=False, default=func.now(), onupdate=func.now())
 

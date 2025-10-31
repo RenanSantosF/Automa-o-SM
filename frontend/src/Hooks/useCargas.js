@@ -1,4 +1,3 @@
-// useCargas.js
 import { useState, useEffect } from "react";
 import { listarCargas, criarCarga, atualizarCarga, deletarCarga } from "../api/gestorCargas.js";
 
@@ -11,47 +10,52 @@ export function useCargas() {
     try {
       const data = await listarCargas();
       setCargas(data);
+    } catch (err) {
+      console.error("Erro ao listar cargas:", err);
     } finally {
       setLoading(false);
     }
   };
 
-// No useCargas.js, adicione logs para ver a resposta
-const addCarga = async (cargaData) => {
-  try {
-    console.log('Enviando carga:', cargaData);
-    const created = await criarCarga(cargaData);
-    console.log('Carga criada com resposta:', created);
-    
-    // Recarregar todas as cargas para incluir as ocorrências
-    await fetchCargas();
-    return created;
-  } catch (error) {
-    console.error('Erro ao criar carga:', error);
-    throw error;
-  }
-};
+  const addCarga = async (cargaData) => {
+    if (!cargaData) {
+      console.error("addCarga chamado com dados nulos ou indefinidos");
+      return;
+    }
+    try {
+      console.log("Enviando carga:", cargaData);
+      const created = await criarCarga(cargaData);
+      console.log("Carga criada:", created);
+      await fetchCargas();
+      return created;
+    } catch (error) {
+      console.error("Erro ao criar carga:", error);
+      throw error;
+    }
+  };
 
   const updateCarga = async (id, cargaData) => {
-    const { ocorrencias, ...dadosCarga } = cargaData;
-    const updated = await atualizarCarga(id, dadosCarga);
-    
-    // As ocorrências são gerenciadas pelo backend automaticamente
-    // pois a API já está configurada para lidar com o array de ocorrências
-    
-    // Recarregar todas as cargas
-    await fetchCargas();
-    return updated;
+    if (!cargaData) return;
+    try {
+      const updated = await atualizarCarga(id, cargaData);
+      await fetchCargas();
+      return updated;
+    } catch (err) {
+      console.error("Erro ao atualizar carga:", err);
+      throw err;
+    }
   };
 
   const removeCarga = async (id) => {
-    await deletarCarga(id);
-    setCargas((prev) => prev.filter((c) => c.id !== id));
+    try {
+      await deletarCarga(id);
+      setCargas((prev) => prev.filter((c) => c.id !== id));
+    } catch (err) {
+      console.error("Erro ao deletar carga:", err);
+    }
   };
 
-  useEffect(() => { 
-    fetchCargas(); 
-  }, []);
+  useEffect(() => { fetchCargas(); }, []);
 
   return { cargas, loading, addCarga, updateCarga, removeCarga, fetchCargas };
 }
