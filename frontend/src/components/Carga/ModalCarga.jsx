@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { MdClose, MdDelete, MdEdit } from 'react-icons/md';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function ModalCarga({ cargaInicial = null, onClose, onSucesso }) {
   // começar em edição quando não há cargaInicial (ou seja, criando)
@@ -39,7 +40,7 @@ useEffect(() => {
 }, [cargaInicial]);
 
   const api = axios.create({
-    baseURL: 'http://localhost:8000/api/gestor-cargas',
+    baseURL: `${API_URL}/gestor-cargas`,
     headers: {
       Authorization: `Bearer ${localStorage.getItem('token')}`,
       'Content-Type': 'application/json',
