@@ -78,7 +78,7 @@ async def criar_carga(payload: CargaCreateSchema, db: Session = Depends(get_db),
     except Exception as e:
         db.rollback()
         raise HTTPException(500, f"Erro ao criar carga: {str(e)}")
-    
+
 @router.get("/cargas", response_model=List[CargaSchema])
 async def listar_cargas(
     skip: int = 0,
