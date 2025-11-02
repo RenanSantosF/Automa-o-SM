@@ -210,38 +210,59 @@ export default function RegisterForm() {
               ${!form.nome.trim() ? 'border-red-500' : 'border-gray-600'}`}
           />
         </div>
+{/* Transportadora - obrigatório */}
+<div className="flex flex-col">
+  <label className="text-xs text-gray-300 mb-1 flex gap-2 items-center">
+    Transportadora *
+  </label>
+  <select
+    name="transportadora"
+    value={form.transportadora}
+    onChange={handleChange}
+    required
+    className={`bg-[#161616] text-sm px-3 py-2 border rounded-md focus:outline-none
+      appearance-none
+      cursor-pointer hover:bg-[#1d1d1f]
+      ${!form.transportadora.trim() ? 'border-red-500' : 'border-gray-600'}
+    `}
+  >
+    <option value="">Selecione a transportadora</option>
+    <option value="Dellmar Transportes LTDA">Dellmar Transportes LTDA</option>
+  </select>
+</div>
 
-        <div className="flex flex-col">
-          <label className="text-xs text-gray-300 mb-1 flex gap-1 items-center">
-            Transportadora *
-          </label>
-          <input
-            type="text"
-            name="transportadora"
-            value={form.transportadora}
-            onChange={handleChange}
-            required
-            placeholder="Ex: Dellmar"
-            className={`bg-[#161616] text-sm px-3 py-1.5 border rounded-md focus:outline-none
-              ${!form.transportadora.trim() ? 'border-red-500' : 'border-gray-600'}`}
-          />
-        </div>
+{/* Filial - obrigatório */}
+<div className="flex flex-col">
+  <label className="text-xs text-gray-300 mb-1 flex gap-2 items-center">
+    Filial *
+  </label>
+  <select
+    name="filial"
+    value={form.filial}
+    onChange={handleChange}
+    required
+    className={`bg-[#161616] text-sm px-3 py-2 border rounded-md focus:outline-none
+      appearance-none
+      cursor-pointer hover:bg-[#1d1d1f]
+      ${!form.filial.trim() ? 'border-red-500' : 'border-gray-600'}
+    `}
+  >
+    <option value="">Selecione a filial</option>
+    <option value="Viana - ES">Viana - ES</option>
+    <option value="Pindamonhangaba - SP">Pindamonhangaba - SP</option>
+    <option value="Itatiaia - RJ">Itatiaia - RJ</option>
+    <option value="Aparecida de Goiânia - GO">Aparecida de Goiânia - GO</option>
+    <option value="Ponta Grossa - PR">Ponta Grossa - PR</option>
+    <option value="São Jose dos Campos - SP">São Jose dos Campos - SP</option>
+    <option value="Campos dos Goytacazes - RJ">Campos dos Goytacazes - RJ</option>
+    <option value="Conceição Do Jacuípe - BA">Conceição Do Jacuípe - BA</option>
+    <option value="João Pessoa - PB">João Pessoa - PB</option>
+    <option value="Jaboatão dos Guararapes - PE">Jaboatão dos Guararapes - PE</option>
+    <option value="Açailândia - MA">Açailândia - MA</option>
+    <option value="Rondonópolis - MT">Rondonópolis - MT</option>
+  </select>
+</div>
 
-        <div className="flex flex-col">
-          <label className="text-xs text-gray-300 mb-1 flex gap-1 items-center">
-            Filial *
-          </label>
-          <input
-            type="text"
-            name="filial"
-            value={form.filial}
-            onChange={handleChange}
-            required
-            placeholder="Ex: Pindamonhangaba"
-            className={`bg-[#161616] text-sm px-3 py-1.5 border rounded-md focus:outline-none
-              ${!form.filial.trim() ? 'border-red-500' : 'border-gray-600'}`}
-          />
-        </div>
 
         <div className="flex flex-col relative">
           <label className="text-xs text-gray-300 mb-1 flex gap-1 items-center">
