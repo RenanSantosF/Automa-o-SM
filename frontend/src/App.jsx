@@ -94,7 +94,7 @@ function App() {
                 <Route
                   path="/cargas"
                   element={
-                    <PrivateRoute allowedSetores={['ocorrencia', 'admin']}>
+                    <PrivateRoute>
                       <CargasPage />
                     </PrivateRoute>
                   }
