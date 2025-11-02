@@ -1,22 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   FiUser,
   FiKey,
-  FiServer,
   FiCheckCircle,
   FiLoader,
   FiEye,
   FiEyeOff,
-  FiShield,
+  FiEdit2,
 } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useLogin } from '../../Contexts/LoginContext';
+
 const setores = ['ocorrencia', 'expedicao', 'outros'];
 const api = import.meta.env.VITE_API_URL;
 
 export default function UpdateUser() {
   const { logout } = useLogin();
+  const navigate = useNavigate();
+
   const [form, setForm] = useState({
     username: '',
     email: '',
@@ -24,6 +26,9 @@ export default function UpdateUser() {
     setor: setores[0],
     usuario_apisul: '',
     senha_apisul: '',
+    nome: '',
+    transportadora: '',
+    filial: '',
   });
 
   const [setorInicial, setSetorInicial] = useState('');
@@ -31,12 +36,19 @@ export default function UpdateUser() {
   const [mostrarApisul, setMostrarApisul] = useState(false);
   const [mostrarSenha, setMostrarSenha] = useState(false);
 
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
+  const [isEditing, setIsEditing] = useState(false); // precisa apertar "Editar Cadastro"
+  const [isFormComplete, setIsFormComplete] = useState(true); // assume true até buscar dados
+  const mounted = useRef(false);
+
+  // campos obrigatórios para considerar cadastro completo
+  const requiredFields = ['email', 'nome', 'transportadora', 'filial'];
+
   useEffect(() => {
+    mounted.current = true;
     async function fetchUser() {
       const token = localStorage.getItem('token');
       if (!token) {
@@ -61,18 +73,89 @@ export default function UpdateUser() {
           setor: data.setor || setores[0],
           usuario_apisul: data.usuario_apisul || '',
           senha_apisul: '',
+          nome: data.nome || '',
+          transportadora: data.transportadora || '',
+          filial: data.filial || '',
         });
         setSetorInicial(data.setor || setores[0]);
+
+        // define completude
+        const complete = requiredFields.every((f) => {
+          const v = (data[f] ?? '').toString().trim();
+          return v.length > 0;
+        });
+        setIsFormComplete(complete);
+        // se incompleto, força edição para que preencham (opcional: manter bloqueado até click editar)
+        if (!complete) {
+          // força modo edição ativo para facilitar preenchimento
+          setIsEditing(true);
+        }
       } catch (err) {
         setError(err.message);
       }
     }
     fetchUser();
-  }, []);
+
+    return () => {
+      mounted.current = false;
+    };
+  }, []); // eslint-disable-line
+
+  // bloqueia fechar/atualizar aba
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (!isFormComplete) {
+        e.preventDefault();
+        e.returnValue = '';
+        return '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    // popstate = back/forward do navegador
+    const handlePopState = (e) => {
+      if (!isFormComplete) {
+        // re-insere estado para impedir navegar para trás
+        window.history.pushState(null, '', window.location.href);
+        // alerta simples
+        alert('Preencha todos os campos obrigatórios antes de sair desta página.');
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+
+    // Também previne clicar em links externos (âncoras) - intercepta clicks
+    const handleDocumentClick = (ev) => {
+      if (!isFormComplete) {
+        // se clicar em elemento <a href> que muda a página
+        const a = ev.target.closest && ev.target.closest('a[href]');
+        if (a && a.getAttribute('href') && !a.getAttribute('target')) {
+          ev.preventDefault();
+          alert('Complete os campos obrigatórios antes de sair da página.');
+        }
+      }
+    };
+    document.addEventListener('click', handleDocumentClick);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('popstate', handlePopState);
+      document.removeEventListener('click', handleDocumentClick);
+    };
+  }, [isFormComplete]);
+
+  // recalcula completude sempre que o form muda
+  useEffect(() => {
+    const complete = requiredFields.every((f) => {
+      const v = (form[f] ?? '').toString().trim();
+      return v.length > 0;
+    });
+    setIsFormComplete(complete);
+  }, [form]); // eslint-disable-line
 
   const handleChange = (e) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-    if (e.target.name === 'setor') {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+    if (name === 'setor') {
       setSenhaConfirmSetor('');
       setError('');
     }
@@ -84,6 +167,13 @@ export default function UpdateUser() {
     setError('');
     setSuccessMessage('');
 
+    // antes de enviar, valida completude (já obrigatório)
+    if (!isFormComplete) {
+      setError('Por favor, preencha todos os campos obrigatórios antes de salvar.');
+      setLoading(false);
+      return;
+    }
+
     if (form.setor !== setorInicial) {
       if (senhaConfirmSetor !== '985509') {
         setError('Senha incorreta para alteração do setor.');
@@ -93,11 +183,17 @@ export default function UpdateUser() {
     }
 
     const payload = {};
+    // campos que podem ser atualizados
     if (form.email !== '') payload.email = form.email;
     if (form.senha) payload.senha = form.senha;
     if (form.setor !== setorInicial) payload.setor = form.setor;
     if (mostrarApisul && form.usuario_apisul) payload.usuario_apisul = form.usuario_apisul;
     if (mostrarApisul && form.senha_apisul) payload.senha_apisul = form.senha_apisul;
+
+    // novos campos devem sempre ser enviados para o backend (são obrigatórios aqui)
+    payload.nome = form.nome;
+    payload.transportadora = form.transportadora;
+    payload.filial = form.filial;
 
     Object.keys(payload).forEach((key) => payload[key] === undefined && delete payload[key]);
 
@@ -115,45 +211,61 @@ export default function UpdateUser() {
       });
 
       if (!res.ok) {
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
         throw new Error(data.detail || 'Erro ao atualizar usuário');
       }
 
       setSuccessMessage('✅ Usuário atualizado com sucesso!');
       setSetorInicial(form.setor);
       setSenhaConfirmSetor('');
+      setIsEditing(false); // travar edicao após salvar
 
+      // após salvar, desloga e redireciona (como antes)
       setTimeout(() => {
         logout();
         localStorage.removeItem('token');
         navigate('/login');
-      }, 2000);
+      }, 1400);
 
       setForm((prev) => ({ ...prev, senha: '', senha_apisul: '' }));
     } catch (err) {
       setError(err.message);
     } finally {
-      setLoading(false);
+      if (mounted.current) setLoading(false);
     }
   };
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6 }}
-      className="flex items-center justify-center  bg-[#333]"
+      transition={{ duration: 0.45 }}
+      className="flex items-center justify-center min-h-[80vh] bg-[#222]"
     >
       <form
         onSubmit={handleSubmit}
-        className="bg-[#1f1f1f]/90 backdrop-blur-md border border-gray-400 p-8 rounded-2xl shadow-lg w-full max-w-md space-y-5"
+        className="bg-[#0f0f11]/80 backdrop-blur-sm border border-gray-600 p-6 rounded-md shadow-md w-full max-w-lg space-y-4"
       >
-        <h2 className="text-2xl font-bold text-center text-green-400 flex items-center justify-center gap-2">
-          <FiCheckCircle /> Atualizar Usuário
-        </h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-green-400 flex items-center gap-2">
+            <FiCheckCircle /> Atualizar Usuário
+          </h2>
 
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setIsEditing((s) => !s)}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-gray-600 text-sm bg-transparent hover:bg-gray-800 transition"
+            >
+              <FiEdit2 />
+              {isEditing ? 'Cancelar edição' : 'Editar cadastro'}
+            </button>
+          </div>
+        </div>
+
+        {/* Usuário (readonly) */}
         <div className="flex flex-col">
-          <label className="text-sm text-gray-300 mb-1 flex gap-1">
+          <label className="text-xs text-gray-300 mb-1 flex gap-2 items-center">
             <FiUser /> Usuário
           </label>
           <input
@@ -161,12 +273,32 @@ export default function UpdateUser() {
             name="username"
             value={form.username}
             readOnly
-            className="bg-[#2b2b2b] border border-gray-600 rounded-lg px-3 py-2 text-gray-400 cursor-not-allowed"
+            className="bg-[#161616] border border-gray-600 rounded-md px-3 py-2 text-gray-300 cursor-not-allowed text-sm"
           />
         </div>
 
+        {/* Nome - obrigatório */}
         <div className="flex flex-col">
-          <label className="text-sm text-gray-300 mb-1 flex gap-1">
+          <label className="text-xs text-gray-300 mb-1 flex gap-2 items-center">
+            <FiUser /> Nome Completo *
+          </label>
+          <input
+            type="text"
+            name="nome"
+            value={form.nome}
+            onChange={handleChange}
+            readOnly={!isEditing}
+            placeholder="Nome Completo"
+            className={`bg-[#161616] text-sm px-3 py-2 border rounded-md focus:outline-none
+              ${isEditing ? 'cursor-text' : 'cursor-not-allowed opacity-80'}
+              ${isEditing && !form.nome.trim() ? 'border-red-500' : 'border-gray-600'}
+            `}
+          />
+        </div>
+
+        {/* Email - obrigatório */}
+        <div className="flex flex-col">
+          <label className="text-xs text-gray-300 mb-1 flex gap-2 items-center">
             <FiUser /> Email *
           </label>
           <input
@@ -174,14 +306,57 @@ export default function UpdateUser() {
             name="email"
             value={form.email}
             onChange={handleChange}
+            readOnly={!isEditing}
             required
             placeholder="exemplo@dominio.com"
-            className="bg-[#2b2b2b] border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-600"
+            className={`bg-[#161616] text-sm px-3 py-2 border rounded-md focus:outline-none
+              ${isEditing ? 'cursor-text' : 'cursor-not-allowed opacity-80'}
+              ${isEditing && !form.email.trim() ? 'border-red-500' : 'border-gray-600'}
+            `}
           />
         </div>
 
+        {/* Transportadora - obrigatório */}
+        <div className="flex flex-col">
+          <label className="text-xs text-gray-300 mb-1 flex gap-2 items-center">
+            Transportadora *
+          </label>
+          <input
+            type="text"
+            name="transportadora"
+            value={form.transportadora}
+            onChange={handleChange}
+            readOnly={!isEditing}
+            placeholder="Ex: Dellmar"
+            className={`bg-[#161616] text-sm px-3 py-2 border rounded-md focus:outline-none
+              ${isEditing ? 'cursor-text' : 'cursor-not-allowed opacity-80'}
+              ${isEditing && !form.transportadora.trim() ? 'border-red-500' : 'border-gray-600'}
+            `}
+          />
+        </div>
+
+        {/* Filial - obrigatório */}
+        <div className="flex flex-col">
+          <label className="text-xs text-gray-300 mb-1 flex gap-2 items-center">
+            Filial *
+          </label>
+          <input
+            type="text"
+            name="filial"
+            value={form.filial}
+            onChange={handleChange}
+            readOnly={!isEditing}
+            placeholder="Ex: Pindamonhangaba"
+            className={`bg-[#161616] text-sm px-3 py-2 border rounded-md focus:outline-none
+              ${isEditing ? 'cursor-text' : 'cursor-not-allowed opacity-80'}
+              ${isEditing && !form.filial.trim() ? 'border-red-500' : 'border-gray-600'}
+            `}
+          />
+        </div>
+
+        {/* Senha */}
         <div className="flex flex-col relative">
-          <label className="text-sm text-gray-300 mb-1 flex gap-1">
+          <label className="text-xs text-gray-300 mb-1 flex gap-2 items-center">
             <FiKey /> Nova Senha
           </label>
           <input
@@ -189,86 +364,93 @@ export default function UpdateUser() {
             name="senha"
             value={form.senha}
             onChange={handleChange}
+            readOnly={!isEditing}
             placeholder="••••••••"
-            className="bg-[#2b2b2b] border border-gray-600 rounded-lg px-3 py-2 pr-10 text-white focus:outline-none focus:ring-2 focus:ring-green-600"
+            className={`bg-[#161616] text-sm px-3 py-2 pr-10 border rounded-md focus:outline-none
+              ${isEditing ? 'cursor-text' : 'cursor-not-allowed opacity-80'}
+            `}
           />
           <span
             className="absolute right-3 top-[38px] text-gray-400 cursor-pointer"
-            onClick={() => setMostrarSenha(!mostrarSenha)}
+            onClick={() => setMostrarSenha((s) => !s)}
           >
             {mostrarSenha ? <FiEyeOff /> : <FiEye />}
           </span>
         </div>
 
+        {/* Setor (apenas leitura no seu layout atual) */}
         <div className="flex flex-col">
-          <label className="text-sm text-gray-300 mb-1 flex gap-1">
-            <FiServer /> Setor
+          <label className="text-xs text-gray-300 mb-1 flex gap-2 items-center">
+            Setor
           </label>
-          <div className="bg-[#2b2b2b] border border-gray-600 rounded-lg px-3 py-2 text-white opacity-60 cursor-default select-none">
+          <div className="bg-[#161616] border border-gray-600 rounded-md px-3 py-2 text-sm text-gray-300 select-none">
             {form.setor.charAt(0).toUpperCase() + form.setor.slice(1)}
           </div>
         </div>
 
         <button
           type="button"
-          onClick={() => setMostrarApisul(!mostrarApisul)}
+          onClick={() => setMostrarApisul((s) => !s)}
           className="text-sm text-green-400 underline"
         >
           {mostrarApisul ? 'Ocultar campos Apisul' : 'Utiliza Apisul?'}
         </button>
 
-        <div className="overflow-hidden">
-          <AnimatePresence>
-            {mostrarApisul && (
-              <motion.div
-                key="apisul-fields"
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.3 }}
-                className="space-y-4"
-              >
-                <div className="flex flex-col">
-                  <label className="text-sm text-gray-300 mb-1 flex gap-1">
-                    <FiUser /> Usuário Apisul
-                  </label>
-                  <input
-                    type="text"
-                    name="usuario_apisul"
-                    value={form.usuario_apisul}
-                    onChange={handleChange}
-                    placeholder="login.apisul"
-                    className="bg-[#2b2b2b] border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-600"
-                  />
-                </div>
-                <div className="flex flex-col">
-                  <label className="text-sm text-gray-300 mb-1 flex gap-1">
-                    <FiKey /> Senha Apisul
-                  </label>
-                  <input
-                    type="password"
-                    name="senha_apisul"
-                    value={form.senha_apisul}
-                    onChange={handleChange}
-                    placeholder="••••••••"
-                    className="bg-[#2b2b2b] border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-600"
-                  />
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-        <div className='w-full flex justify-end'>
+        <AnimatePresence>
+          {mostrarApisul && (
+            <motion.div
+              key="apisul-fields"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.22 }}
+              className="space-y-3"
+            >
+              <div className="flex flex-col">
+                <label className="text-xs text-gray-300 mb-1 flex gap-2 items-center">
+                  Usuário Apisul
+                </label>
+                <input
+                  type="text"
+                  name="usuario_apisul"
+                  value={form.usuario_apisul}
+                  onChange={handleChange}
+                  readOnly={!isEditing}
+                  placeholder="login.apisul"
+                  className={`bg-[#161616] text-sm px-3 py-2 border rounded-md focus:outline-none
+                    ${isEditing ? 'cursor-text' : 'cursor-not-allowed opacity-80'}
+                  `}
+                />
+              </div>
+              <div className="flex flex-col">
+                <label className="text-xs text-gray-300 mb-1 flex gap-2 items-center">
+                  Senha Apisul
+                </label>
+                <input
+                  type="text"
+                  name="senha_apisul"
+                  value={form.senha_apisul}
+                  onChange={handleChange}
+                  readOnly={!isEditing}
+                  placeholder="••••••••"
+                  className={`bg-[#161616] text-sm px-3 py-2 border rounded-md focus:outline-none
+                    ${isEditing ? 'cursor-text' : 'cursor-not-allowed opacity-80'}
+                  `}
+                />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Ações */}
+        <div className="w-full flex justify-end gap-2">
           <button
             type="submit"
-            disabled={loading}
-            className={`cursor-pointer flex items-center justify-center gap-2 px-8 py-2 rounded-md 
-            ${
-              loading
-                ? 'bg-green-800 cursor-wait'
-                : 'bg-green-500 hover:bg-green-600 transition-all'
-            } 
-            text-white font-medium`}
+            disabled={!isEditing || loading}
+            className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-medium
+              ${!isEditing ? 'bg-gray-700 text-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600 text-white'}
+              transition
+            `}
           >
             {loading ? (
               <>
@@ -282,14 +464,22 @@ export default function UpdateUser() {
           </button>
         </div>
 
+        {/* feedbacks */}
         {successMessage && (
-          <p className="text-green-500 text-center text-sm border border-green-500 p-2 rounded-lg bg-green-500/10">
+          <p className="text-green-400 text-center text-sm border border-green-600 p-2 rounded-md bg-green-600/6">
             {successMessage}
           </p>
         )}
         {error && (
-          <p className="text-red-500 text-center text-sm border border-red-500 p-2 rounded-lg bg-red-500/10">
+          <p className="text-red-400 text-center text-sm border border-red-600 p-2 rounded-md bg-red-600/6">
             {error}
+          </p>
+        )}
+
+        {/* Se o cadastro estiver incompleto e não estiver editando, mostramos aviso persistente */}
+        {!isFormComplete && (
+          <p className="text-yellow-300 text-sm border border-yellow-600 p-2 rounded-md bg-yellow-600/6">
+            Cadastro incompleto — preencha todos os campos marcados com * antes de sair.
           </p>
         )}
       </form>

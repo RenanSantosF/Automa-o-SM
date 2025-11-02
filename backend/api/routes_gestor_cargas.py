@@ -21,41 +21,100 @@ router = APIRouter(
     tags=["Gestor de Cargas"],
 )
 
-# Função utilitária para normalizar campos string
+# Função utilitária para normalizar campos string e incluir meta do criador
 def normalize_carga(carga: Carga) -> dict:
     return {
-        **carga.__dict__,
+        "id": carga.id,
+        "data_carregamento": carga.data_carregamento,
         "uf_origem": carga.uf_origem or "",
         "cidade_origem": carga.cidade_origem or "",
         "uf_destino": carga.uf_destino or "",
         "cidade_destino": carga.cidade_destino or "",
+        "rota": carga.rota or "",
+        "valor_frete": float(carga.valor_frete) if carga.valor_frete is not None else None,
+        "status": carga.status,
+        "observacao_cliente": carga.observacao_cliente,
+        "criado_em": carga.criado_em,
+        "atualizado_em": carga.atualizado_em,
+        # ocorrencias serializadas
         "ocorrencias": [
             {
-                **oc.__dict__,
+                "id": oc.id,
+                "carga_id": oc.carga_id,  # <-- obrigatorio no schema
+                "motivo_id": oc.motivo_id,
                 "observacao": oc.observacao or "",
-                "motivo_id": oc.motivo_id or 0,
+                "criado_em": oc.criado_em,
+                "atualizado_em": oc.atualizado_em,
+                "motivo": {
+                    "id": oc.motivo.id,
+                    "nome": oc.motivo.nome,
+                    "criado_em": getattr(oc.motivo, "criado_em", None),
+                    "atualizado_em": getattr(oc.motivo, "atualizado_em", None),
+                    "tipo_id": getattr(oc.motivo, "tipo_id", None),
+                    "tipo": {
+                        "id": oc.motivo.tipo.id,
+                        "nome": oc.motivo.tipo.nome,
+                        "criado_em": getattr(oc.motivo.tipo, "criado_em", None),
+                        "atualizado_em": getattr(oc.motivo.tipo, "atualizado_em", None),
+                    } if getattr(oc.motivo, "tipo", None) else None
+                } if getattr(oc, "motivo", None) else None
             }
-            for oc in carga.ocorrencias
+            for oc in carga.ocorrencias or []
         ],
+
+        # ---------- campos de rastreabilidade ----------
+        "criado_por_id": getattr(carga, "criado_por_id", None),
+        "criado_por_nome": getattr(carga, "criado_por_nome", None),
+        "criado_por_transportadora": getattr(carga, "criado_por_transportadora", None),
+        "criado_por_filial": getattr(carga, "criado_por_filial", None),
+        "criado_por_meta": getattr(carga, "criado_por_meta", None),
     }
+
 
 # =====================================================
 # 📦 CRUD Cargas
 # =====================================================
 
 @router.post("/cargas", response_model=CargaSchema)
-async def criar_carga(payload: CargaCreateSchema, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+async def criar_carga(
+    payload: CargaCreateSchema,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """
+    Cria uma nova carga e registra automaticamente os dados do criador (usuário logado).
+    Permite também criar ocorrências associadas no mesmo payload.
+    """
     try:
         ocorrencias_data = payload.ocorrencias or []
-        carga_data = payload.dict(exclude={'ocorrencias'})
+        carga_data = payload.dict(exclude={"ocorrencias"})
 
+        # Cria objeto principal
         carga = Carga(**carga_data)
-        db.add(carga)
-        db.flush()
 
-        for ocorrencia_data in ocorrencias_data:
+        # Preenche rastreabilidade automática
+        carga.criado_por_id = user.id
+        carga.criado_por_nome = getattr(user, "nome", None) or getattr(user, "username", None)
+        carga.criado_por_transportadora = getattr(user, "transportadora", None)
+        carga.criado_por_filial = getattr(user, "filial", None)
+
+        # Snapshot completo do criador (para auditoria)
+        carga.criado_por_meta = {
+            "id": user.id,
+            "nome": getattr(user, "nome", None),
+            "email": getattr(user, "email", None),
+            "setor": getattr(user, "setor", None),
+            "transportadora": getattr(user, "transportadora", None),
+            "filial": getattr(user, "filial", None),
+        }
+
+        db.add(carga)
+        db.flush()  # garante ID da carga antes de criar ocorrências
+
+        # Cria as ocorrências associadas (se houver)
+        for oc_data in ocorrencias_data:
             ocorrencia = OcorrenciaCarga(
-                **ocorrencia_data.dict(),
+                **oc_data.dict(),
                 carga_id=carga.id
             )
             db.add(ocorrencia)
@@ -63,6 +122,7 @@ async def criar_carga(payload: CargaCreateSchema, db: Session = Depends(get_db),
         db.commit()
         db.refresh(carga)
 
+        # Retorna carga completa com ocorrências aninhadas
         carga_completa = (
             db.query(Carga)
             .options(
@@ -73,11 +133,17 @@ async def criar_carga(payload: CargaCreateSchema, db: Session = Depends(get_db),
             .filter(Carga.id == carga.id)
             .first()
         )
+
         return normalize_carga(carga_completa)
+
+    except SQLAlchemyError as e:
+        db.rollback()
+        raise HTTPException(500, f"Erro no banco de dados: {str(e)}")
 
     except Exception as e:
         db.rollback()
         raise HTTPException(500, f"Erro ao criar carga: {str(e)}")
+
 
 @router.get("/cargas", response_model=List[CargaSchema])
 async def listar_cargas(
@@ -93,6 +159,10 @@ async def listar_cargas(
     valor_max: Optional[float] = None,
     data_inicio: Optional[date] = None,
     data_fim: Optional[date] = None,
+    # --- filtros novos por criador / transportadora / filial
+    criado_por_id: Optional[int] = Query(None, description="Filtra por ID do usuário que criou a carga"),
+    criado_por_transportadora: Optional[str] = Query(None, description="Filtra por transportadora do criador"),
+    criado_por_filial: Optional[str] = Query(None, description="Filtra por filial do criador"),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
@@ -123,7 +193,16 @@ async def listar_cargas(
     if data_fim:
         query = query.filter(Carga.data_carregamento <= data_fim)
 
-    cargas = query.offset(skip).limit(limit).all()
+    # filtros novos
+    if criado_por_id is not None:
+        query = query.filter(Carga.criado_por_id == criado_por_id)
+    if criado_por_transportadora:
+        # case-insensitive match (substrings)
+        query = query.filter(Carga.criado_por_transportadora.ilike(f"%{criado_por_transportadora}%"))
+    if criado_por_filial:
+        query = query.filter(Carga.criado_por_filial.ilike(f"%{criado_por_filial}%"))
+
+    cargas = query.order_by(Carga.criado_em.desc()).offset(skip).limit(limit).all()
     return [normalize_carga(c) for c in cargas]
 
 
@@ -165,89 +244,64 @@ async def atualizar_carga(
         for field, value in carga_data.items():
             setattr(carga, field, value)
 
-        # snapshot das ocorrências existentes
-        existing_ocorrencias = {oc.id: oc for oc in carga.ocorrencias if oc.id}
-        # índice por signature para corresponder por conteúdo (motivo + observação normalizada)
+        # signature helper
         def make_signature(motivo_id, observacao):
             return f"{int(motivo_id)}|{(observacao or '').strip().lower()}"
 
-        signature_index = {}
-        for oc in carga.ocorrencias:
-            if oc.id:
-                signature_index[make_signature(oc.motivo_id, oc.observacao)] = oc
+        # existing ocorrências indexed by id and signature
+        db.flush()
+        existing_ocorrencias = {oc.id: oc for oc in carga.ocorrencias if oc.id}
+        signature_index = {make_signature(oc.motivo_id, oc.observacao): oc for oc in carga.ocorrencias if oc.id}
 
-        # marcar ids que devem ser mantidos (vindos por id ou por assinatura)
         kept_ids = set()
 
         for oc_data in ocorrencias_data:
             oc_id = getattr(oc_data, "id", None)
-            # normalizar oc_data campos
             motivo_id = getattr(oc_data, "motivo_id", None)
             observacao = getattr(oc_data, "observacao", "") or ""
 
-            # tenta usar id primeiro
+            oc_id_int = None
             if oc_id is not None:
                 try:
                     oc_id_int = int(oc_id)
                 except Exception:
                     oc_id_int = None
-            else:
-                oc_id_int = None
 
             if oc_id_int and oc_id_int in existing_ocorrencias:
-                # atualização simples por id
                 ocorr = existing_ocorrencias[oc_id_int]
                 ocorr.motivo_id = motivo_id
                 ocorr.observacao = observacao
                 kept_ids.add(oc_id_int)
-                # atualiza também signature_index caso a observação/motivo mude
                 signature_index[make_signature(motivo_id, observacao)] = ocorr
             else:
-                # tenta achar por signature (evita criar duplicata quando frontend não enviou id)
                 sig = make_signature(motivo_id, observacao)
                 matched = signature_index.get(sig)
                 if matched:
-                    # marcamos essa ocorrência como mantida e atualizamos caso algo mude
                     matched.motivo_id = motivo_id
                     matched.observacao = observacao
                     if matched.id:
                         kept_ids.add(matched.id)
                 else:
-                    # criar nova ocorrência (não existe id nem match)
                     nova = OcorrenciaCarga(
                         motivo_id=motivo_id,
                         observacao=observacao,
                         carga_id=carga_id
                     )
                     db.add(nova)
-                    # importante dar flush mais adiante para obter id se necessário
 
         db.flush()
 
-        # agora reconstruir kept_ids para incluir ocorrências que acabaram de ser criadas e que
-        # correspondem ao payload por signature (caso queira evitar deletar algo legítimo).
-        # Recriar signature index a partir do DB atual (mais seguro)
+        # reconstruir signatures do estado atual
         db.refresh(carga)
-        current_signatures = {}
-        for oc in carga.ocorrencias:
-            if oc.id:
-                current_signatures[make_signature(oc.motivo_id, oc.observacao)] = oc.id
-
-        # identificar quais assinaturas do payload correspondem a ids atuais e marcar kept_ids
+        current_signatures = {make_signature(oc.motivo_id, oc.observacao): oc.id for oc in carga.ocorrencias if oc.id}
         for oc_data in ocorrencias_data:
-            motivo_id = getattr(oc_data, "motivo_id", None)
-            observacao = getattr(oc_data, "observacao", "") or ""
-            sig = make_signature(motivo_id, observacao)
+            sig = make_signature(getattr(oc_data, "motivo_id", None), getattr(oc_data, "observacao", "") or "")
             if sig in current_signatures:
                 kept_ids.add(current_signatures[sig])
 
-        # apagar somente ocorrências que EXISTIAM antes e que não foram mantidas
-        original_ids = {oc.id for oc in carga.ocorrencias if oc.id}  # após refresh, contém atuais também
-        # Mas queremos comparar contra o conjunto que existia originalmente antes de criarmos novas.
-        # Para isso carregamos os ids originais do DB via consulta sem alterações:
+        # ids originais (antes de deletar) - carregados direto da tabela
         orig_query_ids = {r[0] for r in db.query(OcorrenciaCarga.id).filter(OcorrenciaCarga.carga_id == carga_id).all()}
 
-        # to_remove = orig_before_update - kept_ids
         to_remove = list(orig_query_ids - kept_ids)
         if to_remove:
             db.query(OcorrenciaCarga).filter(
@@ -318,12 +372,21 @@ async def atualizar_tipo(tipo_id: int, payload: TipoOcorrenciaUpdateSchema, db: 
 
 @router.delete("/tipos/{tipo_id}")
 async def deletar_tipo(tipo_id: int, db: Session = Depends(get_db)):
-    tipo = db.query(TipoOcorrencia).filter(TipoOcorrencia.id == tipo_id).first()
+    tipo = db.query(TipoOcorrencia).get(tipo_id)
     if not tipo:
         raise HTTPException(404, "Tipo não encontrado")
+
+    motivos_vinculados = db.query(MotivoOcorrencia).filter_by(tipo_id=tipo_id).count()
+    if motivos_vinculados > 0:
+        raise HTTPException(
+            400,
+            f"Não é possível deletar o tipo '{tipo.nome}' pois há {motivos_vinculados} motivo(s) vinculados a ele."
+        )
+
     db.delete(tipo)
     db.commit()
-    return {"ok": True}
+    return {"detail": "Tipo deletado com sucesso"}
+
 
 
 # -------------------
@@ -361,10 +424,18 @@ async def deletar_motivo(motivo_id: int, db: Session = Depends(get_db)):
     motivo = db.query(MotivoOcorrencia).filter(MotivoOcorrencia.id == motivo_id).first()
     if not motivo:
         raise HTTPException(404, "Motivo não encontrado")
+
+    # ✅ Verifica se está sendo usado em alguma ocorrência
+    ocorrencias_vinculadas = db.query(OcorrenciaCarga).filter(OcorrenciaCarga.motivo_id == motivo_id).count()
+    if ocorrencias_vinculadas > 0:
+        raise HTTPException(
+            400,
+            f"Não é possível deletar o motivo '{motivo.nome}' pois está vinculado a {ocorrencias_vinculadas} ocorrência(s)."
+        )
+
     db.delete(motivo)
     db.commit()
-    return {"ok": True}
-
+    return {"detail": f"Motivo '{motivo.nome}' deletado com sucesso."}
 
 # -------------------
 # 🔗 Ocorrências
@@ -432,6 +503,46 @@ async def deletar_ocorrencia(ocorrencia_id: int, db: Session = Depends(get_db)):
     return {"ok": True}
 
 
+
+@router.get("/filters")
+async def listar_filtros(db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    try:
+        creators = (
+            db.query(User.id, User.nome, User.username)
+            .join(Carga, Carga.criado_por_id == User.id)
+            .distinct()
+            .order_by(User.nome)
+            .all()
+        )
+
+        transportadoras = [
+            r[0] for r in db.query(Carga.criado_por_transportadora)
+            .filter(Carga.criado_por_transportadora.isnot(None))
+            .distinct()
+            .order_by(Carga.criado_por_transportadora)
+            .all()
+            if r[0]
+        ]
+
+        filiais = [
+            r[0] for r in db.query(Carga.criado_por_filial)
+            .filter(Carga.criado_por_filial.isnot(None))
+            .distinct()
+            .order_by(Carga.criado_por_filial)
+            .all()
+            if r[0]
+        ]
+
+        return {
+            "creators": [{"id": c.id, "nome": c.nome or c.username or f"#{c.id}"} for c in creators],
+            "transportadoras": transportadoras,
+            "filiais": filiais,
+        }
+
+    except Exception as e:
+        raise HTTPException(500, f"Erro ao carregar filtros: {str(e)}")
+
+
 # =====================================================
 # 📊 Estatísticas
 # =====================================================
@@ -442,6 +553,11 @@ from sqlalchemy.exc import SQLAlchemyError
 from typing import List, Optional, Dict, Any
 from datetime import date
 from sqlalchemy import func, desc, and_, or_, literal_column
+
+
+
+
+
 
 
 @router.get("/estatisticas")
@@ -455,110 +571,133 @@ async def estatisticas(
     motivo_ocorrencia_id: Optional[int] = None,
     data_inicio: Optional[date] = None,
     data_fim: Optional[date] = None,
+    criado_por_id: Optional[int] = None,
+    criado_por_transportadora: Optional[str] = None,
+    criado_por_filial: Optional[str] = None,
     skip: int = 0,
     limit: int = Query(100, ge=1, le=1000),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """
-    Estatísticas avançadas para o gestor de cargas.
-
-    Retorna:
-      - totais (quantidade de cargas)
-      - agregações de valor (soma, média, min, max)
-      - por_status, por_uf_origem, por_uf_destino
-      - top rotas
-      - ocorrências totais, por tipo, por motivo, timeline diária
-      - contagem de cargas com/sem ocorrências
-      - top motivos
-      - lista paginada de cargas (cada carga com ocorrências aninhadas)
-    """
     try:
-        # --- Aplicar filtros nas cargas (base) ---
-        query_cargas = db.query(Carga)
+        # --- Base query ---
+        query_base = db.query(Carga)
 
         if uf_origem:
-            query_cargas = query_cargas.filter(Carga.uf_origem == uf_origem)
+            query_base = query_base.filter(Carga.uf_origem == uf_origem)
         if cidade_origem:
-            query_cargas = query_cargas.filter(Carga.cidade_origem.ilike(f"%{cidade_origem}%"))
+            query_base = query_base.filter(Carga.cidade_origem.ilike(f"%{cidade_origem}%"))
         if uf_destino:
-            query_cargas = query_cargas.filter(Carga.uf_destino == uf_destino)
+            query_base = query_base.filter(Carga.uf_destino == uf_destino)
         if cidade_destino:
-            query_cargas = query_cargas.filter(Carga.cidade_destino.ilike(f"%{cidade_destino}%"))
+            query_base = query_base.filter(Carga.cidade_destino.ilike(f"%{cidade_destino}%"))
         if rota:
-            query_cargas = query_cargas.filter(Carga.rota.ilike(f"%{rota}%"))
+            query_base = query_base.filter(Carga.rota.ilike(f"%{rota}%"))
         if data_inicio:
-            query_cargas = query_cargas.filter(Carga.data_carregamento >= data_inicio)
+            query_base = query_base.filter(Carga.data_carregamento >= data_inicio)
         if data_fim:
-            query_cargas = query_cargas.filter(Carga.data_carregamento <= data_fim)
+            query_base = query_base.filter(Carga.data_carregamento <= data_fim)
+        if criado_por_id:
+            query_base = query_base.filter(Carga.criado_por_id == criado_por_id)
+        if criado_por_transportadora:
+            query_base = query_base.filter(Carga.criado_por_transportadora.ilike(f"%{criado_por_transportadora}%"))
+        if criado_por_filial:
+            query_base = query_base.filter(Carga.criado_por_filial.ilike(f"%{criado_por_filial}%"))
 
-        # ------- NOVO: se filtrou por tipo/motivo de ocorrência, limitar cargas
-        # A ideia: restringir a query_cargas apenas às cargas que tenham ocorrências
-        # correspondentes aos filtros tipo_ocorrencia_id / motivo_ocorrencia_id.
+        # --- Se filtrou por tipo/motivo, restringe ---
+        query_cargas = query_base
         if tipo_ocorrencia_id or motivo_ocorrencia_id:
-            # Faz join via relacionamento (Carga.ocorrencias) e MotivoOcorrencia
-            # e aplica os filtros de ocorrência; usa distinct para não duplicar cargas
             query_cargas = query_cargas.join(Carga.ocorrencias).join(OcorrenciaCarga.motivo)
             if tipo_ocorrencia_id:
                 query_cargas = query_cargas.filter(MotivoOcorrencia.tipo_id == tipo_ocorrencia_id)
             if motivo_ocorrencia_id:
                 query_cargas = query_cargas.filter(OcorrenciaCarga.motivo_id == motivo_ocorrencia_id)
-            query_cargas = query_cargas.distinct()
 
-        # materializar total de cargas com os filtros aplicados
-        total_cargas = query_cargas.count()
+        # --- Subquery segura (DISTINCT isolado) ---
+        subq_cargas = query_cargas.with_entities(Carga.id, Carga.valor_frete).distinct(Carga.id).subquery()
 
-        # --- Agregados de valor ---
-        valor_agg = query_cargas.with_entities(
-            func.coalesce(func.sum(Carga.valor_frete), 0),
-            func.avg(Carga.valor_frete),
-            func.min(Carga.valor_frete),
-            func.max(Carga.valor_frete)
+        # --- Total e agregados ---
+        total_cargas = db.query(func.count(subq_cargas.c.id)).scalar() or 0
+        valor_agg = db.query(
+            func.coalesce(func.sum(subq_cargas.c.valor_frete), 0),
+            func.avg(subq_cargas.c.valor_frete),
+            func.min(subq_cargas.c.valor_frete),
+            func.max(subq_cargas.c.valor_frete)
         ).first()
-        total_valor_frete = float(valor_agg[0]) if valor_agg and valor_agg[0] is not None else 0.0
-        media_valor_frete = float(valor_agg[1]) if valor_agg and valor_agg[1] is not None else 0.0
-        min_valor_frete = float(valor_agg[2]) if valor_agg and valor_agg[2] is not None else 0.0
-        max_valor_frete = float(valor_agg[3]) if valor_agg and valor_agg[3] is not None else 0.0
 
-        # --- Cargas por status, uf origem, uf destino ---
+        total_valor_frete = float(valor_agg[0] or 0)
+        media_valor_frete = float(valor_agg[1] or 0)
+        min_valor_frete = float(valor_agg[2] or 0)
+        max_valor_frete = float(valor_agg[3] or 0)
+
+        # --- Cria uma query “limpa” para agrupamentos ---
+        query_group = query_base  # sem DISTINCT nem joins de ocorrência
+
         cargas_por_status = dict(
-            (status, qtd) for status, qtd in
-            query_cargas.with_entities(Carga.status, func.count(Carga.id)).group_by(Carga.status).all()
+            (status, qtd)
+            for status, qtd in query_group.with_entities(Carga.status, func.count(Carga.id))
+            .group_by(Carga.status)
+            .all()
         )
 
         cargas_por_uf_origem = dict(
-            (uf, qtd) for uf, qtd in
-            query_cargas.with_entities(Carga.uf_origem, func.count(Carga.id)).group_by(Carga.uf_origem).all()
+            (uf, qtd)
+            for uf, qtd in query_group.with_entities(Carga.uf_origem, func.count(Carga.id))
+            .group_by(Carga.uf_origem)
+            .all()
         )
 
         cargas_por_uf_destino = dict(
-            (uf, qtd) for uf, qtd in
-            query_cargas.with_entities(Carga.uf_destino, func.count(Carga.id)).group_by(Carga.uf_destino).all()
+            (uf, qtd)
+            for uf, qtd in query_group.with_entities(Carga.uf_destino, func.count(Carga.id))
+            .group_by(Carga.uf_destino)
+            .all()
         )
 
-        # --- Top rotas (mais frequentes) ---
-        cargas_por_rota = query_cargas.with_entities(
-            Carga.rota, func.count(Carga.id)
-        ).group_by(Carga.rota).order_by(desc(func.count(Carga.id))).limit(10).all()
-        top_rotas = [{ "rota": r or "", "qtd": int(q) } for r, q in cargas_por_rota]
+        cargas_por_rota = (
+            query_group.with_entities(Carga.rota, func.count(Carga.id))
+            .group_by(Carga.rota)
+            .order_by(desc(func.count(Carga.id)))
+            .limit(10)
+            .all()
+        )
+        top_rotas = [{"rota": r or "", "qtd": int(q)} for r, q in cargas_por_rota]
 
-        # --- Ocorrências: construir query com mesmos filtros (quando necessário filtrar por carga) ---
+        por_criador = dict(
+            (nome, qtd)
+            for nome, qtd in query_group.with_entities(Carga.criado_por_nome, func.count(Carga.id))
+            .group_by(Carga.criado_por_nome)
+            .all()
+            if nome
+        )
+
+        por_criador_transportadora = dict(
+            (t, qtd)
+            for t, qtd in query_group.with_entities(Carga.criado_por_transportadora, func.count(Carga.id))
+            .group_by(Carga.criado_por_transportadora)
+            .all()
+            if t
+        )
+
+        por_criador_filial = dict(
+            (f, qtd)
+            for f, qtd in query_group.with_entities(Carga.criado_por_filial, func.count(Carga.id))
+            .group_by(Carga.criado_por_filial)
+            .all()
+            if f
+        )
+
+        top_criadores = [
+            {"criado_por_nome": nome, "qtd": int(qtd)}
+            for nome, qtd in query_group.with_entities(Carga.criado_por_nome, func.count(Carga.id))
+            .group_by(Carga.criado_por_nome)
+            .order_by(desc(func.count(Carga.id)))
+            .limit(10)
+            .all()
+        ]
+
+        # --- Ocorrências ---
         query_ocorrencias = db.query(OcorrenciaCarga)
-
-        # se filtros geográficos/rota foram aplicados, junte com carga para filtrar ocorrências vinculadas
-        if uf_origem or cidade_origem or uf_destino or cidade_destino or rota:
-            query_ocorrencias = query_ocorrencias.join(OcorrenciaCarga.carga)
-            if uf_origem:
-                query_ocorrencias = query_ocorrencias.filter(Carga.uf_origem == uf_origem)
-            if cidade_origem:
-                query_ocorrencias = query_ocorrencias.filter(Carga.cidade_origem.ilike(f"%{cidade_origem}%"))
-            if uf_destino:
-                query_ocorrencias = query_ocorrencias.filter(Carga.uf_destino == uf_destino)
-            if cidade_destino:
-                query_ocorrencias = query_ocorrencias.filter(Carga.cidade_destino.ilike(f"%{cidade_destino}%"))
-            if rota:
-                query_ocorrencias = query_ocorrencias.filter(Carga.rota.ilike(f"%{rota}%"))
-
         if tipo_ocorrencia_id:
             query_ocorrencias = query_ocorrencias.join(OcorrenciaCarga.motivo).filter(MotivoOcorrencia.tipo_id == tipo_ocorrencia_id)
         if motivo_ocorrencia_id:
@@ -569,77 +708,65 @@ async def estatisticas(
             query_ocorrencias = query_ocorrencias.filter(OcorrenciaCarga.criado_em <= data_fim)
 
         ocorrencias_totais = query_ocorrencias.count()
-
-        # ocorrências por tipo e por motivo
         ocorrencias_por_tipo = dict(
-            (tipo, int(qtd)) for tipo, qtd in
-            query_ocorrencias.join(OcorrenciaCarga.motivo).join(MotivoOcorrencia.tipo)
+            (tipo, int(qtd))
+            for tipo, qtd in query_ocorrencias.join(OcorrenciaCarga.motivo).join(MotivoOcorrencia.tipo)
             .with_entities(TipoOcorrencia.nome, func.count(OcorrenciaCarga.id))
             .group_by(TipoOcorrencia.nome)
             .all()
         )
-
         ocorrencias_por_motivo = dict(
-            (motivo, int(qtd)) for motivo, qtd in
-            query_ocorrencias.join(OcorrenciaCarga.motivo)
+            (motivo, int(qtd))
+            for motivo, qtd in query_ocorrencias.join(OcorrenciaCarga.motivo)
             .with_entities(MotivoOcorrencia.nome, func.count(OcorrenciaCarga.id))
             .group_by(MotivoOcorrencia.nome)
             .all()
         )
-
-        # top motivos
         top_motivos = [
             {"motivo": nome, "qtd": int(qtd)}
             for nome, qtd in query_ocorrencias.join(OcorrenciaCarga.motivo)
-                .with_entities(MotivoOcorrencia.nome, func.count(OcorrenciaCarga.id))
-                .group_by(MotivoOcorrencia.nome)
-                .order_by(desc(func.count(OcorrenciaCarga.id)))
-                .limit(10).all()
+            .with_entities(MotivoOcorrencia.nome, func.count(OcorrenciaCarga.id))
+            .group_by(MotivoOcorrencia.nome)
+            .order_by(desc(func.count(OcorrenciaCarga.id)))
+            .limit(10)
+            .all()
         ]
-
-        # timeline diária de ocorrências (por data)
         timeline = [
             {"data": str(d), "qtd": int(qty)}
             for d, qty in query_ocorrencias
-                .with_entities(func.date(OcorrenciaCarga.criado_em), func.count(OcorrenciaCarga.id))
-                .group_by(func.date(OcorrenciaCarga.criado_em))
-                .order_by(func.date(OcorrenciaCarga.criado_em))
-                .all()
+            .with_entities(func.date(OcorrenciaCarga.criado_em), func.count(OcorrenciaCarga.id))
+            .group_by(func.date(OcorrenciaCarga.criado_em))
+            .order_by(func.date(OcorrenciaCarga.criado_em))
+            .all()
         ]
 
-        # contagem de cargas com e sem ocorrências (considerando os filtros aplicados às cargas)
-        cargas_com_ocorrencias_q = db.query(Carga.id).join(Carga.ocorrencias)
+        # --- Cargas com e sem ocorrências ---
+        cargas_com_ocorrencias = (
+            db.query(func.count(func.distinct(Carga.id)))
+            .select_from(Carga)
+            .join(Carga.ocorrencias)
+            .filter(Carga.id.in_(db.query(subq_cargas.c.id)))
+            .scalar()
+        )
+        cargas_sem_ocorrencias = max(0, total_cargas - (cargas_com_ocorrencias or 0))
 
-        # reaplicar filtros para essa query (para corresponder ao conjunto de cargas usado em total_cargas)
-        if uf_origem:
-            cargas_com_ocorrencias_q = cargas_com_ocorrencias_q.filter(Carga.uf_origem == uf_origem)
-        if cidade_origem:
-            cargas_com_ocorrencias_q = cargas_com_ocorrencias_q.filter(Carga.cidade_origem.ilike(f"%{cidade_origem}%"))
-        if uf_destino:
-            cargas_com_ocorrencias_q = cargas_com_ocorrencias_q.filter(Carga.uf_destino == uf_destino)
-        if cidade_destino:
-            cargas_com_ocorrencias_q = cargas_com_ocorrencias_q.filter(Carga.cidade_destino.ilike(f"%{cidade_destino}%"))
-        if rota:
-            cargas_com_ocorrencias_q = cargas_com_ocorrencias_q.filter(Carga.rota.ilike(f"%{rota}%"))
-        if data_inicio:
-            cargas_com_ocorrencias_q = cargas_com_ocorrencias_q.filter(Carga.data_carregamento >= data_inicio)
-        if data_fim:
-            cargas_com_ocorrencias_q = cargas_com_ocorrencias_q.filter(Carga.data_carregamento <= data_fim)
-
-        cargas_com_ocorrencias = cargas_com_ocorrencias_q.distinct().count()
-        cargas_sem_ocorrencias = max(0, total_cargas - cargas_com_ocorrencias)
-
-        # --- Lista de cargas (paginação) com ocorrências aninhadas (limit/skip) ---
-        cargas_query_for_list = query_cargas.options(
-            joinedload(Carga.ocorrencias).joinedload(OcorrenciaCarga.motivo).joinedload(MotivoOcorrencia.tipo)
-        ).order_by(Carga.data_carregamento.desc())
-
-        cargas_objs = cargas_query_for_list.offset(skip).limit(limit).all()
+        # --- Lista e top cargas ---
+        cargas_objs = (
+            query_cargas.options(
+                joinedload(Carga.ocorrencias)
+                .joinedload(OcorrenciaCarga.motivo)
+                .joinedload(MotivoOcorrencia.tipo)
+            )
+            .order_by(Carga.data_carregamento.desc())
+            .offset(skip)
+            .limit(limit)
+            .all()
+        )
 
         def carga_to_dict(c):
             return {
                 "id": c.id,
-                "data_carregamento": c.data_carregamento.isoformat() if getattr(c, "data_carregamento", None) else None,
+                "data_carregamento": c.data_carregamento.isoformat() if c.data_carregamento else None,
                 "uf_origem": c.uf_origem,
                 "cidade_origem": c.cidade_origem,
                 "uf_destino": c.uf_destino,
@@ -647,41 +774,19 @@ async def estatisticas(
                 "rota": c.rota,
                 "valor_frete": float(c.valor_frete or 0),
                 "status": c.status,
-                "observacao_cliente": c.observacao_cliente,
-                "criado_em": c.criado_em.isoformat() if getattr(c, "criado_em", None) else None,
-                "atualizado_em": c.atualizado_em.isoformat() if getattr(c, "atualizado_em", None) else None,
-                "ocorrencias": [
-                    {
-                        "id": oc.id,
-                        "motivo_id": oc.motivo_id,
-                        "motivo_nome": getattr(oc.motivo, "nome", None),
-                        "tipo_id": getattr(oc.motivo.tipo, "id", None) if oc.motivo else None,
-                        "tipo_nome": getattr(oc.motivo.tipo, "nome", None) if oc.motivo else None,
-                        "observacao": oc.observacao,
-                        "criado_em": oc.criado_em.isoformat() if getattr(oc, "criado_em", None) else None
-                    }
-                    for oc in (c.ocorrencias or [])
-                ]
+                "criado_por_nome": c.criado_por_nome,
+                "criado_por_transportadora": c.criado_por_transportadora,
+                "criado_por_filial": c.criado_por_filial,
             }
 
         cargas_list = [carga_to_dict(c) for c in cargas_objs]
 
-        # top cargas por valor do frete (maiores)
         top_cargas_por_valor = [
-            {
-                "id": c.id,
-                "data_carregamento": c.data_carregamento.isoformat() if getattr(c, "data_carregamento", None) else None,
-                "valor_frete": float(c.valor_frete or 0),
-                "uf_origem": c.uf_origem,
-                "cidade_origem": c.cidade_origem,
-                "uf_destino": c.uf_destino,
-                "cidade_destino": c.cidade_destino,
-            }
-            for c in
-            query_cargas.order_by(desc(Carga.valor_frete)).limit(10).all()
+            carga_to_dict(c)
+            for c in query_group.order_by(desc(Carga.valor_frete)).limit(10).all()
         ]
 
-        result = {
+        return {
             "total_cargas": total_cargas,
             "total_valor_frete": total_valor_frete,
             "media_valor_frete": media_valor_frete,
@@ -691,7 +796,10 @@ async def estatisticas(
             "por_uf_origem": cargas_por_uf_origem,
             "por_uf_destino": cargas_por_uf_destino,
             "top_rotas": top_rotas,
-            "top_cargas_por_valor": top_cargas_por_valor,
+            "por_criador": por_criador,
+            "por_criador_transportadora": por_criador_transportadora,
+            "por_criador_filial": por_criador_filial,
+            "top_criadores": top_criadores,
             "ocorrencias_totais": ocorrencias_totais,
             "ocorrencias_por_tipo": ocorrencias_por_tipo,
             "ocorrencias_por_motivo": ocorrencias_por_motivo,
@@ -700,10 +808,7 @@ async def estatisticas(
             "cargas_com_ocorrencias": cargas_com_ocorrencias,
             "cargas_sem_ocorrencias": cargas_sem_ocorrencias,
             "cargas": cargas_list,
-            "cargas_pagination": {"skip": skip, "limit": limit, "returned": len(cargas_list)},
         }
-
-        return result
 
     except SQLAlchemyError as e:
         db.rollback()

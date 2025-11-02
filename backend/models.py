@@ -37,26 +37,24 @@ class Execucao(Base):
     rota_selecionada = Column(String, nullable=True)
 
 
-
-
-
-
-
-
-
-
 # models.py
 class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True, nullable=False)
-    email = Column(String, unique=True, index=True, nullable=False)   # NOVO
-    senha = Column(String, nullable=False)                            # hash
+    email = Column(String, unique=True, index=True, nullable=False)
+    senha = Column(String, nullable=False)
     setor = Column(String, nullable=False)
+
+    # NOVOS CAMPOS
+    nome = Column(String, nullable=True)               # Nome completo do usuário
+    transportadora = Column(String, nullable=True)     # Ex: Dellmar, Braspress, etc
+    filial = Column(String, nullable=True)             # Ex: Pindamonhangaba, Viana...
 
     usuario_apisul = Column(String, nullable=True)
     senha_apisul = Column(String, nullable=True)
+    
     knowledge_entries = relationship("Knowledge", back_populates="author")
 
 
@@ -122,7 +120,6 @@ class DocumentComment(Base):
 
 # Gestão de cargas
 
-
 class Carga(Base):
     __tablename__ = "cargas"
 
@@ -139,12 +136,24 @@ class Carga(Base):
     criado_em = Column(DateTime, default=func.now())
     atualizado_em = Column(DateTime, nullable=False, default=func.now(), onupdate=func.now())
 
+    # ---------- NOVOS CAMPOS PARA RASTREABILIDADE (AGORA NULLABLE) ----------
+    criado_por_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+    criado_por = relationship("User", foreign_keys=[criado_por_id])
+
+    criado_por_nome = Column(String, nullable=True, index=True)
+    criado_por_transportadora = Column(String, nullable=True, index=True)
+    criado_por_filial = Column(String, nullable=True, index=True)
+
+    criado_por_meta = Column(JSON, nullable=True)
+
     # Relacionamentos com cascade
     ocorrencias = relationship(
         "OcorrenciaCarga",
         back_populates="carga",
-        cascade="all, delete-orphan"  # <<<<<< aqui é o importante
+        cascade="all, delete-orphan"
     )
+
+
 
 
 

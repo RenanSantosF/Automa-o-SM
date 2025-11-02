@@ -25,6 +25,7 @@ class TipoOcorrenciaSchema(TipoOcorrenciaBase):
     class Config:
         orm_mode = True
 
+
 # -------------------
 # ⚡ Motivo de Ocorrência
 # -------------------
@@ -46,10 +47,11 @@ class MotivoOcorrenciaSchema(MotivoOcorrenciaBase):
     id: int
     criado_em: datetime
     atualizado_em: datetime
-    tipo: Optional[TipoOcorrenciaSchema] = None
+    tipo: Optional["TipoOcorrenciaSchema"] = None
 
     class Config:
         orm_mode = True
+
 
 # -------------------
 # 🔗 Ocorrência de Carga
@@ -75,6 +77,7 @@ class OcorrenciaCargaSchema(OcorrenciaCargaBase):
 
     class Config:
         orm_mode = True
+
 
 # -------------------
 # 📦 Carga
@@ -108,11 +111,19 @@ class CargaUpdateSchema(BaseModel):
     observacao_cliente: Optional[str] = None
     ocorrencias: Optional[List[OcorrenciaCargaUpdateSchema]] = []
 
+
 class CargaSchema(CargaBase):
     id: int
     criado_em: datetime
     atualizado_em: datetime
     ocorrencias: Optional[List[OcorrenciaCargaSchema]] = []
+
+    # ---------- NOVOS CAMPOS DE RASTREABILIDADE ----------
+    criado_por_id: Optional[int] = None
+    criado_por_nome: Optional[str] = None
+    criado_por_transportadora: Optional[str] = None
+    criado_por_filial: Optional[str] = None
+    criado_por_meta: Optional[dict] = None
 
     class Config:
         orm_mode = True

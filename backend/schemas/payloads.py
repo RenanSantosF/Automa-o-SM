@@ -57,7 +57,10 @@ class UserCreate(BaseModel):
     setor: str
     usuario_apisul: Optional[str] = None
     senha_apisul: Optional[str] = None
-
+    # NOVOS CAMPOS
+    nome: Optional[str] = None
+    transportadora: Optional[str] = None
+    filial: Optional[str] = None
     
 class UserOut(BaseModel):
     id: int
@@ -65,6 +68,11 @@ class UserOut(BaseModel):
     email: Optional[EmailStr]   # opcional aqui
     setor: str
     usuario_apisul: Optional[str] = None
+
+    # NOVOS CAMPOS
+    nome: Optional[str] = None
+    transportadora: Optional[str] = None
+    filial: Optional[str] = None
 
     class Config:
         orm_mode = True
@@ -78,7 +86,10 @@ class UserUpdate(BaseModel):
     setor: Optional[str] = None
     usuario_apisul: Optional[str] = None
     senha_apisul: Optional[str] = None
-
+    # NOVOS CAMPOS
+    nome: Optional[str] = None
+    transportadora: Optional[str] = None
+    filial: Optional[str] = None
 
 
 
@@ -88,6 +99,10 @@ class UserSchema(BaseModel):
     username: str
     email: Optional[EmailStr]
     setor: str
+    # NOVOS CAMPOS
+    nome: Optional[str] = None
+    transportadora: Optional[str] = None
+    filial: Optional[str] = None
 
     class Config:
         orm_mode = True

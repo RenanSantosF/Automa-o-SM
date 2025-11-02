@@ -19,7 +19,7 @@ import PainelUsuarios from './pages/PainelUsuarios';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import CargasPage from './pages/CargasPage';
-import KnowledgePage from "./pages/knowledgePage"
+import KnowledgePage from './pages/knowledgePage';
 import NfeDownloadPage from './pages/NfeDownloadPage';
 
 function App() {
@@ -94,7 +94,7 @@ function App() {
                 <Route
                   path="/cargas"
                   element={
-                    <PrivateRoute allowedSetores={['expedicao', 'admin']}>
+                    <PrivateRoute allowedSetores={['ocorrencia', 'admin']}>
                       <CargasPage />
                     </PrivateRoute>
                   }
@@ -102,29 +102,28 @@ function App() {
                 <Route
                   path="/ocorrencias"
                   element={
-                    <PrivateRoute allowedSetores={['expedicao', 'admin']}>
+                    <PrivateRoute allowedSetores={['ocorrencia', 'admin']}>
                       <OcorrenciasPage />
                     </PrivateRoute>
                   }
                 />
                 <Route
-  path="/knowledge"
-  element={
-    <PrivateRoute>
-      <KnowledgePage />
-    </PrivateRoute>
-  }
-/>
+                  path="/knowledge"
+                  element={
+                    <PrivateRoute>
+                      <KnowledgePage />
+                    </PrivateRoute>
+                  }
+                />
 
-<Route
-  path="/nfe-download"
-  element={
-    <PrivateRoute allowedSetores={['expedicao', 'admin']}>
-      <NfeDownloadPage />
-    </PrivateRoute>
-  }
-/>
-
+                <Route
+                  path="/nfe-download"
+                  element={
+                    <PrivateRoute>
+                      <NfeDownloadPage />
+                    </PrivateRoute>
+                  }
+                />
 
                 <Route
                   path="/painel-usuarios"

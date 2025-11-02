@@ -23,34 +23,38 @@ router = APIRouter()
 
 @router.post("/register", response_model=UserOut)
 def register(user: UserCreate, db: Session = Depends(get_db)):
-    print(">>> ENTROU NO ENDPOINT /register")   # <- precisa aparecer
+    print(">>> ENTROU NO ENDPOINT /register")
     print("payload recebido:", user.dict())
 
     # Verifica se username já existe
-    existing_user = db.query(User).filter(User.username == user.username).first()
-    if existing_user:
+    if db.query(User).filter(User.username == user.username).first():
         raise HTTPException(status_code=400, detail="Username já existe")
 
-
     # Verifica se email já existe
-    existing_email = db.query(User).filter(User.email == user.email).first()
-    if existing_email:
+    if db.query(User).filter(User.email == user.email).first():
         raise HTTPException(status_code=400, detail="Email já está em uso")
-    
+
     hashed_password = hash_password(user.senha)
-    print(user)
+
     novo_usuario = User(
         username=user.username,
         email=user.email,
         senha=hashed_password,
-        setor=user.setor,                  # pegue o setor enviado (não fixe "outros")
-        usuario_apisul=user.usuario_apisul,  # opcional
-        senha_apisul=user.senha_apisul       # opcional
+        setor=user.setor,
+        usuario_apisul=user.usuario_apisul,
+        senha_apisul=user.senha_apisul,
+
+        # 🆕 novos campos
+        nome=user.nome,
+        transportadora=user.transportadora,
+        filial=user.filial
     )
+
     db.add(novo_usuario)
     db.commit()
     db.refresh(novo_usuario)
     return novo_usuario
+
 
 
 
@@ -70,9 +74,11 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
         "sub": user.username,
         "setor": user.setor,
         "usuario_apisul": user.usuario_apisul,
-        # ⚠️ Evite colocar senha, isso é inseguro.
-        "senha_apisul": user.senha_apisul
+        "nome": user.nome,
+        "transportadora": user.transportadora,
+        "filial": user.filial
     })
+
 
     return {"access_token": access_token, "token_type": "bearer"}
 
@@ -94,10 +100,7 @@ def update_user(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    
-    # Atualiza email se enviado (não nulo)
     if update_data.email is not None:
-        # Verifica se o email já está em uso por outro usuário
         existing_email = db.query(User).filter(
             User.email == update_data.email,
             User.id != current_user.id
@@ -105,24 +108,29 @@ def update_user(
         if existing_email:
             raise HTTPException(status_code=400, detail="Email já está em uso por outro usuário")
         current_user.email = update_data.email
-        
-    # Atualiza os campos se foram enviados
+
     if update_data.senha:
         current_user.senha = hash_password(update_data.senha)
-
     if update_data.setor:
         current_user.setor = update_data.setor
-
     if update_data.usuario_apisul is not None:
         current_user.usuario_apisul = update_data.usuario_apisul
-
     if update_data.senha_apisul is not None:
         current_user.senha_apisul = update_data.senha_apisul
+
+    # 🆕 novos campos
+    if update_data.nome is not None:
+        current_user.nome = update_data.nome
+    if update_data.transportadora is not None:
+        current_user.transportadora = update_data.transportadora
+    if update_data.filial is not None:
+        current_user.filial = update_data.filial
 
     db.commit()
     db.refresh(current_user)
 
     return current_user
+
 
 
 @router.get("/usuarios", response_model=list[UserOut])
@@ -157,11 +165,15 @@ def deletar_usuario(user_id: int, db: Session = Depends(get_db), current_user: U
     return None
 
 
-@router.put("/usuarios/{user_id}", response_model=UserOut)
-def atualizar_usuario(user_id: int, dados: UserUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    # ⚠️ Opcional: Verifique se o current_user tem permissão (ex: admin)
-    usuario = db.query(User).filter(User.id == user_id).first()
 
+@router.put("/usuarios/{user_id}", response_model=UserOut)
+def atualizar_usuario(
+    user_id: int,
+    dados: UserUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    usuario = db.query(User).filter(User.id == user_id).first()
     if not usuario:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
 
@@ -173,20 +185,25 @@ def atualizar_usuario(user_id: int, dados: UserUpdate, db: Session = Depends(get
 
     if dados.senha:
         usuario.senha = hash_password(dados.senha)
-
     if dados.setor:
         usuario.setor = dados.setor
-
     if dados.usuario_apisul is not None:
         usuario.usuario_apisul = dados.usuario_apisul
-
     if dados.senha_apisul is not None:
         usuario.senha_apisul = dados.senha_apisul
 
+    # 🆕 novos campos
+    if dados.nome is not None:
+        usuario.nome = dados.nome
+    if dados.transportadora is not None:
+        usuario.transportadora = dados.transportadora
+    if dados.filial is not None:
+        usuario.filial = dados.filial
+
     db.commit()
     db.refresh(usuario)
-
     return usuario
+
 
 
 
