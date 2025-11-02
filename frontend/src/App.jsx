@@ -102,7 +102,7 @@ function App() {
                 <Route
                   path="/ocorrencias"
                   element={
-                    <PrivateRoute allowedSetores={['ocorrencia', 'admin']}>
+                    <PrivateRoute>
                       <OcorrenciasPage />
                     </PrivateRoute>
                   }
