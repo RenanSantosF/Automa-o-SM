@@ -10,3 +10,5 @@
 
 # Ignorar pasta upload no backend
 /backend/upload/
+
+backend/chrome_profile/
