@@ -1103,62 +1103,88 @@ def preencher_sm(driver, dados: Dict[str, Any]):
 
     time.sleep(5)
     
+
+
     # ---------- ADICIONAR PROJETO ----------
     try:
         print("Expandindo ponto para adicionar projeto")
 
-        # Quando o grid atualiza, TODOS os elementos ficam stale.
-        # Então sempre buscamos tudo do zero, SEM reusar nenhum elemento anterior.
+        def scroll_awake():
+            """ Acorda o Telerik no modo headless """
+            try:
+                driver.execute_script("window.scrollTo(0,0);")
+                time.sleep(0.2)
+                driver.execute_script("window.scrollTo(0, document.body.scrollHeight/2);")
+                time.sleep(0.2)
+                driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                time.sleep(0.3)
+            except:
+                pass
+
+        def localizar_linha_projeto():
+            """Busca resiliente da linha 1 no headless"""
+            try:
+                return safe_find(
+                    driver,
+                    By.ID,
+                    "ctl00_MainContent_gridPontosVinculados_ctl00__1",
+                    timeout=8
+                )
+            except:
+                # fallback xpath – funciona no headless
+                return WebDriverWait(driver, 8).until(
+                    EC.presence_of_element_located((
+                        By.XPATH,
+                        "//tr[contains(@id,'gridPontosVinculados') and contains(@id,'__1')]"
+                    ))
+                )
 
         def expandir_linha_projeto():
-            # Espera a linha da grid existir (linha index 1)
-            _wait(driver, 15).until(
-                EC.presence_of_element_located((By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00__1"))
-            )
-            time.sleep(0.3)
+            scroll_awake()
 
-            # Sempre buscar botão expandir fresh
-            expand_btn = safe_find(
-                driver,
-                By.ID,
-                "ctl00_MainContent_gridPontosVinculados_ctl00_ctl07_GECBtnExpandColumn",
-                timeout=10
+            linha = localizar_linha_projeto()
+
+            driver.execute_script("arguments[0].scrollIntoView({block:'center'});", linha)
+            time.sleep(0.4)
+
+            # buscar botão expand fresh SEMPRE
+            expand_btn = WebDriverWait(driver, 10).until(
+                EC.element_to_be_clickable((
+                    By.XPATH,
+                    "//input[contains(@id,'GECBtnExpandColumn')]"
+                ))
             )
 
-            # SCROLL + CLICK
             driver.execute_script("arguments[0].scrollIntoView({block:'center'});", expand_btn)
             time.sleep(0.2)
 
             try:
                 expand_btn.click()
-            except Exception:
+            except:
                 driver.execute_script("arguments[0].click();", expand_btn)
 
-            time.sleep(1.0)  # Telrik demora para expandir e renderizar detalhes
+            time.sleep(1.2)  # Telerik precisa desse tempo no headless
 
-        # Retry anti-stale para expandir
-        for tentativa in range(1, 4):
+        # ---------- RETRY ROBUSTO ----------
+        for tentativa in range(1, 5):
             try:
                 expandir_linha_projeto()
                 break
-            except StaleElementReferenceException:
-                print(f"⚠ STALE ao expandir — retry {tentativa}")
-                time.sleep(0.8)
             except Exception as e:
-                if tentativa == 3:
-                    raise Exception(f"Falha ao expandir linha do projeto: {e}")
                 print(f"⚠ Erro ao expandir linha (tentativa {tentativa}): {e}")
-                time.sleep(0.8)
+                if tentativa == 4:
+                    raise Exception(f"Falha ao expandir linha do projeto: {e}")
+                time.sleep(1.0)
 
-        # 🔽 A partir daqui, TUDO também pode estar stale
-        # por isso cada elemento é SEMPRE buscado novamente
-
+        # ---------- BOTÃO ADICIONAR PROJETO ----------
         print("Clicando no botão adicionar projeto")
-        add_btn_id = "ctl00_MainContent_gridPontosVinculados_ctl00_ctl09_Detail21_ctl02_ctl00_InitInsertButton"
+        add_btn_xpath = "//input[contains(@id,'InitInsertButton')]"
 
-        for tentativa in range(1, 4):
+        for tentativa in range(1, 5):
             try:
-                add_btn = safe_find(driver, By.ID, add_btn_id, timeout=12)
+                add_btn = WebDriverWait(driver, 12).until(
+                    EC.element_to_be_clickable((By.XPATH, add_btn_xpath))
+                )
                 driver.execute_script("arguments[0].scrollIntoView({block:'center'});", add_btn)
 
                 try:
@@ -1166,36 +1192,31 @@ def preencher_sm(driver, dados: Dict[str, Any]):
                 except:
                     driver.execute_script("arguments[0].click();", add_btn)
 
-                time.sleep(1.0)  # permite o Telerik carregar campos
+                time.sleep(1.2)
                 break
-            except StaleElementReferenceException:
-                print(f"⚠ STALE no botão adicionar projeto — retry {tentativa}")
-                time.sleep(0.8)
             except Exception as e:
-                if tentativa == 3:
+                print(f"⚠ Erro ao clicar em adicionar projeto (tentativa {tentativa}): {e}")
+                if tentativa == 4:
                     raise Exception(f"Falha ao clicar em adicionar projeto: {e}")
-                print(f"⚠ Erro ao clicar no botão adicionar projeto (tentativa {tentativa}): {e}")
-                time.sleep(0.8)
+                time.sleep(1.0)
 
         # ---------- TIPO PROJETO ----------
-        campo_tipo_projeto = safe_find(driver,
-            By.ID,
-            "ctl00_MainContent_gridPontosVinculados_ctl00_ctl09_Detail21_ctl02_ctl02_rcbProjeto_Input",
-            timeout=12
-        )
-        selecionar_item_telerik(driver, 
+        selecionar_item_telerik(
+            driver,
             "ctl00_MainContent_gridPontosVinculados_ctl00_ctl09_Detail21_ctl02_ctl02_rcbProjeto_Input",
             "DELLMAR - ESPECIFICAS"
         )
 
         # ---------- TIPO CARGA ----------
-        selecionar_item_telerik(driver,
+        selecionar_item_telerik(
+            driver,
             "ctl00_MainContent_gridPontosVinculados_ctl00_ctl09_Detail21_ctl02_ctl02_rcbTipoCarga_Input",
             "DIVERSOS"
         )
 
         # ---------- VALOR CARGA ----------
-        campo_valor = safe_find(driver,
+        campo_valor = safe_find(
+            driver,
             By.ID,
             "ctl00_MainContent_gridPontosVinculados_ctl00_ctl09_Detail21_ctl02_ctl02_rntxtValorCarga",
             timeout=10
@@ -1206,13 +1227,11 @@ def preencher_sm(driver, dados: Dict[str, Any]):
         campo_valor.send_keys(Keys.TAB)
         time.sleep(0.4)
 
-        # ---------- SALVAR PROJETO ----------
-        btn_salvar = safe_find(driver,
-            By.ID,
-            "ctl00_MainContent_gridPontosVinculados_ctl00_ctl09_Detail21_ctl02_ctl02_btnSalvarProjeto",
-            timeout=12
+        # ---------- SALVAR ----------
+        btn_salvar_xpath = "//input[contains(@id,'btnSalvarProjeto')]"
+        btn_salvar = WebDriverWait(driver, 12).until(
+            EC.element_to_be_clickable((By.XPATH, btn_salvar_xpath))
         )
-
         try:
             btn_salvar.click()
         except:
@@ -1221,9 +1240,7 @@ def preencher_sm(driver, dados: Dict[str, Any]):
         time.sleep(1.4)
 
     except Exception as e:
-        raise Exception(f"Erro ao adicionar projeto: {e}") from e
-
-
+        raise Exception(f"Erro ao adicionar projeto: {e}")
 
 
 
