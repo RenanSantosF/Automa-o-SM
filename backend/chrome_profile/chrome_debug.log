@@ -1,21 +1,26 @@
-[15996:18812:0621/155518.519:INFO:components\enterprise\browser\controller\chrome_browser_cloud_management_controller.cc:202] No machine level policy manager exists.
-[19848:18980:0621/155518.587:ERROR:gpu\ipc\service\gpu_channel_manager.cc:946] Failed to create GLES3 context, fallback to GLES2.
-[19848:18980:0621/155518.587:ERROR:gpu\ipc\service\gpu_channel_manager.cc:957] ContextResult::kFatalFailure: Failed to create shared context for virtualization.
-[19848:18980:0621/155518.677:ERROR:gpu\ipc\service\gpu_channel_manager.cc:946] Failed to create GLES3 context, fallback to GLES2.
-[19848:18980:0621/155518.690:ERROR:gpu\ipc\service\gpu_channel_manager.cc:957] ContextResult::kFatalFailure: Failed to create shared context for virtualization.
-[19848:18980:0621/155518.690:ERROR:gpu\ipc\service\gpu_channel_manager.cc:946] Failed to create GLES3 context, fallback to GLES2.
-[19848:18980:0621/155518.696:ERROR:gpu\ipc\service\gpu_channel_manager.cc:957] ContextResult::kFatalFailure: Failed to create shared context for virtualization.
-[15996:18812:0621/155519.391:INFO:CONSOLE:0] "The Content-Security-Policy directive name '&quot' contains one or more invalid characters. Only ASCII alphanumeric characters or dashes '-' are allowed in directive names.", source: https://novoapisullog.apisul.com.br/Login (0)
-[15996:18812:0621/155519.487:INFO:CONSOLE:0] "[DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o", source: https://novoapisullog.apisul.com.br/Login (0)
-[15996:18812:0621/155519.668:INFO:CONSOLE:0] "Failed to decode downloaded font: https://novoapisullog.apisul.com.br/Acesso/Login/fonts/klavikach-bold-webfont.html", source: https://novoapisullog.apisul.com.br/Login (0)
-[15996:18812:0621/155519.668:INFO:CONSOLE:0] "OTS parsing error: invalid sfntVersion: 1008813135", source: https://novoapisullog.apisul.com.br/Login (0)
-[15996:18812:0621/155519.834:INFO:CONSOLE:0] "Failed to decode downloaded font: https://novoapisullog.apisul.com.br/Acesso/Login/fonts/klavikach-bold-webfont-2.html", source: https://novoapisullog.apisul.com.br/Login (0)
-[15996:18812:0621/155519.834:INFO:CONSOLE:0] "OTS parsing error: invalid sfntVersion: 1008813135", source: https://novoapisullog.apisul.com.br/Login (0)
-[15996:18812:0621/155519.958:INFO:CONSOLE:0] "Failed to decode downloaded font: https://novoapisullog.apisul.com.br/Acesso/Login/fonts/klavikach-light-webfont.html", source: https://novoapisullog.apisul.com.br/Login (0)
-[15996:18812:0621/155519.958:INFO:CONSOLE:0] "OTS parsing error: invalid sfntVersion: 1008813135", source: https://novoapisullog.apisul.com.br/Login (0)
-[15996:18812:0621/155520.137:INFO:CONSOLE:0] "Failed to decode downloaded font: https://novoapisullog.apisul.com.br/Acesso/Login/fonts/klavikach-light-webfont-2.html", source: https://novoapisullog.apisul.com.br/Login (0)
-[15996:18812:0621/155520.137:INFO:CONSOLE:0] "OTS parsing error: invalid sfntVersion: 1008813135", source: https://novoapisullog.apisul.com.br/Login (0)
-[15996:18812:0621/155520.142:INFO:CONSOLE:57] "Listener added for a 'DOMNodeInserted' mutation event. Support for this event type has been removed, and this event will no longer be fired. See https://chromestatus.com/feature/5083947249172480 for more information.", source: https://novoapisullog.apisul.com.br/Acesso/Login/jquery.main.js (57)
-[15996:18812:0621/155520.142:INFO:CONSOLE:57] "Listener added for a 'DOMNodeRemoved' mutation event. Support for this event type has been removed, and this event will no longer be fired. See https://chromestatus.com/feature/5083947249172480 for more information.", source: https://novoapisullog.apisul.com.br/Acesso/Login/jquery.main.js (57)
-[16932:20188:0621/155530.514:WARNING:net\extras\sqlite\sqlite_persistent_store_backend_base.cc:176] Failed to post task from FlushAndNotifyInBackground@net\extras\sqlite\sqlite_persistent_store_backend_base.cc:226 to client_task_runner_.
-[16932:20188:0621/155530.514:WARNING:net\extras\sqlite\sqlite_persistent_store_backend_base.cc:176] Failed to post task from FlushAndNotifyInBackground@net\extras\sqlite\sqlite_persistent_store_backend_base.cc:226 to client_task_runner_.
+[2524:19948:1113/234718.928:INFO:components\enterprise\browser\controller\chrome_browser_cloud_management_controller.cc:206] No machine level policy manager exists.
+[9472:18808:1113/234719.044:ERROR:gpu\ipc\service\gpu_channel_manager.cc:922] ContextResult::kFatalFailure: Failed to create shared context for virtualization.
+[9472:18808:1113/234719.141:ERROR:gpu\ipc\service\gpu_channel_manager.cc:922] ContextResult::kFatalFailure: Failed to create shared context for virtualization.
+[9472:18808:1113/234719.142:ERROR:gpu\ipc\service\gpu_channel_manager.cc:922] ContextResult::kFatalFailure: Failed to create shared context for virtualization.
+[2524:19948:1113/234719.627:INFO:CONSOLE:0] "The Content-Security-Policy directive name '&quot' contains one or more invalid characters. Only ASCII alphanumeric characters or dashes '-' are allowed in directive names.", source: https://novoapisullog.apisul.com.br/Login (0)
+[2524:19948:1113/234720.174:INFO:CONSOLE:0] "[DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o", source: https://novoapisullog.apisul.com.br/Login (0)
+[2524:19948:1113/234720.344:INFO:CONSOLE:0] "Failed to decode downloaded font: https://novoapisullog.apisul.com.br/Acesso/Login/fonts/klavikach-bold-webfont.html", source: https://novoapisullog.apisul.com.br/Login (0)
+[2524:19948:1113/234720.344:INFO:CONSOLE:0] "OTS parsing error: invalid sfntVersion: 1008813135", source: https://novoapisullog.apisul.com.br/Login (0)
+[2524:19948:1113/234720.344:INFO:CONSOLE:0] "Failed to decode downloaded font: https://novoapisullog.apisul.com.br/Acesso/Login/fonts/klavikach-light-webfont.html", source: https://novoapisullog.apisul.com.br/Login (0)
+[2524:19948:1113/234720.344:INFO:CONSOLE:0] "OTS parsing error: invalid sfntVersion: 1008813135", source: https://novoapisullog.apisul.com.br/Login (0)
+[2524:19948:1113/234720.514:INFO:CONSOLE:0] "Failed to decode downloaded font: https://novoapisullog.apisul.com.br/Acesso/Login/fonts/klavikach-light-webfont-2.html", source: https://novoapisullog.apisul.com.br/Login (0)
+[2524:19948:1113/234720.514:INFO:CONSOLE:0] "OTS parsing error: invalid sfntVersion: 1008813135", source: https://novoapisullog.apisul.com.br/Login (0)
+[2524:19948:1113/234720.514:INFO:CONSOLE:0] "Failed to decode downloaded font: https://novoapisullog.apisul.com.br/Acesso/Login/fonts/klavikach-bold-webfont-2.html", source: https://novoapisullog.apisul.com.br/Login (0)
+[2524:19948:1113/234720.514:INFO:CONSOLE:0] "OTS parsing error: invalid sfntVersion: 1008813135", source: https://novoapisullog.apisul.com.br/Login (0)
+[2524:19948:1113/234721.393:INFO:CONSOLE:0] "The Content-Security-Policy directive name '&quot' contains one or more invalid characters. Only ASCII alphanumeric characters or dashes '-' are allowed in directive names.", source: https://novoapisullog.apisul.com.br/Login (0)
+[2524:19948:1113/234721.407:INFO:CONSOLE:0] "Failed to decode downloaded font: https://novoapisullog.apisul.com.br/Acesso/Login/fonts/klavikach-light-webfont.html", source: https://novoapisullog.apisul.com.br/Login (0)
+[2524:19948:1113/234721.407:INFO:CONSOLE:0] "OTS parsing error: invalid sfntVersion: 1008813135", source: https://novoapisullog.apisul.com.br/Login (0)
+[2524:19948:1113/234721.407:INFO:CONSOLE:0] "Failed to decode downloaded font: https://novoapisullog.apisul.com.br/Acesso/Login/fonts/klavikach-light-webfont-2.html", source: https://novoapisullog.apisul.com.br/Login (0)
+[2524:19948:1113/234721.407:INFO:CONSOLE:0] "OTS parsing error: invalid sfntVersion: 1008813135", source: https://novoapisullog.apisul.com.br/Login (0)
+[2524:19948:1113/234721.407:INFO:CONSOLE:0] "Failed to decode downloaded font: https://novoapisullog.apisul.com.br/Acesso/Login/fonts/klavikach-bold-webfont.html", source: https://novoapisullog.apisul.com.br/Login (0)
+[2524:19948:1113/234721.407:INFO:CONSOLE:0] "OTS parsing error: invalid sfntVersion: 1008813135", source: https://novoapisullog.apisul.com.br/Login (0)
+[2524:19948:1113/234721.407:INFO:CONSOLE:0] "Failed to decode downloaded font: https://novoapisullog.apisul.com.br/Acesso/Login/fonts/klavikach-bold-webfont-2.html", source: https://novoapisullog.apisul.com.br/Login (0)
+[2524:19948:1113/234721.407:INFO:CONSOLE:0] "OTS parsing error: invalid sfntVersion: 1008813135", source: https://novoapisullog.apisul.com.br/Login (0)
+[2524:19948:1113/234721.856:INFO:CONSOLE:0] "[DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o", source: https://novoapisullog.apisul.com.br/Login (0)
+[21172:22244:1113/234723.267:WARNING:net\extras\sqlite\sqlite_persistent_store_backend_base.cc:176] Failed to post task from FlushAndNotifyInBackground@net\extras\sqlite\sqlite_persistent_store_backend_base.cc:226 to client_task_runner_.
+[21172:22244:1113/234723.267:WARNING:net\extras\sqlite\sqlite_persistent_store_backend_base.cc:176] Failed to post task from FlushAndNotifyInBackground@net\extras\sqlite\sqlite_persistent_store_backend_base.cc:226 to client_task_runner_.

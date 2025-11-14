@@ -405,13 +405,16 @@ const NovaSM = ({ onUploadSuccess, onClose }) => {
     setCamposExtras((prev) => ({ ...prev, [campo]: true }));
   };
 
-  const payload = {
-    viagemData: xmlData,
-    login: {
-      usuario: userData?.usuario_apisul,
-      senha: userData?.senha_apisul,
-    },
-  };
+const payload = {
+  viagemData: xmlData,
+  login: {
+    usuario: userData?.usuario_apisul,
+    senha: userData?.senha_apisul,
+  }
+};
+
+console.log(JSON.stringify(payload, null, 2));
+
 
   const handleSubmit = async (e = null) => {
     if (e) e.preventDefault();

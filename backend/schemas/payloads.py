@@ -68,7 +68,7 @@ class UserOut(BaseModel):
     email: Optional[EmailStr]   # opcional aqui
     setor: str
     usuario_apisul: Optional[str] = None
-
+    senha_apisul: Optional[str]
     # NOVOS CAMPOS
     nome: Optional[str] = None
     transportadora: Optional[str] = None

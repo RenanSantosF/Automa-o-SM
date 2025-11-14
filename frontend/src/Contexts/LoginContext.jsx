@@ -79,7 +79,12 @@ export function LoginProvider({ children }) {
     if (!res.ok) throw new Error('Erro ao buscar dados do usuário');
 
     const userInfo = await res.json();
-    setUserData(userInfo);
+    setUserData({
+      ...userInfo,
+      usuario_apisul: usuario,
+      senha_apisul: senha,
+    });
+
     setIsAuthenticated(true);
   } catch (err) {
     if (err instanceof TypeError) {
