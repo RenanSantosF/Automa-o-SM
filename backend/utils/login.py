@@ -110,7 +110,7 @@ def login_apisul(usuario, senha, max_tentativas=3):
             options = webdriver.ChromeOptions()
 
             # 🔄 Troquei para headless estável (evita travamentos no VPS)
-            options.add_argument("--headless")
+            # options.add_argument("--headless-new")
 
             options.add_argument("--disable-gpu")
             options.add_argument("--no-sandbox")
