@@ -150,34 +150,69 @@ def preencher_sm(driver, dados: Dict[str, Any]):
     except Exception:
         raise
 
+
+
+
+
+
+
+
     # ---------- VINCULAR DESTINATÁRIO ----------
     try:
-        # espera a grid atualizar
         safe_find(driver, By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00__0", timeout=15)
-        # tenta clicar para vincular ponto destino (mesmo id)
+
         print("Vinculando ponto de destino")
         safe_click(driver, By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl02_ctl00_lnkPontoExistente")
 
         cnpj_formatado = formatar_cnpj(dados["destinatario_cnpj"])
-        destinatario_nome = select_autocomplete_from_input(driver, "rcbIdentificadorPonto_Input", cnpj_formatado)
+        destinatario_nome = select_autocomplete_from_input(
+            driver,
+            "rcbIdentificadorPonto_Input",
+            cnpj_formatado
+        )
         dados["destinatario_cadastrado_apisul"] = destinatario_nome
         print("Destinatário cadastrado:", destinatario_nome)
 
-        # tempo de permanência
-        tempo_el = safe_find(driver, By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl02_ctl02_txtTempoPermanencia_dateInput", timeout=8)
-        send_keys_with_wait(driver, tempo_el, "1100", wait_after=0.3)
+        # TEMPO DE PERMANÊNCIA — CORRIGIDO PARA VPS
+        tempo_el = safe_find(
+            driver,
+            By.ID,
+            "ctl00_MainContent_gridPontosVinculados_ctl00_ctl02_ctl02_txtTempoPermanencia_dateInput",
+            timeout=12
+        )
 
-    except TimeoutException as e:
-        print("Erro/timeout ao preencher destino:", e)
-        raise ReiniciarProcessoException("Erro desconhecido ao preencher destino") from e
-    except Exception:
+        # Preencher no formato correto do Telerik
+        tempo_el.click()
+        time.sleep(0.2)
+        tempo_el.clear()
+        send_keys_with_wait(driver, tempo_el, "11:00", wait_after=0.2)
+
+        # Disparar eventos obrigatórios (sem isso não salva no VPS)
+        driver.execute_script("""
+            var el = arguments[0];
+            el.dispatchEvent(new Event('input', {bubbles:true}));
+            el.dispatchEvent(new Event('keyup', {bubbles:true}));
+            el.dispatchEvent(new Event('keydown', {bubbles:true}));
+            el.dispatchEvent(new Event('change', {bubbles:true}));
+            el.dispatchEvent(new Event('blur', {bubbles:true}));
+
+            if (typeof Telerik !== 'undefined' && Telerik.Web.UI) {
+                try { Telerik.Web.UI.RadInputControl.prototype.raise_valueChanged(el); } catch(e){}
+            }
+        """, tempo_el)
+
+        time.sleep(0.3)
+
+    except Exception as e:
+        print("Erro ao preencher destino:", e)
         raise
 
+
+
+    # ---------- FUNÇÃO SELECIONAR TIPO DO PONTO ----------
     def selecionar_tipo_ponto(driver, texto="ENTREGA", timeout=15):
-        # Campo invisível / readonly / protegido → não digitar
         print("Abrindo combobox de Tipo do Ponto...")
 
-        # 1) clica no INPUT para abrir a lista
         campo = WebDriverWait(driver, timeout).until(
             EC.element_to_be_clickable((By.ID, "cmbTipoPontoSMP_Input"))
         )
@@ -187,67 +222,127 @@ def preencher_sm(driver, dados: Dict[str, Any]):
         except:
             driver.execute_script("arguments[0].click();", campo)
 
-        time.sleep(0.4)
+        time.sleep(0.3)
 
-        # 2) espera o dropdown aparecer
         xpath_opcao = f"//li[contains(@class,'rcbItem') and contains(text(), '{texto}')]"
-
         opcao = WebDriverWait(driver, timeout).until(
             EC.element_to_be_clickable((By.XPATH, xpath_opcao))
         )
 
         print(f"Selecionando opção '{texto}'...")
-
-        # 3) clica na opção
         try:
             opcao.click()
         except:
             driver.execute_script("arguments[0].click();", opcao)
 
         time.sleep(0.3)
-
         print(f"✔ Tipo do ponto selecionado: {texto}")
+
 
 
     # ---------- DATA ESTIMADA ----------
     try:
         print("Inserindo data estimada")
-        data_formatada = calcular_data_entrega(dados["local_origem"], dados["local_destino"])
-        campo_data = safe_find(driver, By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl02_ctl02_txtPrevisaoChegada_dateInput", timeout=15)
+        data_formatada = calcular_data_entrega(
+            dados["local_origem"],
+            dados["local_destino"]
+        )
+
+        campo_data = safe_find(
+            driver,
+            By.ID,
+            "ctl00_MainContent_gridPontosVinculados_ctl00_ctl02_ctl02_txtPrevisaoChegada_dateInput",
+            timeout=12
+        )
+
         try:
             campo_data.click()
-        except Exception:
+        except:
             driver.execute_script("arguments[0].click();", campo_data)
-        time.sleep(0.5)
-        send_keys_with_wait(driver, campo_data, data_formatada, wait_after=0.5)
+
+        time.sleep(0.3)
+        send_keys_with_wait(driver, campo_data, data_formatada)
         campo_data.send_keys(Keys.TAB)
+
     except Exception as e:
-        # observe que agora levantamos uma mensagem de erro com detalhe
         raise Exception(f"Erro ao preencher campo de data estimada: {e}") from e
 
-    # ---------- TIPO DO PONTO E SALVAR DESTINATÁRIO ----------
-    # ---------- TIPO DO PONTO E SALVAR DESTINATÁRIO ----------
+
+
+    # ---------- SELECIONAR TIPO DO PONTO ----------
     try:
         print("Tipo do ponto -> ENTREGA")
         selecionar_tipo_ponto(driver, "ENTREGA")
     except Exception as e:
         raise Exception(f"Erro ao preencher o campo tipo do ponto: {e}") from e
 
+
+
+    # ---------- SALVAR DESTINATÁRIO — CORRIGIDO ----------
     try:
         print("Salvando destinatário")
+
         botao_salvar_dest = safe_find(
             driver,
             By.ID,
             "ctl00_MainContent_gridPontosVinculados_ctl00_ctl02_ctl02_btnSalvarPontoSMP",
             timeout=10
         )
+
+        # Disparar eventos finais no form inteiro
+        driver.execute_script("""
+            document.querySelectorAll('input, select').forEach(inp=>{
+                inp.dispatchEvent(new Event('input',{bubbles:true}));
+                inp.dispatchEvent(new Event('change',{bubbles:true}));
+                inp.dispatchEvent(new Event('blur',{bubbles:true}));
+            });
+        """)
+
+        time.sleep(0.2)
+
         try:
             botao_salvar_dest.click()
         except:
             driver.execute_script("arguments[0].click();", botao_salvar_dest)
+
+        # Espera AJAX realmente terminar
+        def esperar_ajax(timeout=12):
+            end = time.time() + timeout
+            while time.time() < end:
+                busy = driver.execute_script("""
+                    if (window.Sys && Sys.WebForms && Sys.WebForms.PageRequestManager) {
+                        var prm = Sys.WebForms.PageRequestManager.getInstance();
+                        return prm.get_isInAsyncPostBack();
+                    }
+                    return false;
+                """)
+                if not busy:
+                    return
+                time.sleep(0.25)
+
+        esperar_ajax()
+
+        # verificar se a linha __1 realmente foi criada (correção do VPS)
+        try:
+            safe_find(driver, By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00__1", timeout=8)
+            print("✔ Destinatário salvo — linha __1 apareceu")
+        except:
+            raise Exception("❌ O destinatário NÃO FOI SALVO — impossível continuar para adicionar projeto!")
+
     except Exception as e:
         raise Exception(f"Erro ao salvar o destinatário: {e}") from e
-    
+
+
+
+    print("DEBUG: aguardando grid atualizar depois de salvar destinatário...")
+    time.sleep(2)
+    html = driver.page_source
+    if "__1" in html:
+        print("DEBUG: Linha __1 apareceu no HTML")
+    else:
+        print("DEBUG: Linha __1 NÃO EXISTE no HTML (erro no salvamento!)")
+
+
 
 
     # ===== Função robusta para selecionar itens Telerik =====
