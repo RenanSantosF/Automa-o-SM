@@ -117,7 +117,7 @@ app.include_router(routes_documents.router, prefix="/api")
 app.include_router(routes_gestor_cargas.router, prefix="/api")
 app.include_router(routes_nfe_download.router, prefix="/api")
 app.include_router(routes_knowledge.router, prefix="/api")
-app.include_router(ws_router, prefix="/api")
+
 
 # Arquivos estáticos
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -127,14 +127,10 @@ app.mount("/frontend", StaticFiles(directory=FRONTEND_DIR), name="frontend")
 app.mount("/static", StaticFiles(directory="uploads"), name="static")
 
 
-# ---------------------------------------------------------
-# 🔥 WEBSOCKET GLOBAL (documentos + execuções)
-# ---------------------------------------------------------
 @app.websocket("/api/ws/notificacoes")
 async def websocket_notificacoes(websocket: WebSocket):
     print("🔔 Tentando conectar WS notificações...")
 
-    # EXIGE TOKEN, IGUAL O WS QUE FUNCIONA
     token = websocket.query_params.get("token")
     if not token:
         print("❌ WS notificações sem token")
@@ -144,8 +140,6 @@ async def websocket_notificacoes(websocket: WebSocket):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username = payload.get("sub")
-        if not username:
-            raise JWTError()
     except JWTError:
         print("❌ Token inválido no WS notificações")
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
