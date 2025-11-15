@@ -30,6 +30,8 @@ const SolicitacaoMonitoramento = () => {
     fetchExecucoes();
   };
 
+  console.log(userData)
+
   const fetchExecucoes = async () => {
     setLoading(true);
     setError(null);
