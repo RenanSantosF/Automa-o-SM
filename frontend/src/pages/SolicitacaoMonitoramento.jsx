@@ -178,9 +178,11 @@ const SolicitacaoMonitoramento = () => {
   // 🔔 WebSocket Global para todas as notificações
   // ------------------------------------------------------------
   const conectarWS_SM = useCallback(() => {
-    const wsURL =
-      import.meta.env.VITE_API_URL.replace(/^http/, "ws") +
-      "/ws/notificacoes";
+    const token = localStorage.getItem("token");
+const wsURL =
+  import.meta.env.VITE_API_URL.replace(/^http/, "ws") +
+  `/ws/notificacoes?token=${token}`;
+
 
     console.log("📡 Conectando WS:", wsURL);
 

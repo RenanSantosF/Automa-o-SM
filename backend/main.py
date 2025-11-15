@@ -72,14 +72,17 @@
 #     return FileResponse(os.path.join(FRONTEND_DIR, "index.html"))
 
 
-# main.py
-from fastapi import FastAPI, Request, WebSocket
+from fastapi import FastAPI, Request, WebSocket, status
 from fastapi.middleware.cors import CORSMiddleware
 from models import Base
 from database import engine
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import os, asyncio
+from jose import jwt, JWTError
+
+from api.websocket.manager import manager        # ✔ único manager global
+from core.config import SECRET_KEY, ALGORITHM    # ✔ usa mesma chave
 
 from api import (
     routes_execucoes,
@@ -91,11 +94,7 @@ from api import (
     routes_knowledge
 )
 
-# Worker
 import workers.fila_worker
-
-# ✔ USAR APENAS O MESMO MANAGER GLOBAL DOS DOCUMENTOS
-from api.websocket.manager import manager
 
 Base.metadata.create_all(bind=engine)
 
@@ -127,25 +126,35 @@ app.mount("/static", StaticFiles(directory="uploads"), name="static")
 
 
 # ---------------------------------------------------------
-# WEBSOCKET ÚNICO PARA TUDO (documentos + execuções)
+# 🔥 WEBSOCKET GLOBAL (documentos + execuções)
 # ---------------------------------------------------------
 @app.websocket("/api/ws/notificacoes")
 async def websocket_notificacoes(websocket: WebSocket):
-    print("📥 Cliente conectado ao WS de notificações")
-    await manager.connect(websocket)  # ✔ agora usa o mesmo manager
+    print("🔔 Tentando conectar WS notificações...")
+
+    # EXIGE TOKEN, IGUAL O WS QUE FUNCIONA
+    token = websocket.query_params.get("token")
+    if not token:
+        print("❌ WS notificações sem token")
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username = payload.get("sub")
+        if not username:
+            raise JWTError()
+    except JWTError:
+        print("❌ Token inválido no WS notificações")
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return
+
+    print(f"🟢 WS notificações conectado: {username}")
+    await manager.connect(websocket)
 
     try:
         while True:
             await asyncio.sleep(30)
     except:
-        print("🔌 Cliente desconectado do WS")
+        print(f"🔌 WS notificações desconectado: {username}")
         manager.disconnect(websocket)
-
-
-# SPA Catch-all
-@app.get("/{full_path:path}")
-async def spa_catch_all(request: Request, full_path: str):
-    if full_path.startswith("api") or full_path.startswith("frontend"):
-        return {"detail": "API route not found or static file not found"}
-
-    return FileResponse(os.path.join(FRONTEND_DIR, "index.html"))
