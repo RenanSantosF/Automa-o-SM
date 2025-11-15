@@ -27,6 +27,20 @@ function App() {
   const [isOpen, setIsOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
+
+useEffect(() => {
+  const pedirPermissao = () => {
+    if (Notification.permission !== "granted") {
+      Notification.requestPermission();
+    }
+    window.removeEventListener("click", pedirPermissao);
+  };
+
+  window.addEventListener("click", pedirPermissao);
+}, []);
+
+
+
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 1050);
