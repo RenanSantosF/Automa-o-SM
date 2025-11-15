@@ -1,8 +1,8 @@
-# ws_manager.py
+# api/websocket/sm_manager.py
 from typing import List
 from fastapi import WebSocket
 
-class WebSocketManager:
+class SMConnectionManager:
     def __init__(self):
         self.active_connections: List[WebSocket] = []
 
@@ -14,14 +14,13 @@ class WebSocketManager:
         if websocket in self.active_connections:
             self.active_connections.remove(websocket)
 
-    async def broadcast(self, message: dict):
-        dead = []
-        for connection in self.active_connections:
+    async def broadcast(self, message: str):
+        """Envia mensagens como TEXTO (string), igual o WebSocket de documentos."""
+        for ws in self.active_connections:
             try:
-                await connection.send_json(message)
+                await ws.send_text(message)
             except:
-                dead.append(connection)
-        for c in dead:
-            self.disconnect(c)
+                pass  # ignora conexões com erro
 
-ws_manager = WebSocketManager()
+
+sm_manager = SMConnectionManager()

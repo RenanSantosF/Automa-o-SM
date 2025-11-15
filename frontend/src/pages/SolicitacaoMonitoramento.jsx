@@ -181,6 +181,7 @@ const SolicitacaoMonitoramento = () => {
   // ------------------------------------------------------------
   const conectarWS_SM = useCallback(() => {
     const wsURL = import.meta.env.VITE_API_URL.replace(/^http/, 'ws') + '/ws/notificacoes';
+
     console.log('📡 Conectando WS:', wsURL);
 
     const socket = new WebSocket(wsURL);
@@ -196,8 +197,13 @@ const SolicitacaoMonitoramento = () => {
     };
 
     socket.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      console.log('📘 LOG WS:', data);
+      let data;
+      try {
+        data = JSON.parse(event.data);
+      } catch {
+        console.warn('Mensagem WS inválida ou vazia:', event.data);
+        return;
+      }
 
       // Apenas tipos relevantes
       if (!['sucesso', 'erro', 'reprocessamento'].includes(data.tipo)) {

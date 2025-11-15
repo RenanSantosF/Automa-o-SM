@@ -23,14 +23,14 @@
 import threading, queue, asyncio
 from database import SessionLocal
 from services.processamento_cte import processar_cte
-from api.websocket.ws_manager import ws_manager
+from api.websocket.ws_manager import sm_manager
 
 fila_processamento = queue.Queue()
 
 def ws_emit(tipo, mensagem):
     """Envia WS mesmo dentro de threads."""
     try:
-        asyncio.run(ws_manager.broadcast({"tipo": tipo, "mensagem": mensagem}))
+        asyncio.run(sm_manager.broadcast({"tipo": tipo, "mensagem": mensagem}))
     except:
         pass
 
