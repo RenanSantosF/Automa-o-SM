@@ -155,15 +155,17 @@ def preencher_sm(driver, dados: Dict[str, Any]):
 
 
 
-
-
-    # ---------- VINCULAR DESTINATÁRIO ----------
+    # ---------- VINCULAR DESTINATÁRIO (SIMPLES, IGUAL AO REMETENTE) ----------
     try:
+        print("Vinculando ponto de destino")
+
+        # Aguarda linha 0 renderizada
         safe_find(driver, By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00__0", timeout=15)
 
-        print("Vinculando ponto de destino")
+        # Abre o modal de ponto existente
         safe_click(driver, By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl02_ctl00_lnkPontoExistente")
 
+        # Autocomplete do CNPJ
         cnpj_formatado = formatar_cnpj(dados["destinatario_cnpj"])
         destinatario_nome = select_autocomplete_from_input(
             driver,
@@ -173,45 +175,31 @@ def preencher_sm(driver, dados: Dict[str, Any]):
         dados["destinatario_cadastrado_apisul"] = destinatario_nome
         print("Destinatário cadastrado:", destinatario_nome)
 
-        # TEMPO DE PERMANÊNCIA — CORRIGIDO PARA VPS
+        # Preencher tempo de permanência (igual ao remetente)
         tempo_el = safe_find(
             driver,
             By.ID,
             "ctl00_MainContent_gridPontosVinculados_ctl00_ctl02_ctl02_txtTempoPermanencia_dateInput",
-            timeout=12
+            timeout=10
         )
+        try:
+            tempo_el.click()
+        except:
+            driver.execute_script("arguments[0].click();", tempo_el)
 
-        # Preencher no formato correto do Telerik
-        tempo_el.click()
         time.sleep(0.2)
         tempo_el.clear()
-        send_keys_with_wait(driver, tempo_el, "11:00", wait_after=0.2)
-
-        # Disparar eventos obrigatórios (sem isso não salva no VPS)
-        driver.execute_script("""
-            var el = arguments[0];
-            el.dispatchEvent(new Event('input', {bubbles:true}));
-            el.dispatchEvent(new Event('keyup', {bubbles:true}));
-            el.dispatchEvent(new Event('keydown', {bubbles:true}));
-            el.dispatchEvent(new Event('change', {bubbles:true}));
-            el.dispatchEvent(new Event('blur', {bubbles:true}));
-
-            if (typeof Telerik !== 'undefined' && Telerik.Web.UI) {
-                try { Telerik.Web.UI.RadInputControl.prototype.raise_valueChanged(el); } catch(e){}
-            }
-        """, tempo_el)
-
-        time.sleep(0.3)
+        send_keys_with_wait(driver, tempo_el, "1100", wait_after=0.2)
+        tempo_el.send_keys(Keys.TAB)
 
     except Exception as e:
-        print("Erro ao preencher destino:", e)
-        raise
+        raise Exception(f"Erro ao preencher dados do destinatário: {e}") from e
 
 
 
-    # ---------- FUNÇÃO SELECIONAR TIPO DO PONTO ----------
-    def selecionar_tipo_ponto(driver, texto="ENTREGA", timeout=15):
-        print("Abrindo combobox de Tipo do Ponto...")
+    # ---------- SELECIONAR TIPO DO PONTO ----------
+    def selecionar_tipo_ponto(driver, texto="ENTREGA", timeout=10):
+        print(f"Selecionando Tipo do Ponto: {texto}")
 
         campo = WebDriverWait(driver, timeout).until(
             EC.element_to_be_clickable((By.ID, "cmbTipoPontoSMP_Input"))
@@ -224,35 +212,42 @@ def preencher_sm(driver, dados: Dict[str, Any]):
 
         time.sleep(0.3)
 
-        xpath_opcao = f"//li[contains(@class,'rcbItem') and contains(text(), '{texto}')]"
+        xpath = f"//li[contains(@class,'rcbItem') and contains(text(), '{texto}')]"
         opcao = WebDriverWait(driver, timeout).until(
-            EC.element_to_be_clickable((By.XPATH, xpath_opcao))
+            EC.element_to_be_clickable((By.XPATH, xpath))
         )
 
-        print(f"Selecionando opção '{texto}'...")
         try:
             opcao.click()
         except:
             driver.execute_script("arguments[0].click();", opcao)
 
-        time.sleep(0.3)
-        print(f"✔ Tipo do ponto selecionado: {texto}")
+        time.sleep(0.2)
+        print("✔ Tipo do ponto selecionado:", texto)
+
+
+
+    # ---------- DEFINIR TIPO DO PONTO (ANTES DE SALVAR) ----------
+    try:
+        selecionar_tipo_ponto(driver, "ENTREGA")
+    except Exception as e:
+        raise Exception(f"Falha ao selecionar o tipo do ponto: {e}") from e
 
 
 
     # ---------- DATA ESTIMADA ----------
     try:
         print("Inserindo data estimada")
+
         data_formatada = calcular_data_entrega(
-            dados["local_origem"],
-            dados["local_destino"]
+            dados["local_origem"], dados["local_destino"]
         )
 
         campo_data = safe_find(
             driver,
             By.ID,
             "ctl00_MainContent_gridPontosVinculados_ctl00_ctl02_ctl02_txtPrevisaoChegada_dateInput",
-            timeout=12
+            timeout=10
         )
 
         try:
@@ -265,212 +260,99 @@ def preencher_sm(driver, dados: Dict[str, Any]):
         campo_data.send_keys(Keys.TAB)
 
     except Exception as e:
-        raise Exception(f"Erro ao preencher campo de data estimada: {e}") from e
+        raise Exception(f"Erro ao preencher data estimada: {e}") from e
 
 
 
-    # ---------- SELECIONAR TIPO DO PONTO ----------
-    try:
-        print("Tipo do ponto -> ENTREGA")
-        selecionar_tipo_ponto(driver, "ENTREGA")
-    except Exception as e:
-        raise Exception(f"Erro ao preencher o campo tipo do ponto: {e}") from e
-
-
-
-    # ---------- SALVAR DESTINATÁRIO — CORRIGIDO ----------
+    # ---------- SALVAR DESTINATÁRIO (APÓS SELECIONAR TIPO) ----------
     try:
         print("Salvando destinatário")
 
-        botao_salvar_dest = safe_find(
+        botao_salvar = safe_find(
             driver,
             By.ID,
             "ctl00_MainContent_gridPontosVinculados_ctl00_ctl02_ctl02_btnSalvarPontoSMP",
             timeout=10
         )
 
-        # Disparar eventos finais no form inteiro
-        driver.execute_script("""
-            document.querySelectorAll('input, select').forEach(inp=>{
-                inp.dispatchEvent(new Event('input',{bubbles:true}));
-                inp.dispatchEvent(new Event('change',{bubbles:true}));
-                inp.dispatchEvent(new Event('blur',{bubbles:true}));
-            });
-        """)
-
-        time.sleep(0.2)
-
         try:
-            botao_salvar_dest.click()
+            botao_salvar.click()
         except:
-            driver.execute_script("arguments[0].click();", botao_salvar_dest)
+            driver.execute_script("arguments[0].click();", botao_salvar)
 
-        # Espera AJAX realmente terminar
-        def esperar_ajax(timeout=12):
-            end = time.time() + timeout
-            while time.time() < end:
-                busy = driver.execute_script("""
-                    if (window.Sys && Sys.WebForms && Sys.WebForms.PageRequestManager) {
-                        var prm = Sys.WebForms.PageRequestManager.getInstance();
-                        return prm.get_isInAsyncPostBack();
-                    }
-                    return false;
-                """)
-                if not busy:
-                    return
-                time.sleep(0.25)
+        # Aguarda a linha 1 aparecer (comportamento igual ao remetente)
+        safe_find(
+            driver,
+            By.ID,
+            "ctl00_MainContent_gridPontosVinculados_ctl00__1",
+            timeout=10
+        )
 
-        esperar_ajax()
-
-        # verificar se a linha __1 realmente foi criada (correção do VPS)
-        try:
-            safe_find(driver, By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00__1", timeout=8)
-            print("✔ Destinatário salvo — linha __1 apareceu")
-        except:
-            raise Exception("❌ O destinatário NÃO FOI SALVO — impossível continuar para adicionar projeto!")
+        print("✔ Destinatário salvo — linha __1 criada")
 
     except Exception as e:
         raise Exception(f"Erro ao salvar o destinatário: {e}") from e
 
 
 
-    print("DEBUG: aguardando grid atualizar depois de salvar destinatário...")
-    time.sleep(2)
-    html = driver.page_source
-    if "__1" in html:
-        print("DEBUG: Linha __1 apareceu no HTML")
-    else:
-        print("DEBUG: Linha __1 NÃO EXISTE no HTML (erro no salvamento!)")
 
 
 
-
-    # ===== Função robusta para selecionar itens Telerik =====
-    def selecionar_item_telerik(driver, input_id, texto_alvo, timeout=15):
+    def selecionar_item_telerik(driver, input_id, texto, timeout=12):
         """
-        Seleciona um item em um RadComboBox do Telerik de forma robusta.
-        - clica/abre o combo
-        - tenta full match, partial, itera itens, e por fim tenta setar via JS e disparar eventos
-        Logs detalhados para debug.
+        Função segura para selecionar item em um RadComboBox
+        que reconstrói o DOM (evita stale element).
         """
-        print(f"[Telerik] Iniciando seleção '{texto_alvo}' no {input_id}")
-        try:
-            # localizar input (presença) e garantir visibilidade
-            campo = WebDriverWait(driver, timeout).until(
-                EC.presence_of_element_located((By.ID, input_id))
-            )
-            driver.execute_script("arguments[0].scrollIntoView({block:'center'});", campo)
-            time.sleep(0.15)
+        print(f"[Telerik] Selecionando '{texto}' em {input_id}")
 
-            # se input for readOnly (telerik costuma ser), clicar na seta também
+        for tentativa in range(1, 4):
             try:
-                campo.click()
-            except Exception as e:
-                # tentar clicar via JS
-                print(f"[Telerik] click direto falhou ({e}); clicando via JS")
-                driver.execute_script("arguments[0].click();", campo)
-            time.sleep(0.35)
-
-            # aguardar que a lista apareça (se houver um dropdown container)
-            # XPath genérico para itens do RadComboBox
-            xpath_items = "//li[contains(@class,'rcbItem')]"
-
-            # 1) full match (normalize-space pra evitar espaços estranhos)
-            xpath_full = f"//li[contains(@class,'rcbItem') and contains(normalize-space(.), \"{texto_alvo}\")]"
-            try:
-                opcao = WebDriverWait(driver, 2).until(
-                    EC.element_to_be_clickable((By.XPATH, xpath_full))
+                # Re-localiza SEMPRE o campo
+                campo = WebDriverWait(driver, timeout).until(
+                    EC.presence_of_element_located((By.ID, input_id))
                 )
-                driver.execute_script("arguments[0].scrollIntoView({block:'center'});", opcao)
-                opcao.click()
-                time.sleep(0.25)
-                print(f"[Telerik] ✔ Selecionado (full match): {texto_alvo}")
-                return
-            except Exception:
-                print("[Telerik] full match não encontrada, tentando partial...")
 
-            # 2) partial match (prefix/substring)
-            texto_parcial = texto_alvo[:6]
-            xpath_partial = f"//li[contains(@class,'rcbItem') and contains(normalize-space(.), \"{texto_parcial}\")]"
-            try:
-                opcao = WebDriverWait(driver, 2).until(
-                    EC.element_to_be_clickable((By.XPATH, xpath_partial))
-                )
-                driver.execute_script("arguments[0].scrollIntoView({block:'center'});", opcao)
-                opcao.click()
-                time.sleep(0.25)
-                print(f"[Telerik] ✔ Selecionado (partial match): {texto_parcial}")
-                return
-            except Exception:
-                print("[Telerik] partial match não encontrada, tentando iterar itens...")
+                driver.execute_script("arguments[0].scrollIntoView({block:'center'});", campo)
+                time.sleep(0.2)
 
-            # 3) iterar todos os itens visíveis e clicar na correspondência
-            itens = driver.find_elements(By.XPATH, xpath_items)
-            for item in itens:
                 try:
-                    txt = (item.text or "").strip()
-                    if not txt:
-                        continue
-                    if texto_alvo.upper() in txt.upper() or texto_parcial.upper() in txt.upper():
-                        try:
-                            driver.execute_script("arguments[0].scrollIntoView({block:'center'});", item)
-                            item.click()
-                            time.sleep(0.25)
-                            print(f"[Telerik] ✔ Selecionado (iterando itens): {txt}")
-                            return
-                        except Exception as e:
-                            print(f"[Telerik] tentativa de clicar item via click() falhou ({e}), tentando JS click")
-                            try:
-                                driver.execute_script("arguments[0].click();", item)
-                                time.sleep(0.25)
-                                print(f"[Telerik] ✔ Selecionado (JS click): {txt}")
-                                return
-                            except Exception as e2:
-                                print(f"[Telerik] JS click também falhou: {e2}")
-                                continue
-                except StaleElementReferenceException:
-                    print("[Telerik] Item stale durante iteração; ignorando e continuando")
-                    continue
+                    campo.click()
+                except:
+                    driver.execute_script("arguments[0].click();", campo)
 
-            # 4) Fallback: setar diretamente o value do input e disparar eventos
-            try:
-                # tenta setar o texto no input e disparar eventos de change/blur
-                js_set = (
-                    "var inp = document.getElementById(arguments[0]);"
-                    "if(inp){ inp.value = arguments[1]; inp.dispatchEvent(new Event('input',{bubbles:true}));"
-                    "inp.dispatchEvent(new Event('change',{bubbles:true})); inp.dispatchEvent(new Event('blur')); return true;} return false;"
+                time.sleep(0.3)
+
+                # Localiza item por texto
+                xpath = f"//li[contains(@class,'rcbItem') and contains(., '{texto}')]"
+
+                opcao = WebDriverWait(driver, timeout).until(
+                    EC.element_to_be_clickable((By.XPATH, xpath))
                 )
-                ok = driver.execute_script(js_set, input_id, texto_alvo)
-                time.sleep(0.35)
-                if ok:
-                    print("[Telerik] Valor setado via JS no input; aguardando que o Telerik aceite o valor")
-                    # após set, tentar dar ENTER no input
-                    try:
-                        campo = driver.find_element(By.ID, input_id)
-                        campo.send_keys(Keys.ENTER)
-                        time.sleep(0.35)
-                        # verificar se alguma opção foi realmente selecionada (procura token ou valor input diferente)
-                        atual = campo.get_attribute('value') or ''
-                        print(f"[Telerik] valor atual do input depois do set: '{atual}'")
-                        return
-                    except Exception as ee:
-                        print(f"[Telerik] erro ao dar ENTER após set via JS: {ee}")
+
+                driver.execute_script("arguments[0].scrollIntoView({block:'center'});", opcao)
+                time.sleep(0.2)
+
+                try:
+                    opcao.click()
+                except:
+                    driver.execute_script("arguments[0].click();", opcao)
+
+                time.sleep(0.2)
+                print(f"[Telerik] ✔ Selecionado '{texto}'")
+                return
+
+            except StaleElementReferenceException:
+                print(f"[Telerik] stale element ao selecionar '{texto}', retry {tentativa}/3")
+                time.sleep(0.4)
+                continue
+
             except Exception as e:
-                print(f"[Telerik] fallback JS set falhou: {e}")
+                print(f"[Telerik] Erro ao selecionar '{texto}' (tent {tentativa}/3): {e}")
+                time.sleep(0.4)
+                if tentativa == 3:
+                    raise
 
-            raise Exception(f"Não encontrei item '{texto_alvo}' no combo {input_id}")
-
-        except Exception as exc:
-            print("[Telerik] ERRO FATAL na seleção:", exc)
-            traceback.print_exc()
-            raise
-    # ===== Bloco ADICIONAR PROJETO (completo e corrigido) =====
-    time.sleep(0.5)
-
-
-
-
-
+        raise Exception(f"Não foi possível selecionar '{texto}' no combo {input_id}")
 
 
 
@@ -733,26 +615,22 @@ def preencher_sm(driver, dados: Dict[str, Any]):
 
 
 
-
-
-
-
-
+    time.sleep(2)
 
     # ---------- TRANSPORTADORA / TIPO OPERAÇÃO / HORÁRIO ----------
     try:
         print("Selecionando transportadora...")
         selecionar_item_telerik(
             driver,
-            input_id="ctl00_MainContent_txtEmitenteTransportadora_Input",
-            texto_alvo="DELLMAR TRANSPORTES"
+            "ctl00_MainContent_txtEmitenteTransportadora_Input",
+            "DELLMAR TRANSPORTES"
         )
 
         print("Selecionando tipo de operação...")
         selecionar_item_telerik(
             driver,
-            input_id="ctl00_MainContent_cmbTipoOperacao_Input",
-            texto_alvo="TRANSFERÊNCIA"   # parte do texto já resolve
+            "ctl00_MainContent_cmbTipoOperacao_Input",
+            "TRANSFERÊNCIA"   # parte do texto já resolve
         )
 
         print("Clicando no botão adicionar horário...")
@@ -766,6 +644,7 @@ def preencher_sm(driver, dados: Dict[str, Any]):
 
     except Exception as e:
         raise Exception(f"Erro ao preencher transportadora/tipo operação/horário: {e}") from e
+
 
     # ---------- PLACAS (robusto, tenta variações) ----------
     print("Preenchimento de placas iniciado")
@@ -802,7 +681,7 @@ def preencher_sm(driver, dados: Dict[str, Any]):
             for tentativa in range(1, max_tentativas + 1):
                 try:
                     campo = safe_find(driver, By.ID, "txtVeiculo_Input", timeout=8)
-                    # limpar com pequenos waits (às vezes autocomplete fica preso)
+
                     try:
                         campo.clear()
                     except Exception:
@@ -811,7 +690,6 @@ def preencher_sm(driver, dados: Dict[str, Any]):
 
                     send_keys_with_wait(driver, campo, variacao, wait_after=0.3)
 
-                    # espera lista de sugestões do componente RadAutoComplete (if present)
                     try:
                         _wait(driver, 10).until(
                             lambda d: any(
@@ -820,23 +698,26 @@ def preencher_sm(driver, dados: Dict[str, Any]):
                             )
                         )
                     except TimeoutException:
-                        # não necessariamente é fatal — ainda tentamos TAB e checar tokens
                         pass
 
                     campo.send_keys(Keys.TAB)
-                    # espera token indicando aceitação
-                    _wait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "span.racTextToken")))
+
+                    _wait(driver, 10).until(
+                        EC.presence_of_element_located((By.CSS_SELECTOR, "span.racTextToken"))
+                    )
+
                     spans = driver.find_elements(By.CSS_SELECTOR, "span.racTextToken")
                     placas_encontradas = [s.text.strip().upper() for s in spans if s.text.strip()]
                     if any(p.startswith(variacao) for p in placas_encontradas):
-                        # confirmar vinculo
                         btn_confirm = safe_find(driver, By.ID, "ctl00_MainContent_btnVinculoVeiculo", timeout=6)
                         try:
                             btn_confirm.click()
                         except Exception:
                             driver.execute_script("arguments[0].click();", btn_confirm)
-                        # espera linha apareça na grade de veículos
-                        _wait(driver, 10).until(EC.presence_of_element_located((By.ID, "ctl00_MainContent_grdViewVeiculo_ctl00__0")))
+
+                        _wait(driver, 10).until(
+                            EC.presence_of_element_located((By.ID, "ctl00_MainContent_grdViewVeiculo_ctl00__0"))
+                        )
                         print(f"Placa {variacao} vinculada com sucesso.")
                         return
                     else:
@@ -844,7 +725,9 @@ def preencher_sm(driver, dados: Dict[str, Any]):
                 except Exception as e:
                     print(f"Tentativa {tentativa} para '{variacao}' falhou: {e}")
                     time.sleep(0.8)
+
             print(f"Todas tentativas falharam para variação '{variacao}'")
+
         raise Exception(f"Nenhuma variação da placa '{placa_texto}' foi aceita.")
 
     try:
@@ -857,6 +740,7 @@ def preencher_sm(driver, dados: Dict[str, Any]):
         raise Exception(f"Erro ao preencher placas: {e}") from e
 
     time.sleep(1.0)
+
 
     # ---------- ROTA ----------
     try:
