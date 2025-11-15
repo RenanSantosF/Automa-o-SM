@@ -644,9 +644,8 @@ def preencher_sm(driver, dados: Dict[str, Any]):
             "DIVERSOS"
         )
 
-                
         # ------------------------------------------------------------
-        # VALOR CARGA (VERSÃO ROBUSTA)
+        # VALOR CARGA
         # ------------------------------------------------------------
         print("🟦 Preenchendo VALOR DA CARGA")
 
@@ -657,33 +656,26 @@ def preencher_sm(driver, dados: Dict[str, Any]):
             timeout=10
         )
 
-        # 1) Obter valor da carga e limpar tudo que não for número
-        valor_bruto = str(dados.get("valor_total_carga", "0")).strip()
-        valor_numerico = "".join(c for c in valor_bruto if c.isdigit())
+        # pega o valor original, sem alterar
+        valor_bruto = dados.get("valor_total_carga", "")
+        if valor_bruto is None:
+            valor_bruto = ""
 
-        if not valor_numerico:
-            valor_numerico = "0"
+        print("valor da carga bruto:", valor_bruto)
 
-        valor_final = int(valor_numerico)   # arredonda pra baixo automaticamente
+        # limpa campo (com fallback via JS)
+        try:
+            campo_valor.clear()
+        except:
+            driver.execute_script("arguments[0].value='';", campo_valor)
 
-        print(f"Valor numérico convertido: {valor_final}")
+        # envia exatamente o valor informado
+        campo_valor.send_keys(str(valor_bruto))
 
-        # 2) Limpar campo (via JS é mais seguro no Telerik)
-        driver.execute_script("arguments[0].value='';", campo_valor)
-        time.sleep(0.2)
+        # deixa o Telerik formatar automaticamente
+        campo_valor.send_keys(Keys.TAB)
 
-        # 3) Setar valor usando API interna do Telerik (perfeito para numerictextbox)
-        driver.execute_script("""
-            var ctl = $find("ctl00_MainContent_gridPontosVinculados_ctl00_ctl09_Detail21_ctl02_ctl02_rntxtValorCarga");
-            if (ctl) {
-                ctl.clear();
-                ctl.set_value(arguments[0]);      // coloca número puro
-                ctl.updateDisplayValue();         // deixa bonito no front
-                ctl.raise_valueChanged();         // dispara eventos obrigatórios
-            }
-        """, valor_final)
-
-        time.sleep(0.3)
+        time.sleep(0.4)
 
 
         # ------------------------------------------------------------
