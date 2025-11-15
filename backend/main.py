@@ -80,6 +80,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import os, asyncio
 from jose import jwt, JWTError
+from api.routes_ws import router as ws_router
 
 from api.websocket.manager import manager        # ✔ único manager global
 from core.config import SECRET_KEY, ALGORITHM    # ✔ usa mesma chave
@@ -116,6 +117,7 @@ app.include_router(routes_documents.router, prefix="/api")
 app.include_router(routes_gestor_cargas.router, prefix="/api")
 app.include_router(routes_nfe_download.router, prefix="/api")
 app.include_router(routes_knowledge.router, prefix="/api")
+app.include_router(ws_router, prefix="/api")
 
 # Arquivos estáticos
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
