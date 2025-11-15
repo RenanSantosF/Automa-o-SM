@@ -341,66 +341,53 @@ def preencher_sm(driver, dados: Dict[str, Any]):
 
     print("✔ Todos os campos obrigatórios estão preenchidos.")
 
-
-    # ---------- SALVAR DESTINATÁRIO (COMPATÍVEL COM VPS / HEADLESS) ----------
+    # ---------- SALVAR DESTINATÁRIO (VERSÃO À PROVA DE STALE) ----------
     try:
         print("Salvando destinatário")
 
-        botao_salvar = safe_find(
-            driver,
-            By.ID,
-            "ctl00_MainContent_gridPontosVinculados_ctl00_ctl02_ctl02_btnSalvarPontoSMP",
-            timeout=10
-        )
+        def obter_botao_salvar():
+            return WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located(
+                    (By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00_ctl02_ctl02_btnSalvarPontoSMP")
+                )
+            )
 
-        # 🔥 FORÇA O TELERIK A VALIDAR OS CAMPOS EDITADOS
-        driver.execute_script("""
-            document.querySelectorAll('input, select').forEach(inp => {
-                inp.dispatchEvent(new Event('input',  {bubbles:true}));
-                inp.dispatchEvent(new Event('keyup',   {bubbles:true}));
-                inp.dispatchEvent(new Event('change',  {bubbles:true}));
-                inp.dispatchEvent(new Event('blur',    {bubbles:true}));
-            });
-            if (window.Telerik && Telerik.Web.UI) {
-                try {
-                    Telerik.Web.UI.RadInputControl.prototype.updateDisplay = function(){};
-                } catch(e) {}
-            }
-        """)
-
-        time.sleep(0.4)
-
-        # 🔁 CLICA NO BOTÃO COM 3 TENTATIVAS
-        for tent in range(1, 4):
+        for tentativa in range(1, 4):
             try:
+                botao_salvar = obter_botao_salvar()
+
+                driver.execute_script("arguments[0].scrollIntoView({block:'center'});", botao_salvar)
+                time.sleep(0.2)
+
                 try:
                     botao_salvar.click()
                 except:
                     driver.execute_script("arguments[0].click();", botao_salvar)
 
-                time.sleep(0.6)
+                # Aguardar linha __1 OU alteração de DOM
+                try:
+                    safe_find(driver,
+                        By.ID,
+                        "ctl00_MainContent_gridPontosVinculados_ctl00__1",
+                        timeout=6
+                    )
+                    print("✔ Destinatário salvo — linha __1 criada")
+                    break
 
-                # Aguarda linha __1 aparecer → confirmação REAL de salvamento
-                safe_find(
-                    driver,
-                    By.ID,
-                    "ctl00_MainContent_gridPontosVinculados_ctl00__1",
-                    timeout=6
-                )
-
-                print("✔ Destinatário salvo — linha __1 criada")
-                break
+                except Exception:
+                    print(f"⚠ DOM não atualizou ainda (tentativa {tentativa}), aguardando...")
+                    time.sleep(0.8)
+                    continue
 
             except Exception as e:
-                print(f"[Salvar Destinatário] Tentativa {tent} falhou: {e}")
-                if tent == 3:
-                    raise
-                time.sleep(1)
+                print(f"⚠ Stale ao clicar em salvar (tentativa {tentativa}): {e}")
+                time.sleep(0.5)
+
+        else:
+            raise Exception("Não foi possível salvar o destinatário após 3 tentativas.")
 
     except Exception as e:
         raise Exception(f"Erro ao salvar o destinatário: {e}") from e
-
-
 
 
 
