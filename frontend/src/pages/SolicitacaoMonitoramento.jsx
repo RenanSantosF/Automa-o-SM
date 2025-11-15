@@ -126,22 +126,22 @@
 
 // export default SolicitacaoMonitoramento;
 
-import { useState, useEffect, useRef, useCallback } from 'react';
-import NovaSM from '../components/Nova_smp/Index';
-import ListaSM from '../components/Lista_smp/Index';
-import Loader from '../components/loarder/Loader';
-import { useLogin } from '../Contexts/LoginContext';
-import { MdAddBox, MdClose } from 'react-icons/md';
-import { motion } from 'framer-motion';
-import { FiUser, FiEye, FiEyeOff } from 'react-icons/fi';
-import { HiKey } from 'react-icons/hi';
+import { useState, useEffect, useRef, useCallback } from "react";
+import NovaSM from "../components/Nova_smp/Index";
+import ListaSM from "../components/Lista_smp/Index";
+import Loader from "../components/loarder/Loader";
+import { useLogin } from "../Contexts/LoginContext";
+import { MdAddBox, MdClose } from "react-icons/md";
+import { motion } from "framer-motion";
+import { FiUser, FiEye, FiEyeOff } from "react-icons/fi";
+import { HiKey } from "react-icons/hi";
 
 const api = import.meta.env.VITE_API_URL;
 
 const SolicitacaoMonitoramento = () => {
   const tituloAnimacao = {
     hidden: { opacity: 0, y: 10 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
   };
 
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
@@ -151,8 +151,6 @@ const SolicitacaoMonitoramento = () => {
   const [error, setError] = useState(null);
   const { userData } = useLogin();
   const [showPassword, setShowPassword] = useState(false);
-
-  console.log('Permissão de notificação:', Notification.permission);
 
   // ---- WS REFS ----
   const socketSMRef = useRef(null);
@@ -165,7 +163,7 @@ const SolicitacaoMonitoramento = () => {
       const data = await res.json();
       setExecucoes(data);
     } catch {
-      setError('Erro ao buscar execuções.');
+      setError("Erro ao buscar execuções.");
     } finally {
       setLoading(false);
     }
@@ -177,90 +175,92 @@ const SolicitacaoMonitoramento = () => {
   };
 
   // ------------------------------------------------------------
-  // 🔔 WebSocket Global para notificações de SMP
+  // 🔔 WebSocket Global para todas as notificações
   // ------------------------------------------------------------
   const conectarWS_SM = useCallback(() => {
-    const wsURL = import.meta.env.VITE_API_URL.replace(/^http/, 'ws') + '/ws/notificacoes';
+    const wsURL =
+      import.meta.env.VITE_API_URL.replace(/^http/, "ws") +
+      "/ws/notificacoes";
 
-    console.log('📡 Conectando WS:', wsURL);
+    console.log("📡 Conectando WS:", wsURL);
 
     const socket = new WebSocket(wsURL);
     socketSMRef.current = socket;
 
     socket.onopen = () => {
-      console.log('🟢 WebSocket SMP conectado');
+      console.log("🟢 WebSocket SMP conectado");
 
-      // solicitar permissão uma vez
-      if (Notification.permission !== 'granted') {
+      if (Notification.permission !== "granted") {
         Notification.requestPermission();
       }
     };
 
     socket.onmessage = (event) => {
       let data;
+
       try {
         data = JSON.parse(event.data);
       } catch {
-        console.warn('Mensagem WS inválida ou vazia:', event.data);
+        console.warn("Mensagem WS inválida:", event.data);
         return;
       }
 
-      // Apenas tipos relevantes
-      if (!['sucesso', 'erro', 'reprocessamento'].includes(data.tipo)) {
+      if (!["sucesso", "erro", "reprocessamento"].includes(data.tipo)) {
         return;
       }
 
       const titulo =
-        data.tipo === 'sucesso'
-          ? 'SMP criada com sucesso'
-          : data.tipo === 'erro'
-          ? 'Erro ao criar SMP'
-          : 'Reprocessamento iniciado';
+        data.tipo === "sucesso"
+          ? "SMP criada com sucesso"
+          : data.tipo === "erro"
+          ? "Erro ao criar SMP"
+          : "Reprocessamento iniciado";
 
-      // Se a aba estiver ativa → usar toast (funciona SEMPRE)
-      if (document.visibilityState === 'visible') {
-        import('react-toastify').then(({ toast }) => {
-          toast[data.tipo === 'erro' ? 'error' : 'success'](data.mensagem, {
+      // Aba ativa → Toast
+      if (document.visibilityState === "visible") {
+        import("react-toastify").then(({ toast }) => {
+          toast[data.tipo === "erro" ? "error" : "success"](data.mensagem, {
             autoClose: 5000,
           });
         });
       }
 
-      // Se aba estiver INATIVA → tentar Notification API
-      else if (Notification.permission === 'granted') {
+      // Aba inativa → Notification API
+      else if (Notification.permission === "granted") {
         try {
           new Notification(titulo, {
             body: data.mensagem,
           });
         } catch (err) {
-          console.error('Falha ao exibir notificação:', err);
+          console.error("Falha ao exibir notificação:", err);
         }
       }
 
       handleUploadSuccess();
     };
 
+    socket.onerror = (err) => {
+      console.error("❌ WS SMP erro:", err);
+      socket.close();
+    };
+
     socket.onclose = () => {
-      console.warn('🔌 WS SMP desconectado');
+      console.warn("🔌 WS SMP desconectado");
+
       if (!reconnectingRef.current) {
         reconnectingRef.current = true;
+
         setTimeout(() => {
           reconnectingRef.current = false;
           conectarWS_SM();
         }, 5000);
       }
     };
-
-    socket.onerror = (err) => {
-      console.error('❌ WS SMP erro:', err);
-      socket.close();
-    };
   }, []);
 
   useEffect(() => {
     conectarWS_SM();
     fetchExecucoes();
-
     return () => socketSMRef.current?.close();
   }, []);
 
@@ -271,13 +271,13 @@ const SolicitacaoMonitoramento = () => {
         <p className="flex items-center gap-2 text-sm text-gray-300">
           <FiUser className="text-green-400" />
           <span className="font-medium text-white">Usuário Apisul:</span>
-          <span>{userData?.usuario_apisul || '--'}</span>
+          <span>{userData?.usuario_apisul || "--"}</span>
         </p>
 
         <div className="flex items-center gap-2 text-sm text-gray-300 mt-1">
           <HiKey className="text-green-400" />
           <span className="font-medium text-white">Senha Apisul:</span>
-          <span>{showPassword ? userData?.senha_apisul || '--' : '••••••••'}</span>
+          <span>{showPassword ? userData?.senha_apisul || "--" : "••••••••"}</span>
           <button
             onClick={() => setShowPassword(!showPassword)}
             className="text-green-400 hover:text-green-500"
@@ -304,8 +304,8 @@ const SolicitacaoMonitoramento = () => {
         className={`cursor-pointer flex items-center gap-2 px-4 py-2 mb-4 border 
           ${
             !userData.usuario_apisul
-              ? 'bg-gray-400 cursor-not-allowed border-gray-400'
-              : 'bg-green-600 hover:bg-green-700 border-green-700'
+              ? "bg-gray-400 cursor-not-allowed border-gray-400"
+              : "bg-green-600 hover:bg-green-700 border-green-700"
           } 
           text-white rounded-md transition duration-300`}
       >
@@ -316,12 +316,15 @@ const SolicitacaoMonitoramento = () => {
         >
           {mostrarFormulario ? <MdClose size={20} /> : <MdAddBox size={20} />}
         </motion.div>
-        {mostrarFormulario ? 'Fechar' : 'Nova'}
+        {mostrarFormulario ? "Fechar" : "Nova"}
       </button>
 
       {/* Formulário */}
       {mostrarFormulario && (
-        <NovaSM onUploadSuccess={handleUploadSuccess} onClose={() => setMostrarFormulario(false)} />
+        <NovaSM
+          onUploadSuccess={handleUploadSuccess}
+          onClose={() => setMostrarFormulario(false)}
+        />
       )}
 
       {/* Lista */}

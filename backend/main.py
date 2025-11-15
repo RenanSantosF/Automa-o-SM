@@ -70,6 +70,8 @@
 #         return {"detail": "API route not found or static file not found"}
 
 #     return FileResponse(os.path.join(FRONTEND_DIR, "index.html"))
+
+
 # main.py
 from fastapi import FastAPI, Request, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
@@ -92,8 +94,8 @@ from api import (
 # Worker
 import workers.fila_worker
 
-# WebSocket Manager — AGORA O NOVO
-from api.websocket.ws_manager import sm_manager
+# ✔ USAR APENAS O MESMO MANAGER GLOBAL DOS DOCUMENTOS
+from api.websocket.manager import manager
 
 Base.metadata.create_all(bind=engine)
 
@@ -123,20 +125,21 @@ FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
 app.mount("/frontend", StaticFiles(directory=FRONTEND_DIR), name="frontend")
 app.mount("/static", StaticFiles(directory="uploads"), name="static")
 
+
 # ---------------------------------------------------------
-# WEBSOCKET SMP - NOVO, COMPLETO
+# WEBSOCKET ÚNICO PARA TUDO (documentos + execuções)
 # ---------------------------------------------------------
 @app.websocket("/api/ws/notificacoes")
 async def websocket_notificacoes(websocket: WebSocket):
-    print("📥 WS SMP conectado!")
-    await sm_manager.connect(websocket)
+    print("📥 Cliente conectado ao WS de notificações")
+    await manager.connect(websocket)  # ✔ agora usa o mesmo manager
 
     try:
         while True:
             await asyncio.sleep(30)
     except:
-        print("🔌 WS SMP desconectado")
-        sm_manager.disconnect(websocket)
+        print("🔌 Cliente desconectado do WS")
+        manager.disconnect(websocket)
 
 
 # SPA Catch-all

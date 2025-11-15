@@ -138,7 +138,8 @@ from core.dependencies import get_db
 from crud import listar_execucoes, buscar_execucao_por_id, deletar_execucao_por_id
 from workers.fila_worker import fila_processamento
 
-from api.websocket.ws_manager import sm_manager
+# 🟢 Importação correta — usa o MESMO manager do WebSocket que já funciona (documentos)
+from api.websocket.manager import manager
 
 router = APIRouter()
 
@@ -177,17 +178,17 @@ async def reprocessar_execucao(payload: PayloadReprocessar, db: Session = Depend
         id_exec = payload.execucao_id.id
         usuario = payload.login.usuario
         senha = payload.login.senha
-        execucao = buscar_execucao_por_id(db, id_exec)
 
+        execucao = buscar_execucao_por_id(db, id_exec)
         if not execucao:
-            await sm_manager.broadcast(json.dumps({
+            await manager.broadcast(json.dumps({
                 "tipo": "erro",
                 "mensagem": f"Execução {id_exec} não encontrada."
             }))
             raise HTTPException(status_code=404, detail="Execução não encontrada")
 
         if execucao.status != "Erro":
-            await sm_manager.broadcast(json.dumps({
+            await manager.broadcast(json.dumps({
                 "tipo": "erro",
                 "mensagem": f"Execução {id_exec} não está em erro — reprocessamento não permitido."
             }))
@@ -197,10 +198,11 @@ async def reprocessar_execucao(payload: PayloadReprocessar, db: Session = Depend
         execucao.status = "Solicitação em andamento"
         db.commit()
 
+        # Carrega resultado JSON salvo
         try:
             dados_principal = json.loads(execucao.resultado)
         except:
-            await sm_manager.broadcast(json.dumps({
+            await manager.broadcast(json.dumps({
                 "tipo": "erro",
                 "mensagem": f"Execução {id_exec}: resultado JSON inválido."
             }))
@@ -209,7 +211,8 @@ async def reprocessar_execucao(payload: PayloadReprocessar, db: Session = Depend
         # Envia para fila worker
         fila_processamento.put((execucao.id, dados_principal, usuario, senha))
 
-        await sm_manager.broadcast(json.dumps({
+        # Notifica início
+        await manager.broadcast(json.dumps({
             "tipo": "reprocessamento",
             "mensagem": f"Execução {id_exec} enviada para reprocessamento."
         }))
@@ -220,7 +223,7 @@ async def reprocessar_execucao(payload: PayloadReprocessar, db: Session = Depend
         execucao.status = "Erro"
         db.commit()
 
-        await sm_manager.broadcast(json.dumps({
+        await manager.broadcast(json.dumps({
             "tipo": "erro",
             "mensagem": f"Erro ao reprocessar {id_exec}: {str(e)}"
         }))
@@ -233,17 +236,16 @@ async def reprocessar_execucao(payload: PayloadReprocessar, db: Session = Depend
 # ---------------------------------------------------------------------
 @router.delete("/execucao/{execucao_id}")
 async def deletar_execucao(execucao_id: int, db: Session = Depends(get_db)):
-
     sucesso = deletar_execucao_por_id(db, execucao_id)
 
     if not sucesso:
-        await sm_manager.broadcast(json.dumps({
+        await manager.broadcast(json.dumps({
             "tipo": "erro",
             "mensagem": f"Execução {execucao_id} não encontrada."
         }))
         raise HTTPException(status_code=404, detail="Execução não encontrada.")
 
-    await sm_manager.broadcast(json.dumps({
+    await manager.broadcast(json.dumps({
         "tipo": "sucesso",
         "mensagem": f"Execução {execucao_id} deletada com sucesso."
     }))

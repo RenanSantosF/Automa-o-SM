@@ -62,7 +62,9 @@ class ConnectionManager:
             except Exception:
                 pass  # Erro silencioso na conexão
 
-manager = ConnectionManager()
+# manager = ConnectionManager()
+
+from api.websocket.manager import manager
 
 def get_user_from_token(token: str, db: Session):
     try:
