@@ -373,127 +373,157 @@ def preencher_sm(driver, dados: Dict[str, Any]):
     time.sleep(0.5)
 
 
-    # ========== ADICIONAR PROJETO — DEFINITIVO, FUNCIONANDO LOCAL/VPS HEADLESS ==========
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    # ========== ADICIONAR PROJETO — CORRIGIDO, SEM REFRESH, FUNCIONA LOCAL/VPS HEADLESS ==========
+
     try:
         print("\n=== INICIANDO ADIÇÃO DO PROJETO ===")
 
-        # ---------------------------------------------------------------------
-        # AJUDA O TELERIK A CARREGAR NO HEADLESS
-        # ---------------------------------------------------------------------
+        # ------------------------------------------------------------
+        # ESPERA INTELIGENTE DO TELERIK (AJAX)
+        # ------------------------------------------------------------
+        def esperar_ajax_telerik(timeout=15):
+            """
+            Espera o AJAX interno do Telerik terminar.
+            Funciona mesmo em modo headless.
+            """
+            print("⏳ Aguardando AJAX Telerik finalizar...")
+
+            end = time.time() + timeout
+            while time.time() < end:
+                busy = driver.execute_script("""
+                    var l = document.querySelectorAll('.raDiv');
+                    if (!l.length) return false;
+                    return [...l].some(e => e.style.display !== 'none');
+                """)
+                if not busy:
+                    time.sleep(0.25)
+                    return
+                time.sleep(0.20)
+
+            print("⚠ Aviso: AJAX demorou mais que o esperado, continuando mesmo assim.")
+
+
+        # ------------------------------------------------------------
+        # ESPERA A LINHA DO PONTO SER CRIADA
+        # ------------------------------------------------------------
+        def esperar_linha_1(timeout=12):
+            """
+            Garante que a linha _1 realmente existe.
+            Isso corrige o bug crítico no VPS.
+            """
+            print("🔎 Aguardando a linha 1 aparecer...")
+
+            end = time.time() + timeout
+            while time.time() < end:
+                try:
+                    # id exato
+                    linha = driver.find_element(By.ID,
+                        "ctl00_MainContent_gridPontosVinculados_ctl00__1"
+                    )
+                    if linha.is_displayed():
+                        print("✔ Linha 1 encontrada!")
+                        return linha
+                except:
+                    pass
+
+                # fallback xpath
+                try:
+                    linha = driver.find_element(
+                        By.XPATH,
+                        "//tr[contains(@id,'gridPontosVinculados') and (contains(@id,'__1') or contains(@id,'_1'))]"
+                    )
+                    if linha.is_displayed():
+                        print("✔ Linha 1 encontrada (fallback XPath)!")
+                        return linha
+                except:
+                    pass
+
+                time.sleep(0.35)
+
+            raise Exception("A linha 1 do ponto NÃO apareceu — o salvamento não concluiu a tempo.")
+
+
+        # ------------------------------------------------------------
+        # SCROLL DESPERTADOR HEADLESS
+        # ------------------------------------------------------------
         def scroll_awake():
             try:
                 driver.execute_script("window.scrollTo(0,0);")
-                time.sleep(0.12)
-                driver.execute_script("window.scrollTo(0, 400);")
-                time.sleep(0.12)
+                time.sleep(0.10)
+                driver.execute_script("window.scrollTo(0, 300);")
+                time.sleep(0.10)
                 driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
                 time.sleep(0.15)
             except:
                 pass
 
-        # ---------------------------------------------------------------------
-        # LOCALIZAR LINHA DO PONTO (A DE ÍNDICE 1)
-        # ---------------------------------------------------------------------
-        def localizar_linha_projeto():
-            print("🔎 Verificando se a grid existe...")
 
-            # garantir grid carregada
-            WebDriverWait(driver, 12).until(
-                EC.presence_of_element_located((By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00"))
-            )
-
-            scroll_awake()
-
-            print("🔎 Verificando se existe alguma linha...")
-            WebDriverWait(driver, 12).until(
-                EC.presence_of_element_located((
-                    By.XPATH,
-                    "//table[contains(@id,'gridPontosVinculados')]//tr[contains(@id,'__')]"
-                ))
-            )
-
-            time.sleep(0.4)
-
-            # tentar ID exato (linha _1)
-            try:
-                print("🔎 Procurando linha index 1 (ID fixo)...")
-                return driver.find_element(By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00__1")
-            except:
-                print("⚠ Linha _1 não encontrada por ID, tentando fallback xpath...")
-
-            # fallback mais tolerante
-            try:
-                return WebDriverWait(driver, 5).until(
-                    EC.presence_of_element_located((
-                        By.XPATH,
-                        "//tr[contains(@id,'gridPontosVinculados') and (contains(@id,'__1') or contains(@id,'_1'))]"
-                    ))
-                )
-            except Exception as e:
-                print("❌ A LINHA 1 NÃO EXISTE AINDA! NÃO É POSSÍVEL ADICIONAR PROJETO.")
-                raise Exception("A linha do ponto não foi renderizada — salvar destinatário pode não ter funcionado.")
-
-        # ---------------------------------------------------------------------
-        # EXPANDIR LINHA DO PONTO
-        # ---------------------------------------------------------------------
+        # ------------------------------------------------------------
+        # EXPANDIR LINHA
+        # ------------------------------------------------------------
         def expandir_linha():
-            print("🔽 Expandindo linha do ponto para revelar botão de Adicionar Projeto...")
+            print("🔽 Expandindo linha do ponto...")
 
             scroll_awake()
+            esperar_ajax_telerik()        # <--- garante render
+            linha = esperar_linha_1()     # <--- garante existência real
 
-            linha = localizar_linha_projeto()
             driver.execute_script("arguments[0].scrollIntoView({block:'center'});", linha)
-            time.sleep(0.3)
+            time.sleep(0.25)
 
-            expand_btn_id = "ctl00_MainContent_gridPontosVinculados_ctl00_ctl07_GECBtnExpandColumn"
-
-            try:
-                expand_btn = driver.find_element(By.ID, expand_btn_id)
-            except:
-                print("❌ Botão de expandir NÃO ENCONTRADO! Pane na página.")
-                raise Exception("Botão expandir não existe. O ponto não foi salvo corretamente.")
-
-            print("✔ Botão de expandir encontrado!")
+            expand_id = "ctl00_MainContent_gridPontosVinculados_ctl00_ctl07_GECBtnExpandColumn"
 
             try:
-                expand_btn.click()
+                btn = driver.find_element(By.ID, expand_id)
             except:
-                print("⚠ expand_btn.click() falhou, tentando clicar via JS...")
-                driver.execute_script("arguments[0].click();", expand_btn)
+                raise Exception("Botão de expandir não existe — ponto não foi salvo.")
 
-            time.sleep(1.0)
+            try:
+                btn.click()
+            except:
+                driver.execute_script("arguments[0].click();", btn)
 
-            # garantir que o detalhe abriu
-            WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((
-                    By.XPATH,
-                    "//input[contains(@id,'InitInsertButton')]"
-                ))
-            )
+            esperar_ajax_telerik()
+            time.sleep(0.6)
 
-            print("✔ Linha expandida com sucesso!")
+            print("✔ Linha expandida")
 
-        # ---------------------------------------------------------------------
-        # TENTAR EXPANDIR (com retry)
-        # ---------------------------------------------------------------------
-        for tent in range(1, 4):
+
+        # RETRY PARA EXPANDIR
+        for t in range(1, 4):
             try:
                 expandir_linha()
                 break
             except Exception as e:
-                print(f"⚠ Erro ao expandir linha (tentativa {tent}): {e}")
-                if tent == 3:
+                print(f"⚠ Tentativa {t} de expandir falhou: {e}")
+                if t == 3:
                     raise
                 time.sleep(1)
 
-        # ---------------------------------------------------------------------
-        # CLICAR NO BOTÃO ADICIONAR PROJETO
-        # ---------------------------------------------------------------------
-        print("🟦 Clicando no botão ADICIONAR PROJETO")
+
+        # ------------------------------------------------------------
+        # CLICAR ADICIONAR PROJETO
+        # ------------------------------------------------------------
+        print("🟦 Clicando no botão ADICIONAR PROJETO...")
 
         add_btn_id = "ctl00_MainContent_gridPontosVinculados_ctl00_ctl09_Detail21_ctl02_ctl00_InitInsertButton"
 
-        for tent in range(1, 5):
+        for t in range(1, 5):
             try:
                 add_btn = WebDriverWait(driver, 12).until(
                     EC.element_to_be_clickable((By.ID, add_btn_id))
@@ -504,27 +534,29 @@ def preencher_sm(driver, dados: Dict[str, Any]):
                 try:
                     add_btn.click()
                 except:
-                    print("⚠ add_btn.click() falhou, usando JS")
                     driver.execute_script("arguments[0].click();", add_btn)
 
-                # esperar o campo carregar
-                WebDriverWait(driver, 8).until(
+                esperar_ajax_telerik()
+
+                WebDriverWait(driver, 10).until(
                     EC.presence_of_element_located((By.ID,
-                        "ctl00_MainContent_gridPontosVinculados_ctl00_ctl09_Detail21_ctl02_ctl02_rcbProjeto_Input"))
+                        "ctl00_MainContent_gridPontosVinculados_ctl00_ctl09_Detail21_ctl02_ctl02_rcbProjeto_Input"
+                    ))
                 )
 
                 print("✔ Botão ADICIONAR PROJETO funcionou")
                 break
 
             except Exception as e:
-                print(f"⚠ Falha ao clicar em adicionar projeto (tentativa {tent}): {e}")
-                if tent == 4:
+                print(f"⚠ falha ao clicar em adicionar projeto (tent {t}): {e}")
+                if t == 4:
                     raise
                 time.sleep(1)
 
-        # ---------------------------------------------------------------------
-        # PREENCHER TIPO DO PROJETO
-        # ---------------------------------------------------------------------
+
+        # ------------------------------------------------------------
+        # TIPO PROJETO
+        # ------------------------------------------------------------
         print("🟦 Selecionando TIPO DE PROJETO")
         selecionar_item_telerik(
             driver,
@@ -532,9 +564,9 @@ def preencher_sm(driver, dados: Dict[str, Any]):
             "DELLMAR - ESPECIFICAS"
         )
 
-        # ---------------------------------------------------------------------
-        # PREENCHER TIPO DE CARGA
-        # ---------------------------------------------------------------------
+        # ------------------------------------------------------------
+        # TIPO CARGA
+        # ------------------------------------------------------------
         print("🟦 Selecionando TIPO DE CARGA")
         selecionar_item_telerik(
             driver,
@@ -542,11 +574,10 @@ def preencher_sm(driver, dados: Dict[str, Any]):
             "DIVERSOS"
         )
 
-        # ---------------------------------------------------------------------
+        # ------------------------------------------------------------
         # VALOR CARGA
-        # ---------------------------------------------------------------------
+        # ------------------------------------------------------------
         print("🟦 Preenchendo VALOR DA CARGA")
-
         campo_valor = safe_find(
             driver,
             By.ID,
@@ -565,9 +596,9 @@ def preencher_sm(driver, dados: Dict[str, Any]):
         campo_valor.send_keys(Keys.TAB)
         time.sleep(0.4)
 
-        # ---------------------------------------------------------------------
+        # ------------------------------------------------------------
         # SALVAR PROJETO
-        # ---------------------------------------------------------------------
+        # ------------------------------------------------------------
         print("🟦 Salvando PROJETO")
 
         salvar_id = "ctl00_MainContent_gridPontosVinculados_ctl00_ctl09_Detail21_ctl02_ctl02_btnSalvarProjeto"
@@ -581,13 +612,36 @@ def preencher_sm(driver, dados: Dict[str, Any]):
         except:
             driver.execute_script("arguments[0].click();", btn_salvar)
 
-        time.sleep(1.4)
+        esperar_ajax_telerik()
+        time.sleep(0.8)
+
         print("✔ Projeto SALVO com sucesso!\n")
 
     except Exception as e:
         print("❌ ERRO AO ADICIONAR PROJETO:", e)
         traceback.print_exc()
         raise Exception(f"Erro ao adicionar projeto: {e}")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     # ---------- TRANSPORTADORA / TIPO OPERAÇÃO / HORÁRIO ----------
