@@ -15,7 +15,6 @@ class ConnectionManager:
             self.active_connections.remove(websocket)
 
     async def broadcast(self, message: str):
-        """Recebe string JSON e envia via send_text para compatibilidade com seu WS de documentos."""
         dead = []
         for ws in self.active_connections:
             try:
@@ -25,5 +24,4 @@ class ConnectionManager:
         for d in dead:
             self.disconnect(d)
 
-# exporta a instância única do manager
 manager = ConnectionManager()
