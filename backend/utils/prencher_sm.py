@@ -234,30 +234,66 @@ def preencher_sm(driver, dados: Dict[str, Any]):
         raise Exception(f"Falha ao selecionar o tipo do ponto: {e}") from e
 
 
+    # ---------- DATA ESTIMADA (VERSÃO ROBUSTA PARA VPS/HEADLESS) ----------
+    def preencher_data_estimada(driver, data_texto, timeout=10):
+        campo_id = "ctl00_MainContent_gridPontosVinculados_ctl00_ctl02_ctl02_txtPrevisaoChegada_dateInput"
 
-    # ---------- DATA ESTIMADA ----------
+        for tentativa in range(1, 4):
+            try:
+                print(f"Inserindo data estimada (tentativa {tentativa})")
+
+                campo = safe_find(driver, By.ID, campo_id, timeout=timeout)
+
+                # 1) clicar no campo
+                try:
+                    campo.click()
+                except:
+                    driver.execute_script("arguments[0].click();", campo)
+
+                time.sleep(0.3)
+
+                # 2) limpar de verdade
+                driver.execute_script("arguments[0].value = '';", campo)
+                time.sleep(0.2)
+
+                # 3) preencher via JS (mais confiável no Telerik headless)
+                driver.execute_script("""
+                    var el = arguments[0];
+                    el.value = arguments[1];
+                    el.dispatchEvent(new Event('input', {bubbles:true}));
+                    el.dispatchEvent(new Event('change', {bubbles:true}));
+                    el.dispatchEvent(new Event('blur', {bubbles:true}));
+                """, campo, data_texto)
+
+                time.sleep(0.3)
+
+                # 4) forçar TAB para o Telerik validar
+                campo.send_keys(Keys.TAB)
+                time.sleep(0.4)
+
+                # 5) verificar se realmente está preenchido
+                valor_final = driver.execute_script("return document.getElementById(arguments[0]).value;", campo_id)
+                print("Valor final da data:", valor_final)
+
+                if valor_final and len(valor_final) >= 8:
+                    print("✔ Data estimada preenchida com sucesso!")
+                    return
+
+                print("⚠ Campo não aceitou, tentando novamente...")
+
+            except Exception as e:
+                print(f"Erro ao preencher data (tent {tentativa}): {e}")
+
+        raise Exception("Falha ao preencher data estimada — campo permanece vazio.")
+
+
+    # Chamada:
     try:
         print("Inserindo data estimada")
-
         data_formatada = calcular_data_entrega(
             dados["local_origem"], dados["local_destino"]
         )
-
-        campo_data = safe_find(
-            driver,
-            By.ID,
-            "ctl00_MainContent_gridPontosVinculados_ctl00_ctl02_ctl02_txtPrevisaoChegada_dateInput",
-            timeout=10
-        )
-
-        try:
-            campo_data.click()
-        except:
-            driver.execute_script("arguments[0].click();", campo_data)
-
-        time.sleep(0.3)
-        send_keys_with_wait(driver, campo_data, data_formatada)
-        campo_data.send_keys(Keys.TAB)
+        preencher_data_estimada(driver, data_formatada)
 
     except Exception as e:
         raise Exception(f"Erro ao preencher data estimada: {e}") from e
