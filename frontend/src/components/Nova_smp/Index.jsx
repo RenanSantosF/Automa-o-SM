@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MdFileUpload } from 'react-icons/md';
 import Input from '../Input/Input';
 import AdicionarCampoBtn from '../AdicionarCampoBtn/AdicionarCampoBtn';
@@ -9,6 +9,7 @@ import AlertaGNRE from '../Alerta_GNRE/AlertaGNRE';
 const api = import.meta.env.VITE_API_URL; // se for Vite
 
 const NovaSM = ({ onUploadSuccess, onClose }) => {
+
   const filiaisDellmar = [
     {
       nome: 'DELLMAR TRANSPORTES LTDA - VIANA',
@@ -66,6 +67,7 @@ const NovaSM = ({ onUploadSuccess, onClose }) => {
   const [error, setError] = useState(null);
   const [placaCavaloBase, setPlacaCavaloBase] = useState(null);
   const { userData } = useLogin();
+
   const [rawXmlFiles, setRawXmlFiles] = useState([]);
   const [camposExtras, setCamposExtras] = useState({
     placa_cavalo: true,
@@ -312,26 +314,10 @@ const NovaSM = ({ onUploadSuccess, onClose }) => {
       const algumaSemPlaca = placas.some((p) => !p);
       const algumaComPlaca = placas.some((p) => !!p);
 
-      // if (!todasIguais || (algumaComPlaca && algumaSemPlaca)) {
-      //   setError("Os XMLs devem ter a mesma placa ou todos sem placa. O upload não pode ser feito.");
-      //   return;
-      // }
 
       // Tudo OK, pode adicionar
       setFiles((prev) => [...prev, ...successes.map((s) => s.file)]);
-      // setXmlData(successes[successes.length - 1].data);
-      // setXmlData(prevData => {
-      //   const novaCargaTotal = successes.reduce((total, s) => {
-      //     const valor = parseFloat(s.data.valor_total_carga || "0");
-      //     return total + (isNaN(valor) ? 0 : valor);
-      //   }, parseFloat(prevData?.valor_total_carga || "0"));
 
-      //   return {
-      //     ...prevData,
-      //     ...successes[successes.length - 1].data,
-      //     valor_total_carga: novaCargaTotal.toFixed(2),
-      //   };
-      // });
 
       setXmlData((prevData) => {
         const novaCargaTotal = successes.reduce((total, s) => {
