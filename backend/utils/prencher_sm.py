@@ -1424,10 +1424,16 @@ def preencher_sm(driver, dados: Dict[str, Any]):
         # ---- AVALIAÇÃO FINAL ----
         if sm_numero:
             print("✔ SMP criada com sucesso:", sm_numero)
+
             if erros_coletados:
-                # se houve avisos/alertas, reporta mas não falha
-                print("⚠ SMP criada, mas ocorreram avisos/alertas durante o processo:", erros_coletados)
+                # Log que será captado pelo FRONTEND!
+                print("⚠ ALERTAS DURANTE A CRIAÇÃO DA SMP:")
+                for err in erros_coletados:
+                    print(" - " + err.replace("\n", " | "))
+
+            # (IMPORTANTE: só retornar DEPOIS dos prints acima!)
             return
+
 
         # sem SMP → erro
         raise Exception(f"Falha ao salvar SMP — erros: {erros_coletados or 'Nenhuma resposta recebida'}")
