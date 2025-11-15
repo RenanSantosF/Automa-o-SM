@@ -1171,81 +1171,63 @@ def preencher_sm(driver, dados: Dict[str, Any]):
             except Exception as e:
                 print("scroll_awake falhou:", e)
 
+
+
+
+
         def localizar_linha_projeto():
-            """Busca resiliente para a linha 1 da grid."""
+            """
+            Aguarda a grid carregar totalmente e depois procura a linha 1.
+            Correção para VPS headless onde a linha demora mais para renderizar.
+            """
+
+            # 1) Esperar grid aparecer (container principal)
             try:
-                return safe_find(
-                    driver,
+                WebDriverWait(driver, 12).until(
+                    EC.presence_of_element_located((By.ID, "ctl00_MainContent_gridPontosVinculados_ctl00"))
+                )
+            except:
+                print("❌ Grid não apareceu!")
+                raise
+
+            time.sleep(0.4)
+
+            # 2) Esperar pelo menos UMA linha real (qualquer linha)
+            try:
+                WebDriverWait(driver, 12).until(
+                    EC.presence_of_element_located((
+                        By.XPATH,
+                        "//table[contains(@id,'gridPontosVinculados')]//tr[contains(@id,'__')]"
+                    ))
+                )
+            except:
+                print("❌ Nenhuma linha carregou!")
+                raise
+
+            time.sleep(0.4)
+
+            # 3) Agora sim, tenta achar a linha index 1
+            try:
+                return safe_find(driver,
                     By.ID,
                     "ctl00_MainContent_gridPontosVinculados_ctl00__1",
-                    timeout=8
-                )
-            except Exception as e:
-                print("localizar_linha_projeto falhou, usando fallback xpath:", e)
-                xpath = (
-                    "//table[contains(@id,'gridPontosVinculados')]"
-                    "/tbody/tr[contains(@id,'__1') or contains(@id,'_1')]"
-                )
-                return WebDriverWait(driver, 8).until(
-                    EC.presence_of_element_located((By.XPATH, xpath))
-                )
-
-        def expandir_linha_projeto():
-            scroll_awake()
-
-            linha = localizar_linha_projeto()
-            driver.execute_script("arguments[0].scrollIntoView({block:'center'});", linha)
-            time.sleep(0.35)
-
-            # Botão expandir — ID EXATO
-            expand_btn = None
-            try:
-                expand_btn = driver.find_element(
-                    By.ID,
-                    "ctl00_MainContent_gridPontosVinculados_ctl00_ctl07_GECBtnExpandColumn"
+                    timeout=6
                 )
             except:
                 pass
 
-            if not expand_btn:
-                print("expand_btn não encontrado por ID, buscando via xpath...")
-                expand_btn = WebDriverWait(driver, 8).until(
-                    EC.element_to_be_clickable((By.XPATH, "//input[contains(@id,'GECBtnExpandColumn')]"))
-                )
-
+            # 4) Fallback mais tolerante (qualquer linha com final _1 ou __1)
             try:
-                driver.execute_script("arguments[0].scrollIntoView({block:'center'});", expand_btn)
-                time.sleep(0.12)
-                expand_btn.click()
-            except Exception as e:
-                print("Click normal falhou, tentando JS:", e)
-                driver.execute_script("arguments[0].click();", expand_btn)
-
-            # Espera botão Add aparecer
-            try:
-                WebDriverWait(driver, 6).until(
+                return WebDriverWait(driver, 6).until(
                     EC.presence_of_element_located((
-                        By.ID,
-                        "ctl00_MainContent_gridPontosVinculados_ctl00_ctl09_Detail21_ctl02_ctl00_InitInsertButton"
+                        By.XPATH,
+                        "//tr[contains(@id,'gridPontosVinculados') and (contains(@id,'__1') or contains(@id,'_1'))]"
                     ))
                 )
-            except:
-                time.sleep(1.0)
-
-            time.sleep(1.0)
-
-        # REPEAT para expandir
-        for tentativa in range(1, 5):
-            try:
-                expandir_linha_projeto()
-                print(f"✔ Expandiu ponto (tentativa {tentativa})")
-                break
             except Exception as e:
-                print(f"⚠ Erro ao expandir linha (tentativa {tentativa}): {e}")
-                traceback.print_exc()
-                if tentativa == 4:
-                    raise Exception(f"Falha ao expandir linha do projeto: {e}")
-                time.sleep(1.0)
+                print("❌ Ainda não existe linha 1, grid pode estar carregando devagar:", e)
+                raise
+
 
         # ---------- BOTÃO ADICIONAR PROJETO ----------
         print("Clicando no botão adicionar projeto")
