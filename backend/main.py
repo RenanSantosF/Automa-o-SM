@@ -80,7 +80,6 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import os, asyncio
 from jose import jwt, JWTError
-from api.routes_ws import router as ws_router
 
 from api.websocket.manager import manager        # ✔ único manager global
 from core.config import SECRET_KEY, ALGORITHM    # ✔ usa mesma chave
