@@ -643,11 +643,24 @@ def preencher_sm(driver, dados: Dict[str, Any]):
             "ctl00_MainContent_gridPontosVinculados_ctl00_ctl09_Detail21_ctl02_ctl02_rcbTipoCarga_Input",
             "DIVERSOS"
         )
-
+        
         # ------------------------------------------------------------
         # VALOR CARGA
         # ------------------------------------------------------------
         print("🟦 Preenchendo VALOR DA CARGA")
+
+        def float_to_br(valor):
+            """
+            Converte 296914.28 -> '296.914,28'
+            Aceita float, int ou string numérica.
+            """
+            try:
+                valor_float = float(str(valor).replace(",", "."))
+            except:
+                return str(valor)
+            valor_br = f"{valor_float:,.2f}"
+            valor_br = valor_br.replace(",", "X").replace(".", ",").replace("X", ".")
+            return valor_br
 
         campo_valor = safe_find(
             driver,
@@ -656,12 +669,11 @@ def preencher_sm(driver, dados: Dict[str, Any]):
             timeout=10
         )
 
-        # pega o valor original, sem alterar
+        # pega o valor bruto e converte para BR
         valor_bruto = dados.get("valor_total_carga", "")
-        if valor_bruto is None:
-            valor_bruto = ""
+        valor_convertido = float_to_br(valor_bruto)
 
-        print("valor da carga bruto:", valor_bruto)
+        print("valor da carga convertido:", valor_convertido)
 
         # limpa campo (com fallback via JS)
         try:
@@ -669,8 +681,8 @@ def preencher_sm(driver, dados: Dict[str, Any]):
         except:
             driver.execute_script("arguments[0].value='';", campo_valor)
 
-        # envia exatamente o valor informado
-        campo_valor.send_keys(str(valor_bruto))
+        # envia no formato que o Telerik aceita
+        campo_valor.send_keys(valor_convertido)
 
         # deixa o Telerik formatar automaticamente
         campo_valor.send_keys(Keys.TAB)
