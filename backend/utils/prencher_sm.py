@@ -796,6 +796,7 @@ from selenium.common.exceptions import (
     NoSuchElementException,
     ElementNotInteractableException,
 )
+import traceback
 
 from utils.calcula_distancia import calcular_data_entrega
 from utils.exceptions import ReiniciarProcessoException
@@ -1031,98 +1032,147 @@ def preencher_sm(driver, dados: Dict[str, Any]):
         raise Exception(f"Erro ao salvar o destinatário: {e}") from e
     
 
+
+    # ===== Função robusta para selecionar itens Telerik =====
     def selecionar_item_telerik(driver, input_id, texto_alvo, timeout=15):
         """
-        Seleciona um item em um RadComboBox do Telerik usando clique + XPath robusto.
-        Compatível com o novo comportamento do Apisul.
+        Seleciona um item em um RadComboBox do Telerik de forma robusta.
+        - clica/abre o combo
+        - tenta full match, partial, itera itens, e por fim tenta setar via JS e disparar eventos
+        Logs detalhados para debug.
         """
-        print(f"[Telerik] Selecionando '{texto_alvo}' no {input_id}...")
-
-        # 1) localizar input e abrir dropdown
-        campo = WebDriverWait(driver, timeout).until(
-            EC.presence_of_element_located((By.ID, input_id))
-        )
-
-        # ⚠️ IMPORTANTE: scroll + click porque o Telerik está bloqueando inputs off-screen
-        driver.execute_script("arguments[0].scrollIntoView({block:'center'});", campo)
-        time.sleep(0.2)
-
+        print(f"[Telerik] Iniciando seleção '{texto_alvo}' no {input_id}")
         try:
-            campo.click()
-        except:
-            driver.execute_script("arguments[0].click();", campo)
-
-        time.sleep(0.4)
-
-        # 2) tentar encontrar item por texto completo
-        xpath_full = f"//li[contains(@class,'rcbItem') and contains(normalize-space(.), '{texto_alvo}')]"
-
-        try:
-            opcao = WebDriverWait(driver, timeout).until(
-                EC.element_to_be_clickable((By.XPATH, xpath_full))
+            # localizar input (presença) e garantir visibilidade
+            campo = WebDriverWait(driver, timeout).until(
+                EC.presence_of_element_located((By.ID, input_id))
             )
-            driver.execute_script("arguments[0].scrollIntoView({block:'center'});", opcao)
-            opcao.click()
-            time.sleep(0.3)
-            print(f"✔ Selecionado (full match): {texto_alvo}")
-            return
-        except Exception:
-            pass
+            driver.execute_script("arguments[0].scrollIntoView({block:'center'});", campo)
+            time.sleep(0.15)
 
-        # 3) tentar por substring (útil quando elemento está truncado, ex: 'TRANSF...')
-        texto_parcial = texto_alvo[:6]  # primeiros 6 caracteres
-        xpath_partial = f"//li[contains(@class,'rcbItem') and contains(normalize-space(.), '{texto_parcial}')]"
+            # se input for readOnly (telerik costuma ser), clicar na seta também
+            try:
+                campo.click()
+            except Exception as e:
+                # tentar clicar via JS
+                print(f"[Telerik] click direto falhou ({e}); clicando via JS")
+                driver.execute_script("arguments[0].click();", campo)
+            time.sleep(0.35)
 
-        try:
-            opcao = WebDriverWait(driver, timeout).until(
-                EC.element_to_be_clickable((By.XPATH, xpath_partial))
-            )
-            driver.execute_script("arguments[0].scrollIntoView({block:'center'});", opcao)
-            opcao.click()
-            time.sleep(0.3)
-            print(f"✔ Selecionado (substring match): {texto_parcial}")
-            return
-        except Exception:
-            pass
+            # aguardar que a lista apareça (se houver um dropdown container)
+            # XPath genérico para itens do RadComboBox
+            xpath_items = "//li[contains(@class,'rcbItem')]"
 
-        # 4) fallback final: iterar todos os itens e clicar no que contém o texto
-        itens = driver.find_elements(By.XPATH, "//li[contains(@class,'rcbItem')]")
-        for item in itens:
-            txt = item.text.strip().upper()
-            if texto_alvo.upper() in txt or texto_parcial.upper() in txt:
+            # 1) full match (normalize-space pra evitar espaços estranhos)
+            xpath_full = f"//li[contains(@class,'rcbItem') and contains(normalize-space(.), \"{texto_alvo}\")]"
+            try:
+                opcao = WebDriverWait(driver, 2).until(
+                    EC.element_to_be_clickable((By.XPATH, xpath_full))
+                )
+                driver.execute_script("arguments[0].scrollIntoView({block:'center'});", opcao)
+                opcao.click()
+                time.sleep(0.25)
+                print(f"[Telerik] ✔ Selecionado (full match): {texto_alvo}")
+                return
+            except Exception:
+                print("[Telerik] full match não encontrada, tentando partial...")
+
+            # 2) partial match (prefix/substring)
+            texto_parcial = texto_alvo[:6]
+            xpath_partial = f"//li[contains(@class,'rcbItem') and contains(normalize-space(.), \"{texto_parcial}\")]"
+            try:
+                opcao = WebDriverWait(driver, 2).until(
+                    EC.element_to_be_clickable((By.XPATH, xpath_partial))
+                )
+                driver.execute_script("arguments[0].scrollIntoView({block:'center'});", opcao)
+                opcao.click()
+                time.sleep(0.25)
+                print(f"[Telerik] ✔ Selecionado (partial match): {texto_parcial}")
+                return
+            except Exception:
+                print("[Telerik] partial match não encontrada, tentando iterar itens...")
+
+            # 3) iterar todos os itens visíveis e clicar na correspondência
+            itens = driver.find_elements(By.XPATH, xpath_items)
+            for item in itens:
                 try:
-                    driver.execute_script("arguments[0].scrollIntoView({block:'center'});", item)
-                    item.click()
-                    time.sleep(0.3)
-                    print(f"✔ Selecionado (fallback manual): {txt}")
-                    return
-                except:
+                    txt = (item.text or "").strip()
+                    if not txt:
+                        continue
+                    if texto_alvo.upper() in txt.upper() or texto_parcial.upper() in txt.upper():
+                        try:
+                            driver.execute_script("arguments[0].scrollIntoView({block:'center'});", item)
+                            item.click()
+                            time.sleep(0.25)
+                            print(f"[Telerik] ✔ Selecionado (iterando itens): {txt}")
+                            return
+                        except Exception as e:
+                            print(f"[Telerik] tentativa de clicar item via click() falhou ({e}), tentando JS click")
+                            try:
+                                driver.execute_script("arguments[0].click();", item)
+                                time.sleep(0.25)
+                                print(f"[Telerik] ✔ Selecionado (JS click): {txt}")
+                                return
+                            except Exception as e2:
+                                print(f"[Telerik] JS click também falhou: {e2}")
+                                continue
+                except StaleElementReferenceException:
+                    print("[Telerik] Item stale durante iteração; ignorando e continuando")
                     continue
 
-        raise Exception(f"Não encontrei item '{texto_alvo}' no combo {input_id}")
+            # 4) Fallback: setar diretamente o value do input e disparar eventos
+            try:
+                # tenta setar o texto no input e disparar eventos de change/blur
+                js_set = (
+                    "var inp = document.getElementById(arguments[0]);"
+                    "if(inp){ inp.value = arguments[1]; inp.dispatchEvent(new Event('input',{bubbles:true}));"
+                    "inp.dispatchEvent(new Event('change',{bubbles:true})); inp.dispatchEvent(new Event('blur')); return true;} return false;"
+                )
+                ok = driver.execute_script(js_set, input_id, texto_alvo)
+                time.sleep(0.35)
+                if ok:
+                    print("[Telerik] Valor setado via JS no input; aguardando que o Telerik aceite o valor")
+                    # após set, tentar dar ENTER no input
+                    try:
+                        campo = driver.find_element(By.ID, input_id)
+                        campo.send_keys(Keys.ENTER)
+                        time.sleep(0.35)
+                        # verificar se alguma opção foi realmente selecionada (procura token ou valor input diferente)
+                        atual = campo.get_attribute('value') or ''
+                        print(f"[Telerik] valor atual do input depois do set: '{atual}'")
+                        return
+                    except Exception as ee:
+                        print(f"[Telerik] erro ao dar ENTER após set via JS: {ee}")
+            except Exception as e:
+                print(f"[Telerik] fallback JS set falhou: {e}")
 
-    time.sleep(5)
-    
+            raise Exception(f"Não encontrei item '{texto_alvo}' no combo {input_id}")
 
+        except Exception as exc:
+            print("[Telerik] ERRO FATAL na seleção:", exc)
+            traceback.print_exc()
+            raise
+    # ===== Bloco ADICIONAR PROJETO (completo e corrigido) =====
+    time.sleep(0.5)
 
-    # ---------- ADICIONAR PROJETO ----------
     try:
         print("Expandindo ponto para adicionar projeto")
 
         def scroll_awake():
-            """ Acorda o Telerik no modo headless """
+            """Acorda o Telerik no modo headless (scroll forçado)."""
             try:
                 driver.execute_script("window.scrollTo(0,0);")
-                time.sleep(0.2)
-                driver.execute_script("window.scrollTo(0, document.body.scrollHeight/2);")
-                time.sleep(0.2)
+                time.sleep(0.12)
+                driver.execute_script("window.scrollTo(0, document.body.scrollHeight/3);")
+                time.sleep(0.12)
                 driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                time.sleep(0.3)
-            except:
-                pass
+                time.sleep(0.2)
+                driver.execute_script("document.body.focus();")
+            except Exception as e:
+                print("scroll_awake falhou:", e)
 
         def localizar_linha_projeto():
-            """Busca resiliente da linha 1 no headless"""
+            """Busca resiliente para a linha 1 da grid."""
             try:
                 return safe_find(
                     driver,
@@ -1130,77 +1180,114 @@ def preencher_sm(driver, dados: Dict[str, Any]):
                     "ctl00_MainContent_gridPontosVinculados_ctl00__1",
                     timeout=8
                 )
-            except:
-                # fallback xpath – funciona no headless
+            except Exception as e:
+                print("localizar_linha_projeto falhou, usando fallback xpath:", e)
+                xpath = (
+                    "//table[contains(@id,'gridPontosVinculados')]"
+                    "/tbody/tr[contains(@id,'__1') or contains(@id,'_1')]"
+                )
                 return WebDriverWait(driver, 8).until(
-                    EC.presence_of_element_located((
-                        By.XPATH,
-                        "//tr[contains(@id,'gridPontosVinculados') and contains(@id,'__1')]"
-                    ))
+                    EC.presence_of_element_located((By.XPATH, xpath))
                 )
 
         def expandir_linha_projeto():
             scroll_awake()
 
             linha = localizar_linha_projeto()
-
             driver.execute_script("arguments[0].scrollIntoView({block:'center'});", linha)
-            time.sleep(0.4)
+            time.sleep(0.35)
 
-            # buscar botão expand fresh SEMPRE
-            expand_btn = WebDriverWait(driver, 10).until(
-                EC.element_to_be_clickable((
-                    By.XPATH,
-                    "//input[contains(@id,'GECBtnExpandColumn')]"
-                ))
-            )
+            # Botão expandir — ID EXATO
+            expand_btn = None
+            try:
+                expand_btn = driver.find_element(
+                    By.ID,
+                    "ctl00_MainContent_gridPontosVinculados_ctl00_ctl07_GECBtnExpandColumn"
+                )
+            except:
+                pass
 
-            driver.execute_script("arguments[0].scrollIntoView({block:'center'});", expand_btn)
-            time.sleep(0.2)
+            if not expand_btn:
+                print("expand_btn não encontrado por ID, buscando via xpath...")
+                expand_btn = WebDriverWait(driver, 8).until(
+                    EC.element_to_be_clickable((By.XPATH, "//input[contains(@id,'GECBtnExpandColumn')]"))
+                )
 
             try:
+                driver.execute_script("arguments[0].scrollIntoView({block:'center'});", expand_btn)
+                time.sleep(0.12)
                 expand_btn.click()
-            except:
+            except Exception as e:
+                print("Click normal falhou, tentando JS:", e)
                 driver.execute_script("arguments[0].click();", expand_btn)
 
-            time.sleep(1.2)  # Telerik precisa desse tempo no headless
+            # Espera botão Add aparecer
+            try:
+                WebDriverWait(driver, 6).until(
+                    EC.presence_of_element_located((
+                        By.ID,
+                        "ctl00_MainContent_gridPontosVinculados_ctl00_ctl09_Detail21_ctl02_ctl00_InitInsertButton"
+                    ))
+                )
+            except:
+                time.sleep(1.0)
 
-        # ---------- RETRY ROBUSTO ----------
+            time.sleep(1.0)
+
+        # REPEAT para expandir
         for tentativa in range(1, 5):
             try:
                 expandir_linha_projeto()
+                print(f"✔ Expandiu ponto (tentativa {tentativa})")
                 break
             except Exception as e:
                 print(f"⚠ Erro ao expandir linha (tentativa {tentativa}): {e}")
+                traceback.print_exc()
                 if tentativa == 4:
                     raise Exception(f"Falha ao expandir linha do projeto: {e}")
                 time.sleep(1.0)
 
         # ---------- BOTÃO ADICIONAR PROJETO ----------
         print("Clicando no botão adicionar projeto")
-        add_btn_xpath = "//input[contains(@id,'InitInsertButton')]"
 
-        for tentativa in range(1, 5):
+        add_btn_id = (
+            "ctl00_MainContent_gridPontosVinculados_ctl00_ctl09_Detail21_ctl02_ctl00_InitInsertButton"
+        )
+
+        for tentativa in range(1, 6):
             try:
                 add_btn = WebDriverWait(driver, 12).until(
-                    EC.element_to_be_clickable((By.XPATH, add_btn_xpath))
+                    EC.element_to_be_clickable((By.ID, add_btn_id))
                 )
+
                 driver.execute_script("arguments[0].scrollIntoView({block:'center'});", add_btn)
+                time.sleep(0.12)
 
                 try:
                     add_btn.click()
-                except:
+                except Exception as e:
+                    print("add_btn.click() falhou, usando JS:", e)
                     driver.execute_script("arguments[0].click();", add_btn)
 
-                time.sleep(1.2)
+                # aguarda aparecer campo do projeto
+                WebDriverWait(driver, 8).until(
+                    EC.presence_of_element_located((
+                        By.ID,
+                        "ctl00_MainContent_gridPontosVinculados_ctl00_ctl09_Detail21_ctl02_ctl02_rcbProjeto_Input"
+                    ))
+                )
+                time.sleep(0.9)
                 break
+
             except Exception as e:
                 print(f"⚠ Erro ao clicar em adicionar projeto (tentativa {tentativa}): {e}")
-                if tentativa == 4:
+                traceback.print_exc()
+                if tentativa == 5:
                     raise Exception(f"Falha ao clicar em adicionar projeto: {e}")
                 time.sleep(1.0)
 
         # ---------- TIPO PROJETO ----------
+        print("Preenchendo tipo de projeto...")
         selecionar_item_telerik(
             driver,
             "ctl00_MainContent_gridPontosVinculados_ctl00_ctl09_Detail21_ctl02_ctl02_rcbProjeto_Input",
@@ -1208,43 +1295,59 @@ def preencher_sm(driver, dados: Dict[str, Any]):
         )
 
         # ---------- TIPO CARGA ----------
+        print("Preenchendo tipo de carga...")
         selecionar_item_telerik(
             driver,
             "ctl00_MainContent_gridPontosVinculados_ctl00_ctl09_Detail21_ctl02_ctl02_rcbTipoCarga_Input",
             "DIVERSOS"
         )
 
-        # ---------- VALOR CARGA ----------
+        # ---------- VALOR DA CARGA ----------
+        print("Preenchendo valor da carga...")
         campo_valor = safe_find(
             driver,
             By.ID,
             "ctl00_MainContent_gridPontosVinculados_ctl00_ctl09_Detail21_ctl02_ctl02_rntxtValorCarga",
-            timeout=10
+            timeout=12
         )
-        valor_formatado = format_valor_string(dados.get("valor_total_carga", "") or "0")
-        campo_valor.clear()
-        send_keys_with_wait(driver, campo_valor, valor_formatado)
+
+        valor_formatado = format_valor_string(
+            dados.get("valor_total_carga", "") or "0"
+        )
+
+        try:
+            campo_valor.clear()
+        except:
+            driver.execute_script("arguments[0].value = '';", campo_valor)
+
+        send_keys_with_wait(driver, campo_valor, valor_formatado, wait_after=0.25)
         campo_valor.send_keys(Keys.TAB)
-        time.sleep(0.4)
+        time.sleep(0.5)
 
         # ---------- SALVAR ----------
-        btn_salvar_xpath = "//input[contains(@id,'btnSalvarProjeto')]"
-        btn_salvar = WebDriverWait(driver, 12).until(
-            EC.element_to_be_clickable((By.XPATH, btn_salvar_xpath))
+        print("Salvando projeto...")
+
+        btn_salvar_id = (
+            "ctl00_MainContent_gridPontosVinculados_ctl00_ctl09_Detail21_ctl02_ctl02_btnSalvarProjeto"
         )
+
+        btn_salvar = WebDriverWait(driver, 12).until(
+            EC.element_to_be_clickable((By.ID, btn_salvar_id))
+        )
+
         try:
             btn_salvar.click()
-        except:
+        except Exception as e:
+            print("btn_salvar.click() falhou, tentando JS:", e)
             driver.execute_script("arguments[0].click();", btn_salvar)
 
         time.sleep(1.4)
+        print("✔ Projeto salvo com sucesso")
 
     except Exception as e:
+        print("❌ Erro ao adicionar projeto:", e)
+        traceback.print_exc()
         raise Exception(f"Erro ao adicionar projeto: {e}")
-
-
-
-    time.sleep(1.0)
 
     # ---------- TRANSPORTADORA / TIPO OPERAÇÃO / HORÁRIO ----------
     try:
