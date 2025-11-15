@@ -644,10 +644,12 @@ def preencher_sm(driver, dados: Dict[str, Any]):
             "DIVERSOS"
         )
 
+                
         # ------------------------------------------------------------
-        # VALOR CARGA
+        # VALOR CARGA (VERSÃO ROBUSTA)
         # ------------------------------------------------------------
         print("🟦 Preenchendo VALOR DA CARGA")
+
         campo_valor = safe_find(
             driver,
             By.ID,
@@ -655,16 +657,34 @@ def preencher_sm(driver, dados: Dict[str, Any]):
             timeout=10
         )
 
-        valor_formatado = format_valor_string(dados.get("valor_total_carga", "0") or "0")
+        # 1) Obter valor da carga e limpar tudo que não for número
+        valor_bruto = str(dados.get("valor_total_carga", "0")).strip()
+        valor_numerico = "".join(c for c in valor_bruto if c.isdigit())
 
-        try:
-            campo_valor.clear()
-        except:
-            driver.execute_script("arguments[0].value='';", campo_valor)
+        if not valor_numerico:
+            valor_numerico = "0"
 
-        send_keys_with_wait(driver, campo_valor, valor_formatado)
-        campo_valor.send_keys(Keys.TAB)
-        time.sleep(0.4)
+        valor_final = int(valor_numerico)   # arredonda pra baixo automaticamente
+
+        print(f"Valor numérico convertido: {valor_final}")
+
+        # 2) Limpar campo (via JS é mais seguro no Telerik)
+        driver.execute_script("arguments[0].value='';", campo_valor)
+        time.sleep(0.2)
+
+        # 3) Setar valor usando API interna do Telerik (perfeito para numerictextbox)
+        driver.execute_script("""
+            var ctl = $find("ctl00_MainContent_gridPontosVinculados_ctl00_ctl09_Detail21_ctl02_ctl02_rntxtValorCarga");
+            if (ctl) {
+                ctl.clear();
+                ctl.set_value(arguments[0]);      // coloca número puro
+                ctl.updateDisplayValue();         // deixa bonito no front
+                ctl.raise_valueChanged();         // dispara eventos obrigatórios
+            }
+        """, valor_final)
+
+        time.sleep(0.3)
+
 
         # ------------------------------------------------------------
         # SALVAR PROJETO
