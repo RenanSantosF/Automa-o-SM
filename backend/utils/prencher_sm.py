@@ -1030,13 +1030,10 @@ def preencher_sm(driver, dados: Dict[str, Any]):
 
 
 
-
-
-    # # ---------- SALVAR SMP e Aguardar número ----------
+    # # ---------- SALVAR SMP (ROBUSTO, COM ERROS ACUMULADOS E PARADA IMEDIATA) ----------
     # def extrair_numero_smp_de_texto(texto: str) -> Optional[str]:
     #     if not texto:
     #         return None
-    #     # Tenta extrair com regex "número 12345" ou "número: 12345" ou apenas dígitos
     #     m = re.search(r"n[aú]mero[:\s]*([0-9]+)", texto, flags=re.IGNORECASE)
     #     if m:
     #         return m.group(1)
@@ -1045,114 +1042,138 @@ def preencher_sm(driver, dados: Dict[str, Any]):
     #         return m2.group(1)
     #     return None
 
+
     # try:
-    #     # CLICA PRA SALVAR SMP
     #     safe_click(driver, By.ID, "ctl00_MainContent_btnNovo", timeout=12)
+
     #     timeout_total = 40
-    #     start = time.time()
+    #     inicio = time.time()
+
+    #     erros_coletados = []
     #     sm_numero = None
-    #     notificacao_antes = ""
+    #     notificacao_texto = ""
+
+    #     # Notificação anterior
     #     try:
     #         notificacao_antes = driver.find_element(By.ID, "notifTexto").text.strip()
-    #     except Exception:
+    #     except:
     #         notificacao_antes = ""
 
-    #     erro_detectado = False
-    #     notificacao_texto = None
+    #     print("⏳ Aguardando resposta da criação da SMP...")
 
-    #     while time.time() - start < timeout_total:
-    #         time.sleep(0.4)
-    #         # 1) label SMP
+    #     while time.time() - inicio < timeout_total:
+    #         time.sleep(0.35)
+
+    #         # 1) Verifica SMP no label
     #         try:
-    #             sm_label = driver.find_element(By.ID, "ctl00_MainContent_lblNumeroSM")
-    #             if sm_label.is_displayed() and sm_label.text.strip():
-    #                 sm_numero = sm_label.text.strip()
+    #             label = driver.find_element(By.ID, "ctl00_MainContent_lblNumeroSM")
+    #             if label.is_displayed() and label.text.strip():
+    #                 sm_numero = label.text.strip()
     #                 dados["numero_smp"] = sm_numero
+    #                 print("✔ SMP criada:", sm_numero)
     #                 break
-    #         except Exception:
+    #         except:
     #             pass
 
-    #         # 2) toast / notificacao
+    #         # 2) Caixa de notificação (toast)
     #         try:
-    #             div_not = driver.find_element(By.ID, "divNotificacao")
-    #             if div_not.is_displayed():
-    #                 notif_text = driver.find_element(By.ID, "notifTexto").text.strip()
-    #                 if notif_text and notif_text != notificacao_antes:
-    #                     print("Notificação:", notif_text)
-    #                     notificacao_texto = notif_text
+    #             div = driver.find_element(By.ID, "divNotificacao")
+    #             if div.is_displayed():
+    #                 notif = driver.find_element(By.ID, "notifTexto").text.strip()
+
+    #                 if notif and notif != notificacao_antes:
+    #                     print("Notificação:", notif)
+    #                     notificacao_texto = notif
+    #                     # tenta fechar
     #                     try:
     #                         driver.find_element(By.ID, "btnCloseNotificacao").click()
-    #                     except Exception:
+    #                     except:
     #                         pass
-    #                     if "foi salva com sucesso" in notif_text.lower() or "salva com sucesso" in notif_text.lower():
-    #                         num = extrair_numero_smp_de_texto(notif_text)
+
+    #                     # sucesso?
+    #                     if "sucesso" in notif.lower():
+    #                         num = extrair_numero_smp_de_texto(notif)
     #                         if num:
     #                             sm_numero = num
     #                             dados["numero_smp"] = sm_numero
-    #                             break
-    #                         else:
-    #                             print("Notificação positiva, mas não consegui extrair número.")
-    #                     else:
-    #                         erro_detectado = True
     #                         break
-    #         except Exception:
+
+    #                     # erro real → interrompe e retorna
+    #                     erros_coletados.append(notif)
+    #                     raise Exception("Erro crítico após salvar SMP")
+    #         except:
     #             pass
 
-    #         # 3) alertas radalert
+    #         # 3) radalert (erros graves)
     #         try:
     #             alertas = driver.find_elements(By.CSS_SELECTOR, ".rwDialogPopup.radalert")
     #             for alerta in alertas:
     #                 if alerta.is_displayed():
-    #                     texto = alerta.text.strip()
-    #                     print("Alerta:", texto)
+    #                     txt = alerta.text.strip()
+    #                     print("⚠ Alerta Telerik:", txt)
+
+    #                     erros_coletados.append(txt)
+
+    #                     # clicar OK
     #                     try:
-    #                         ok_btn = alerta.find_element(By.CLASS_NAME, "rwPopupButton")
-    #                         ok_btn.click()
-    #                     except Exception:
+    #                         alerta.find_element(By.CLASS_NAME, "rwPopupButton").click()
+    #                     except:
     #                         pass
-    #                     if any(w in texto.lower() for w in ["erro", "não foi possível", "falha"]):
-    #                         erro_detectado = True
-    #                         notificacao_texto = texto
-    #                     break
-    #         except Exception:
+
+    #                     raise Exception("Erro crítico Telerik")
+    #         except:
     #             pass
 
-    #         # 4) confirmações radconfirm
+    #         # 4) radconfirm (confirmações – mas podem trazer erros)
     #         try:
     #             confirms = driver.find_elements(By.CSS_SELECTOR, ".rwDialogPopup.radconfirm")
     #             for conf in confirms:
     #                 if conf.is_displayed():
     #                     txt = conf.text.strip()
-    #                     print("Confirmação:", txt)
+    #                     print("⚠ Confirmação:", txt)
+
+    #                     # Pode ser erro
+    #                     if any(x in txt.lower() for x in ["falha", "erro", "não pode", "rejeitada"]):
+    #                         erros_coletados.append(txt)
+
+    #                     # clicar OK/SIM
     #                     try:
-    #                         ok_btns = conf.find_elements(By.CLASS_NAME, "rwPopupButton")
-    #                         for b in ok_btns:
-    #                             if "OK" in b.text.upper() or "SIM" in b.text.upper():
-    #                                 b.click()
+    #                         for btn in conf.find_elements(By.CLASS_NAME, "rwPopupButton"):
+    #                             if "OK" in btn.text.upper() or "SIM" in btn.text.upper():
+    #                                 btn.click()
     #                                 break
-    #                     except Exception:
+    #                     except:
     #                         pass
-    #                     break
-    #         except Exception:
+
+    #                     # se for erro → interrompe
+    #                     if any(x in txt.lower() for x in ["falha", "erro", "rejeitada"]):
+    #                         raise Exception("Erro crítico na confirmação")
+    #         except:
     #             pass
 
+    #     # ---- AVALIAÇÃO FINAL ----
     #     if sm_numero:
-    #         print("SMP criada:", sm_numero)
-    #     else:
-    #         if erro_detectado:
-    #             raise Exception(f"Erro ao salvar SMP: {notificacao_texto or 'erro não especificado'}")
-    #         else:
-    #             raise Exception("Timeout ao aguardar resposta de salvar SMP.")
+    #         print("✔ SMP criada com sucesso:", sm_numero)
+    #         if erros_coletados:
+    #             raise Exception(f"SMP criada ({sm_numero}), mas com erros: {erros_coletados}")
+    #         return
+
+    #     # sem SMP → erro
+    #     raise Exception(f"Falha ao salvar SMP — erros: {erros_coletados or 'Nenhuma resposta recebida'}")
+
     # except Exception as e:
-    #     raise
+    #     # se número da SMP foi criado ANTES do erro → retorna mesmo assim
+    #     if "numero_smp" in dados:
+    #         raise Exception(f"SMP criada ({dados['numero_smp']}) com erros: {e}")
+    #     else:
+    #         raise Exception(str(e))
 
+    # ---------- SALVAR SMP (LÓGICA REAL E DEFINITIVA) ----------
 
-
-    # ---------- SALVAR SMP (ROBUSTO, COM ERROS ACUMULADOS E PARADA IMEDIATA) ----------
     def extrair_numero_smp_de_texto(texto: str) -> Optional[str]:
         if not texto:
             return None
-        m = re.search(r"n[aú]mero[:\s]*([0-9]+)", texto, flags=re.IGNORECASE)
+        m = re.search(r"SMP.*?([0-9]{4,12}/[0-9]{4})", texto, flags=re.IGNORECASE)
         if m:
             return m.group(1)
         m2 = re.search(r"\b([0-9]{4,10})\b", texto)
@@ -1161,9 +1182,39 @@ def preencher_sm(driver, dados: Dict[str, Any]):
         return None
 
 
+    def capturar_alerta_pgve_ok(driver):
+        """Captura alertas Telerik do tipo 'Chave PGV' e clica no botão OK."""
+        try:
+            alertas = driver.find_elements(By.CSS_SELECTOR, ".rwDialogPopup.radalert")
+            for alerta in alertas:
+                if alerta.is_displayed():
+                    texto = alerta.text.strip()
+                    if "chave pgv" in texto.lower():
+                        print(f"⚠ Alerta PGV detectado: {texto}")
+
+                        # Clica no OK
+                        try:
+                            btn = alerta.find_element(By.CLASS_NAME, "rwPopupButton")
+                            btn.click()
+                        except:
+                            pass
+
+                        return texto
+        except:
+            pass
+        return None
+
+
+    def houve_redirecionamento(driver, url_inicial):
+        """Retorna True se a página mudou após clicar OK no PGV."""
+        atual = driver.current_url
+        return atual != url_inicial
+
+
     try:
         safe_click(driver, By.ID, "ctl00_MainContent_btnNovo", timeout=12)
 
+        url_inicial = driver.current_url
         timeout_total = 40
         inicio = time.time()
 
@@ -1171,7 +1222,6 @@ def preencher_sm(driver, dados: Dict[str, Any]):
         sm_numero = None
         notificacao_texto = ""
 
-        # Notificação anterior
         try:
             notificacao_antes = driver.find_element(By.ID, "notifTexto").text.strip()
         except:
@@ -1180,107 +1230,84 @@ def preencher_sm(driver, dados: Dict[str, Any]):
         print("⏳ Aguardando resposta da criação da SMP...")
 
         while time.time() - inicio < timeout_total:
-            time.sleep(0.35)
+            time.sleep(0.3)
 
-            # 1) Verifica SMP no label
-            try:
-                label = driver.find_element(By.ID, "ctl00_MainContent_lblNumeroSM")
-                if label.is_displayed() and label.text.strip():
-                    sm_numero = label.text.strip()
-                    dados["numero_smp"] = sm_numero
-                    print("✔ SMP criada:", sm_numero)
-                    break
-            except:
-                pass
-
-            # 2) Caixa de notificação (toast)
+            # 1) Notificação (TESTA SUCESSO)
             try:
                 div = driver.find_element(By.ID, "divNotificacao")
                 if div.is_displayed():
                     notif = driver.find_element(By.ID, "notifTexto").text.strip()
 
                     if notif and notif != notificacao_antes:
-                        print("Notificação:", notif)
+                        print(f"🔔 Notificação:", notif)
                         notificacao_texto = notif
-                        # tenta fechar
+
+                        # FECHA toast
                         try:
                             driver.find_element(By.ID, "btnCloseNotificacao").click()
                         except:
                             pass
 
-                        # sucesso?
                         if "sucesso" in notif.lower():
                             num = extrair_numero_smp_de_texto(notif)
                             if num:
                                 sm_numero = num
                                 dados["numero_smp"] = sm_numero
                             break
-
-                        # erro real → interrompe e retorna
-                        erros_coletados.append(notif)
-                        raise Exception("Erro crítico após salvar SMP")
+                        else:
+                            erros_coletados.append(notif)
+                            raise Exception("Erro crítico após salvar SMP")
             except:
                 pass
 
-            # 3) radalert (erros graves)
+            # 2) ALERTA PGV (NÃO É SUCESSO)
+            alerta_pgv = capturar_alerta_pgve_ok(driver)
+            if alerta_pgv:
+                print("⚠ PGV apareceu (não define sucesso). Verificando redirecionamento...")
+
+                # Se PGV apareceu, aguardar até 5s por redirecionamento
+                for _ in range(20):
+                    if houve_redirecionamento(driver, url_inicial):
+                        print("✔ Redirecionou após PGV → SMP criada!")
+                        sm_numero = "DESCONHECIDO_POR_PGV"
+                        dados["numero_smp"] = sm_numero
+                        break
+                    time.sleep(0.2)
+
+                if sm_numero:
+                    break
+                else:
+                    print("❌ PGV apareceu mas NÃO redirecionou → falha na criação da SMP")
+                    erros_coletados.append(alerta_pgv)
+                    raise Exception("Falha após PGV")
+
+            # 3) ALERTAS de ERRO reais
             try:
                 alertas = driver.find_elements(By.CSS_SELECTOR, ".rwDialogPopup.radalert")
                 for alerta in alertas:
                     if alerta.is_displayed():
                         txt = alerta.text.strip()
-                        print("⚠ Alerta Telerik:", txt)
-
-                        erros_coletados.append(txt)
-
-                        # clicar OK
-                        try:
-                            alerta.find_element(By.CLASS_NAME, "rwPopupButton").click()
-                        except:
-                            pass
-
-                        raise Exception("Erro crítico Telerik")
-            except:
-                pass
-
-            # 4) radconfirm (confirmações – mas podem trazer erros)
-            try:
-                confirms = driver.find_elements(By.CSS_SELECTOR, ".rwDialogPopup.radconfirm")
-                for conf in confirms:
-                    if conf.is_displayed():
-                        txt = conf.text.strip()
-                        print("⚠ Confirmação:", txt)
-
-                        # Pode ser erro
-                        if any(x in txt.lower() for x in ["falha", "erro", "não pode", "rejeitada"]):
+                        if "pgv" not in txt.lower():
+                            print("❌ Erro Telerik:", txt)
                             erros_coletados.append(txt)
-
-                        # clicar OK/SIM
-                        try:
-                            for btn in conf.find_elements(By.CLASS_NAME, "rwPopupButton"):
-                                if "OK" in btn.text.upper() or "SIM" in btn.text.upper():
-                                    btn.click()
-                                    break
-                        except:
-                            pass
-
-                        # se for erro → interrompe
-                        if any(x in txt.lower() for x in ["falha", "erro", "rejeitada"]):
-                            raise Exception("Erro crítico na confirmação")
+                            try:
+                                alerta.find_element(By.CLASS_NAME, "rwPopupButton").click()
+                            except:
+                                pass
+                            raise Exception("Erro crítico tkinter")
             except:
                 pass
 
-        # ---- AVALIAÇÃO FINAL ----
+        # FINAL
         if sm_numero:
-            print("✔ SMP criada com sucesso:", sm_numero)
+            print("✔ SMP confirmada:", sm_numero)
             if erros_coletados:
-                raise Exception(f"SMP criada ({sm_numero}), mas com erros: {erros_coletados}")
+                print("⚠ Ocorreram alertas durante o processo:", erros_coletados)
             return
 
-        # sem SMP → erro
         raise Exception(f"Falha ao salvar SMP — erros: {erros_coletados or 'Nenhuma resposta recebida'}")
 
     except Exception as e:
-        # se número da SMP foi criado ANTES do erro → retorna mesmo assim
         if "numero_smp" in dados:
             raise Exception(f"SMP criada ({dados['numero_smp']}) com erros: {e}")
         else:
