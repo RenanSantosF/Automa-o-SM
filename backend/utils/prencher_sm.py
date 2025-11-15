@@ -263,8 +263,50 @@ def preencher_sm(driver, dados: Dict[str, Any]):
         raise Exception(f"Erro ao preencher data estimada: {e}") from e
 
 
+    # ---------- VALIDAÇÃO ANTES DE SALVAR DESTINATÁRIO ----------
+    print("\n🔎 Validando campos obrigatórios antes de salvar destinatário...")
 
-    # ---------- SALVAR DESTINATÁRIO (APÓS SELECIONAR TIPO) ----------
+    campos_obrigatorios = {
+        "cnpj_destinatario": "rcbIdentificadorPonto_Input",
+        "tempo_permanencia": "ctl00_MainContent_gridPontosVinculados_ctl00_ctl02_ctl02_txtTempoPermanencia_dateInput",
+        "tipo_ponto": "cmbTipoPontoSMP_Input",
+        "data_chegada": "ctl00_MainContent_gridPontosVinculados_ctl00_ctl02_ctl02_txtPrevisaoChegada_dateInput"
+    }
+
+    campos_invalidos = []
+
+    for nome_log, campo_id in campos_obrigatorios.items():
+        try:
+            valor = driver.execute_script("""
+                var el = document.getElementById(arguments[0]);
+                if (!el) return null;
+                return el.value || el.textContent || el.innerText || '';
+            """, campo_id)
+
+            valor = (valor or "").strip()
+
+            print(f"    • {nome_log}: '{valor}'")
+
+            if not valor:
+                campos_invalidos.append(nome_log)
+
+        except Exception as e:
+            print(f"    • ERRO ao ler '{nome_log}': {e}")
+            campos_invalidos.append(nome_log)
+
+    if campos_invalidos:
+        print("\n❌ ERRO: Campos obrigatórios vazios antes de salvar:")
+        for c in campos_invalidos:
+            print(f"   → {c}")
+
+        raise Exception(
+            f"Não foi possível salvar destinátario — campos vazios: {', '.join(campos_invalidos)}"
+        )
+
+    print("✔ Todos os campos obrigatórios estão preenchidos.")
+
+
+    # ---------- SALVAR DESTINATÁRIO (COMPATÍVEL COM VPS / HEADLESS) ----------
     try:
         print("Salvando destinatário")
 
@@ -275,24 +317,52 @@ def preencher_sm(driver, dados: Dict[str, Any]):
             timeout=10
         )
 
-        try:
-            botao_salvar.click()
-        except:
-            driver.execute_script("arguments[0].click();", botao_salvar)
+        # 🔥 FORÇA O TELERIK A VALIDAR OS CAMPOS EDITADOS
+        driver.execute_script("""
+            document.querySelectorAll('input, select').forEach(inp => {
+                inp.dispatchEvent(new Event('input',  {bubbles:true}));
+                inp.dispatchEvent(new Event('keyup',   {bubbles:true}));
+                inp.dispatchEvent(new Event('change',  {bubbles:true}));
+                inp.dispatchEvent(new Event('blur',    {bubbles:true}));
+            });
+            if (window.Telerik && Telerik.Web.UI) {
+                try {
+                    Telerik.Web.UI.RadInputControl.prototype.updateDisplay = function(){};
+                } catch(e) {}
+            }
+        """)
 
-        # Aguarda a linha 1 aparecer (comportamento igual ao remetente)
-        safe_find(
-            driver,
-            By.ID,
-            "ctl00_MainContent_gridPontosVinculados_ctl00__1",
-            timeout=10
-        )
+        time.sleep(0.4)
 
-        print("✔ Destinatário salvo — linha __1 criada")
+        # 🔁 CLICA NO BOTÃO COM 3 TENTATIVAS
+        for tent in range(1, 4):
+            try:
+                try:
+                    botao_salvar.click()
+                except:
+                    driver.execute_script("arguments[0].click();", botao_salvar)
+
+                time.sleep(0.6)
+
+                # Aguarda linha __1 aparecer → confirmação REAL de salvamento
+                safe_find(
+                    driver,
+                    By.ID,
+                    "ctl00_MainContent_gridPontosVinculados_ctl00__1",
+                    timeout=6
+                )
+
+                print("✔ Destinatário salvo — linha __1 criada")
+                break
+
+            except Exception as e:
+                print(f"[Salvar Destinatário] Tentativa {tent} falhou: {e}")
+                if tent == 3:
+                    raise
+                time.sleep(1)
 
     except Exception as e:
         raise Exception(f"Erro ao salvar o destinatário: {e}") from e
-
 
 
 
