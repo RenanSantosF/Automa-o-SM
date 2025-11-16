@@ -188,7 +188,7 @@ def login_apisul(usuario, senha, max_tentativas=3):
             options = webdriver.ChromeOptions()
 
             # HEADLESS NOVO (Chrome 120+)
-            # options.add_argument("--headless=new")
+            options.add_argument("--headless=new")
             options.add_argument("--disable-gpu")
             options.add_argument("--no-sandbox")
             options.add_argument("--disable-dev-shm-usage")
