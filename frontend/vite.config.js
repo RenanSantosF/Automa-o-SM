@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
-import { VitePWA } from 'vite-plugin-pwa';
+import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -31,10 +31,16 @@ export default defineConfig({
           },
         ],
       },
+
       workbox: {
-        // Garante suporte para SPA (Single Page Application)
+        // *** CORREÇÃO IMPORTANTE ***
+        // Aumenta limite para permitir precache de bundle maior
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB
+
+        // Suporte para SPA
         navigateFallback: '/index.html',
         cleanupOutdatedCaches: true,
+
         runtimeCaching: [
           {
             urlPattern: ({ request }) => request.destination === 'image',
@@ -50,12 +56,10 @@ export default defineConfig({
         ],
       },
     }),
-
   ],
-  
-    server: {
-    host: '0.0.0.0', // ← permite acesso externo
-    port: 5173,       // ← porta padrão do Vite
+
+  server: {
+    host: '0.0.0.0', // permite acesso externo
+    port: 5173,      // porta padrão
   },
-  
 })
