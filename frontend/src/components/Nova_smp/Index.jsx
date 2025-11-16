@@ -903,42 +903,18 @@ const NovaSM = ({ onUploadSuccess, onClose }) => {
       .filter((l) => !/^[A-F0-9]{10,}$/i.test(l)); // remove linhas corrompidas
   }
 
+  function extrairCidadeUF(linhas, palavraChave) {
+    const idx = linhas.findIndex((l) => l.includes(palavraChave));
+    if (idx === -1) return '';
 
+    // Procurar nas 3 linhas abaixo por padrão "CIDADE UF"
+    for (let i = idx; i < idx + 4 && i < linhas.length; i++) {
+      const m = linhas[i].match(/([A-ZÀ-Ú][A-ZÀ-Ú\s]+)\s[-–]\s([A-Z]{2})/);
+      if (m) return `${m[1].trim()} - ${m[2]}`;
+    }
 
-
-
-
-
-
-
-
-
-
-
-function extrairCidadeUF(linhas, palavraChave) {
-  const idx = linhas.findIndex(l => l.includes(palavraChave));
-  if (idx === -1) return "";
-
-  // Procurar nas 3 linhas abaixo por padrão "CIDADE UF"
-  for (let i = idx; i < idx + 4 && i < linhas.length; i++) {
-    const m = linhas[i].match(/([A-ZÀ-Ú][A-ZÀ-Ú\s]+)\s[-–]\s([A-Z]{2})/);
-    if (m) return `${m[1].trim()} - ${m[2]}`;
+    return '';
   }
-
-  return "";
-}
-
-
-
-
-
-
-
-
-
-
-
-
 
   // -----------------------
   // PDF reading/parsing
@@ -1020,70 +996,67 @@ function extrairCidadeUF(linhas, palavraChave) {
   }
 
   function parsePdfCTe(text) {
+    let lines = text
+      .split('\n')
+      .map((l) => l.replace(/^\[Y=\d+\]\s*/, '').trim())
+      .filter(Boolean);
 
-  let lines = text.split("\n")
-    .map(l => l.replace(/^\[Y=\d+\]\s*/, "").trim())
-    .filter(Boolean);
+    console.log('=== CTE CLEAN ===', lines);
 
-  console.log("=== CTE CLEAN ===", lines);
+    // -------- REMETENTE / DESTINATÁRIO --------
+    const linhaRD = lines.find((l) => l.includes('REMETENTE') && l.includes('DESTINATÁRIO')) || '';
 
-  // -------- REMETENTE / DESTINATÁRIO --------
-  const linhaRD = lines.find(l =>
-    l.includes("REMETENTE") && l.includes("DESTINATÁRIO")
-  ) || "";
+    const rdMatch = linhaRD.match(/REMETENTE (.*?) DESTINATÁRIO (.*)/);
 
-  const rdMatch = linhaRD.match(/REMETENTE (.*?) DESTINATÁRIO (.*)/);
+    const remetente_nome = rdMatch?.[1]?.trim() || '';
+    const destinatario_nome = rdMatch?.[2]?.trim() || '';
 
-  const remetente_nome = rdMatch?.[1]?.trim() || "";
-  const destinatario_nome = rdMatch?.[2]?.trim() || "";
+    // -------- CNPJs --------
+    const linhaCNPJ = lines.find((l) => l.includes('CNPJ/CPF')) || '';
+    const cnpjs = [...linhaCNPJ.matchAll(/\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}/g)].map((m) =>
+      m[0].replace(/\D/g, '')
+    );
 
-  // -------- CNPJs --------
-  const linhaCNPJ = lines.find(l => l.includes("CNPJ/CPF")) || "";
-  const cnpjs = [...linhaCNPJ.matchAll(/\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}/g)]
-    .map(m => m[0].replace(/\D/g, ""));
+    // -------- VALOR DA CARGA --------
+    const linhaValor =
+      lines.find((l) => l.includes('VASILHAME') && /\d{1,3}\.\d{3},\d{2}/.test(l)) || '';
 
-  // -------- VALOR DA CARGA --------
-  const linhaValor = lines.find(l =>
-    l.includes("VASILHAME") && /\d{1,3}\.\d{3},\d{2}/.test(l)
-  ) || "";
+    const valor = linhaValor.match(/\d{1,3}\.\d{3},\d{2}/)?.[0] || '';
 
-  const valor = linhaValor.match(/\d{1,3}\.\d{3},\d{2}/)?.[0] || "";
+    // -------- ORIGEM / DESTINO (AQUI ESTÁ O SEGREDO!) --------
+    const linhaOrigDest =
+      lines.find((l) =>
+        /\b[A-ZÀ-Ú][A-ZÀ-Ú\s]+ - [A-Z]{2}\b\s+[A-ZÀ-Ú][A-ZÀ-Ú\s]+ - [A-Z]{2}/.test(l)
+      ) || '';
 
-  // -------- ORIGEM / DESTINO (AQUI ESTÁ O SEGREDO!) --------
-  const linhaOrigDest = lines.find(l =>
-    /\b[A-ZÀ-Ú][A-ZÀ-Ú\s]+ - [A-Z]{2}\b\s+[A-ZÀ-Ú][A-ZÀ-Ú\s]+ - [A-Z]{2}/.test(l)
-  ) || "";
+    let local_origem = '';
+    let local_destino = '';
 
-  let local_origem = "";
-  let local_destino = "";
+    if (linhaOrigDest) {
+      const parts = linhaOrigDest.split(/\s{2,}| (?=[A-ZÀ-Ú]+ - [A-Z]{2}$)/).filter(Boolean);
 
-  if (linhaOrigDest) {
-    const parts = linhaOrigDest.split(/\s{2,}| (?=[A-ZÀ-Ú]+ - [A-Z]{2}$)/).filter(Boolean);
-
-    // Fallback se o split der errado
-    const match = linhaOrigDest.match(/([A-ZÀ-Ú\s]+ - [A-Z]{2})\s+([A-ZÀ-Ú\s]+ - [A-Z]{2})/);
-    if (match) {
-      local_origem = match[1].trim();
-      local_destino = match[2].trim();
+      // Fallback se o split der errado
+      const match = linhaOrigDest.match(/([A-ZÀ-Ú\s]+ - [A-Z]{2})\s+([A-ZÀ-Ú\s]+ - [A-Z]{2})/);
+      if (match) {
+        local_origem = match[1].trim();
+        local_destino = match[2].trim();
+      }
     }
+
+    console.log('ORIGEM PDF:', local_origem);
+    console.log('DESTINO PDF:', local_destino);
+
+    return {
+      tipo: 'cte',
+      remetente_nome,
+      remetente_cnpj: cnpjs[0] || '',
+      destinatario_nome,
+      destinatario_cnpj: cnpjs[1] || '',
+      valor_total_carga: valor,
+      local_origem,
+      local_destino,
+    };
   }
-
-  console.log("ORIGEM PDF:", local_origem);
-  console.log("DESTINO PDF:", local_destino);
-
-  return {
-    tipo: "cte",
-    remetente_nome,
-    remetente_cnpj: cnpjs[0] || "",
-    destinatario_nome,
-    destinatario_cnpj: cnpjs[1] || "",
-    valor_total_carga: valor,
-    local_origem,
-    local_destino
-  };
-}
-
-
 
   // -----------------------
   // Processamento de arquivos XML (mantido com pequenas melhorias)
@@ -1269,8 +1242,8 @@ function extrairCidadeUF(linhas, palavraChave) {
           ),
 
           // 🔥 CAMPOS QUE O BACKEND EXIGE
-          local_origem: cteData.local_origem || prev?.local_origem || "",
-          local_destino: cteData.local_destino || prev?.local_destino || "",
+          local_origem: cteData.local_origem || prev?.local_origem || '',
+          local_destino: cteData.local_destino || prev?.local_destino || '',
 
           remetente_endereco: cteData.remetente_endereco || prev?.remetente_endereco || '',
           destinatario_endereco: cteData.destinatario_endereco || prev?.destinatario_endereco || '',
@@ -1331,19 +1304,18 @@ function extrairCidadeUF(linhas, palavraChave) {
   // -----------------------
   // Submit / payload (mantido)
   // -----------------------
-const payload = {
-  viagemData: {
-    ...xmlData,
-    valor_total_carga: xmlData.valor_total_carga
-      ? normalizarValor(xmlData.valor_total_carga)
-      : "0,00",
-  },
-  login: {
-    usuario: userData?.usuario_apisul,
-    senha: userData?.senha_apisul
-  }
-};
-
+  const payload = {
+    viagemData: {
+      ...xmlData,
+      valor_total_carga: xmlData.valor_total_carga
+        ? normalizarValor(xmlData.valor_total_carga)
+        : '0,00',
+    },
+    login: {
+      usuario: userData?.usuario_apisul,
+      senha: userData?.senha_apisul,
+    },
+  };
 
   const handleSubmit = async (e = null) => {
     if (e) e.preventDefault();
@@ -1388,31 +1360,33 @@ const payload = {
 
       {/* Tabs */}
       <div className="mb-4">
-<div className="flex justify-center">
-  <div className="flex gap-2 bg-gray-200 rounded-xl p-1">
-    <button
-      onClick={() => setActiveTab('xml')}
-      className={`px-4 py-2 rounded-lg transition-all 
-        ${activeTab === 'xml' 
-          ? 'bg-white text-gray-800 shadow-sm' 
-          : 'text-gray-600 hover:bg-gray-300/60'
+        <div className="flex justify-center">
+          <div className="flex gap-2 bg-gray-200 rounded-xl p-1">
+            <button
+              onClick={() => setActiveTab('xml')}
+              className={`px-4 py-2 rounded-lg transition-all 
+        ${
+          activeTab === 'xml'
+            ? 'bg-white text-gray-800 shadow-sm'
+            : 'text-gray-600 hover:bg-gray-300/60'
         }`}
-    >
-      XML
-    </button>
+            >
+              XML
+            </button>
 
-    <button
-      onClick={() => setActiveTab('pdf')}
-      className={`px-4 py-2 rounded-lg transition-all 
-        ${activeTab === 'pdf' 
-          ? 'bg-white text-gray-800 shadow-sm'
-          : 'text-gray-600 hover:bg-gray-300/60'
+            <button
+              onClick={() => setActiveTab('pdf')}
+              className={`px-4 py-2 rounded-lg transition-all 
+        ${
+          activeTab === 'pdf'
+            ? 'bg-white text-gray-800 shadow-sm'
+            : 'text-gray-600 hover:bg-gray-300/60'
         }`}
-    >
-      PDF (CT-e + MDF-e)
-    </button>
-  </div>
-</div>
+            >
+              PDF (CT-e + MDF-e)
+            </button>
+          </div>
+        </div>
 
         <motion.div
           layout
@@ -1472,49 +1446,51 @@ const payload = {
                         />
                       </div>
 
-                      <div className="flex items-center pr-10 gap-3 w-full">
-                        <Input
-                          value={xmlData.placa_cavalo || ''}
-                          type="text"
-                          placeholder="Placa Cavalo"
-                          onChange={(e) => handleChange('placa_cavalo', e.target.value)}
-                        />
+                      <div className='flex'>
+                        <div className="flex items-center pr-10 gap-3 w-full">
+                          <Input
+                            value={xmlData.placa_cavalo || ''}
+                            type="text"
+                            placeholder="Placa Cavalo"
+                            onChange={(e) => handleChange('placa_cavalo', e.target.value)}
+                          />
+                        </div>
+
+                        {/* Placa Carreta 1 */}
+                        {camposExtras.placa_carreta_1 ? (
+                          <div className="flex items-center pr-10 gap-3 w-full">
+                            <Input
+                              value={xmlData.placa_carreta_1 || ''}
+                              type="text"
+                              placeholder="Placa Carreta 1"
+                              onChange={(e) => handleChange('placa_carreta_1', e.target.value)}
+                            />
+                          </div>
+                        ) : (
+                          <AdicionarCampoBtn
+                            onClick={() => ativarCampo('placa_carreta_1')}
+                            label="Adicionar Placa Carreta 1"
+                          />
+                        )}
+
+                        {/* Placa Carreta 2 */}
+                        {camposExtras.placa_carreta_2 ? (
+                          <div className="flex items-center pr-10 gap-3 w-full">
+                            <Input
+                              value={xmlData.placa_carreta_2 || ''}
+                              type="text"
+                              placeholder="Placa Carreta 2"
+                              onChange={(e) => handleChange('placa_carreta_2', e.target.value)}
+                            />
+                          </div>
+                        ) : (
+                          <AdicionarCampoBtn
+                            onClick={() => ativarCampo('placa_carreta_2')}
+                            label="Adicionar Placa Carreta 2"
+                            disabled={!camposExtras.placa_carreta_1}
+                          />
+                        )}
                       </div>
-
-                      {/* Placa Carreta 1 */}
-                      {camposExtras.placa_carreta_1 ? (
-                        <div className="flex items-center pr-10 gap-3 w-full">
-                          <Input
-                            value={xmlData.placa_carreta_1 || ''}
-                            type="text"
-                            placeholder="Placa Carreta 1"
-                            onChange={(e) => handleChange('placa_carreta_1', e.target.value)}
-                          />
-                        </div>
-                      ) : (
-                        <AdicionarCampoBtn
-                          onClick={() => ativarCampo('placa_carreta_1')}
-                          label="Adicionar Placa Carreta 1"
-                        />
-                      )}
-
-                      {/* Placa Carreta 2 */}
-                      {camposExtras.placa_carreta_2 ? (
-                        <div className="flex items-center pr-10 gap-3 w-full">
-                          <Input
-                            value={xmlData.placa_carreta_2 || ''}
-                            type="text"
-                            placeholder="Placa Carreta 2"
-                            onChange={(e) => handleChange('placa_carreta_2', e.target.value)}
-                          />
-                        </div>
-                      ) : (
-                        <AdicionarCampoBtn
-                          onClick={() => ativarCampo('placa_carreta_2')}
-                          label="Adicionar Placa Carreta 2"
-                          disabled={!camposExtras.placa_carreta_1}
-                        />
-                      )}
                     </div>
 
                     <p>
@@ -1658,7 +1634,7 @@ const payload = {
 
                 {/* Mostra campos extraídos (mesmos campos do XML) */}
                 {Object.keys(xmlData).length > 0 && !error && (
-                  <div className="mt-4 text-sm text-gray-700 space-y-3">
+                  <div className="mt-4 flex flex-col gap-3 text-sm text-gray-700">
                     <Input
                       value={xmlData.condutor || ''}
                       type="text"
@@ -1724,7 +1700,7 @@ const payload = {
                         : '—'}
                     </p>
 
-                    <div className="my-2">
+                    <div className="mt-2 flex flex-col gap-4">
                       <Input
                         value={xmlData.remetente_nome || ''}
                         type="text"
@@ -1741,7 +1717,7 @@ const payload = {
                       />
                     </div>
 
-                    <div className="my-2">
+                    <div className="my-2 flex flex-col gap-4">
                       <Input
                         value={xmlData.destinatario_nome || ''}
                         type="text"
@@ -1782,7 +1758,7 @@ const payload = {
                   }`}
                 >
                   <MdFileUpload />
-                  Enviar Dados
+                  Enviar Docs
                 </button>
               </form>
             )}
