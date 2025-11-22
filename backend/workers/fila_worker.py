@@ -80,7 +80,7 @@ import threading, queue, asyncio, json
 from database import SessionLocal
 from services.processamento_cte import processar_cte
 from api.websocket.manager import manager
-from models.execucao import Execucao   # IMPORTANTE: certifique-se que o caminho está correto
+from models import Execucao   # IMPORTANTE: certifique-se que o caminho está correto
 
 fila_processamento = queue.Queue()
 
