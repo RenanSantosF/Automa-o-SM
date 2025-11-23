@@ -350,7 +350,7 @@ export default function NfePorChave() {
               whileTap={{ scale: 0.97 }}
               className="px-4 py-2 text-sm bg-green-600 hover:bg-green-700 text-white rounded shadow-md disabled:bg-gray-600"
             >
-              {loading ? 'Processando...' : 'Arquivo zipado'}
+              {loading ? 'Processando...' : 'Baixar arquivo zipado'}
             </motion.button>
 
             {/* MULTI */}
