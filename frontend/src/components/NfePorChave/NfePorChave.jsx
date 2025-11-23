@@ -420,7 +420,7 @@ export default function NfePorChave() {
                         className="px-2 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded"
                         onClick={() => visualizarPdfNovaAba(nota.pdf)}
                       >
-                        Ver
+                        Visualizar
                       </button>
 
                       {/* PDF */}
@@ -430,7 +430,7 @@ export default function NfePorChave() {
                           baixarBlob(base64ToBlob(nota.pdf, 'application/pdf'), `${nota.chave}.pdf`)
                         }
                       >
-                        PDF
+                        Baixar PDF
                       </button>
 
                       {/* XML */}
@@ -443,7 +443,7 @@ export default function NfePorChave() {
                           baixarBlob(blob, `${nota.chave}.xml`);
                         }}
                       >
-                        XML
+                        Baixar XML
                       </button>
                     </div>
                   </div>
