@@ -1385,7 +1385,7 @@ def preencher_sm(driver, dados: Dict[str, Any]):
         safe_click(driver, By.ID, "ctl00_MainContent_btnNovo", timeout=12)
 
         url_inicial = driver.current_url
-        timeout_total = 40
+        timeout_total = 80
         inicio = time.time()
 
         erros_coletados = []
@@ -1487,7 +1487,7 @@ def preencher_sm(driver, dados: Dict[str, Any]):
                         print("⚠ PGV detectado — aguardando redirecionamento...")
                         waited = 0.0
                         sucesso_via_redirec = False
-                        while waited < 5.0:
+                        while waited < 12.0:
                             time.sleep(0.25)
                             waited += 0.25
 
