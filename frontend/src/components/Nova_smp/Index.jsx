@@ -30,7 +30,7 @@ const NovaSM = ({ onUploadSuccess, onClose }) => {
 
   const { userData } = useLogin();
 
-  const [activeTab, setActiveTab] = useState('xml'); // 'xml' or 'pdf'
+  const [activeTab, setActiveTab] = useState('pdf'); // 'xml' or 'pdf'
   const [sugestoesRemetente, setSugestoesRemetente] = useState([]);
   const [sugestoesDestinatario, setSugestoesDestinatario] = useState([]);
 
