@@ -264,6 +264,95 @@ const NovaSM = ({ onUploadSuccess, onClose }) => {
     return '';
   }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+const readPdfItems = async (file) => {
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
+  const items = [];
+
+  for (let p = 1; p <= pdf.numPages; p++) {
+    const page = await pdf.getPage(p);
+    const content = await page.getTextContent();
+
+    content.items.forEach((it) => {
+      const x = it.transform[4];
+      const y = it.transform[5];
+      const text = (it.str || '').trim();
+      if (text) items.push({ page: p, x, y, text });
+    });
+  }
+
+  return items;
+};
+
+const moneyRegex = /\d{1,3}(?:\.\d{3})*(?:,\d{2})/;
+const cnpjRegex = /\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}/;
+
+const joinItemsText = (items) =>
+  items
+    .sort((a, b) => a.x - b.x)
+    .map((i) => i.text)
+    .join(' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+const itemsInBox = (items, { xMin, xMax, yMin, yMax, page }) =>
+  items.filter(
+    (it) =>
+      (!page || it.page === page) &&
+      it.x >= xMin &&
+      it.x <= xMax &&
+      it.y >= yMin &&
+      it.y <= yMax
+  );
+
+const findAnchor = (items, regex) => items.find((it) => regex.test(it.text));
+
+
+
+
+
+
+
+
+
+
+
   // -----------------------
   // PDF reading/parsing
   // -----------------------
@@ -339,6 +428,11 @@ const NovaSM = ({ onUploadSuccess, onClose }) => {
     };
   }
 
+
+
+
+
+
   function parsePdfCTe(text) {
     let lines = text
       .split('\n')
@@ -402,6 +496,146 @@ const NovaSM = ({ onUploadSuccess, onClose }) => {
     };
   }
 
+
+function parsePdfCTeFromItems(items) {
+  const cnpjRegex = /\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}/g;
+  const moneyRegex = /\d{1,3}(?:\.\d{3})*(?:,\d{2})/;
+
+  const join = (arr) =>
+    arr
+      .sort((a, b) => a.x - b.x)
+      .map((i) => i.text)
+      .join(' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+  const byY = (y, tol = 2) =>
+    items.filter((i) => Math.abs(i.y - y) <= tol);
+
+  // ============================
+  // ✅ 1. ORIGEM / DESTINO (Y≈591)
+  // ============================
+  const origemDestinoLine = join(byY(591));
+  let local_origem = '';
+  let local_destino = '';
+
+  const odMatch = origemDestinoLine.match(
+    /([A-ZÀ-Ú\s]+ - [A-Z]{2})\s+([A-ZÀ-Ú\s]+ - [A-Z]{2})/
+  );
+  if (odMatch) {
+    local_origem = odMatch[1].trim();
+    local_destino = odMatch[2].trim();
+  }
+
+  // ============================
+  // ✅ 2. REMETENTE / DESTINATÁRIO BASE (Y≈579)
+  // ============================
+  const nomesLine = join(byY(579));
+
+  let remetente_nome = '';
+  let destinatario_nome = '';
+
+  const rdMatch = nomesLine.match(
+    /REMETENTE\s+(.*?)\s+DESTINAT[ÁA]RIO\s+(.*)/
+  );
+  if (rdMatch) {
+    remetente_nome = rdMatch[1].trim();
+    destinatario_nome = rdMatch[2].trim();
+  }
+
+  // ============================
+  // ✅ 3. CNPJs BASE (Y≈543)
+  // ============================
+  const cnpjLine = join(byY(543));
+  const cnpjsBase = [...cnpjLine.matchAll(cnpjRegex)].map((m) =>
+    m[0].replace(/\D/g, '')
+  );
+
+  let remetente_cnpj = cnpjsBase[0] || '';
+  let destinatario_cnpj = cnpjsBase[1] || '';
+
+  // ============================
+  // ✅ 4. VALOR DA CARGA (Y≈426)
+  // ============================
+  const valorLine = join(byY(426));
+  const valorMatch = valorLine.match(moneyRegex);
+  const valor_total_carga = valorMatch ? valorMatch[0] : '';
+
+  // =====================================================
+  // ✅ 5. TERMINAIS (EXPEDIDOR / RECEBEDOR) – Y≈521 / 485
+  // =====================================================
+  const terminalNomeLine = join(byY(521));
+  const terminalCnpjLine = join(byY(485));
+  const terminalCnpjs = [...terminalCnpjLine.matchAll(cnpjRegex)].map((m) =>
+    m[0].replace(/\D/g, '')
+  );
+
+  // ============================
+  // ✅ CASO A: TEM OS DOIS (2 CNPJs)
+  // ============================
+  if (terminalCnpjs.length >= 2) {
+    remetente_cnpj = terminalCnpjs[0];
+    destinatario_cnpj = terminalCnpjs[1];
+
+    const nomeMatch = terminalNomeLine.match(
+      /EXPEDIDOR\s+(.*?)\s+RECEBEDOR\s+(.*)/i
+    );
+
+    if (nomeMatch) {
+      remetente_nome = nomeMatch[1].trim();
+      destinatario_nome = nomeMatch[2].trim();
+    }
+  }
+
+  // ============================
+  // ✅ CASO B: TEM SÓ UM TERMINAL
+  // ============================
+  if (terminalCnpjs.length === 1) {
+    const cnpjTerminal = terminalCnpjs[0];
+
+    // 👉 EXPEDIDOR quando o nome fica ENTRE as palavras
+    const matchExp = terminalNomeLine.match(
+      /EXPEDIDOR\s+(.*?)\s+RECEBEDOR/i
+    );
+
+    // 👉 RECEBEDOR quando o nome vem DEPOIS de RECEBEDOR
+    const matchRec = terminalNomeLine.match(
+      /RECEBEDOR\s+(.*)$/i
+    );
+
+    if (matchExp && !matchRec) {
+      // 🔁 Só EXPEDIDOR
+      remetente_nome = matchExp[1].trim();
+      remetente_cnpj = cnpjTerminal;
+    } 
+    else if (matchRec) {
+      // 🔁 Só RECEBEDOR
+      destinatario_nome = matchRec[1].trim();
+      destinatario_cnpj = cnpjTerminal;
+    }
+  }
+
+  // ============================
+  // ✅ DEBUG FINAL
+  // ============================
+  console.log('✅ CTE FINAL COMPLETO:');
+  console.log('ORIGEM:', local_origem);
+  console.log('DESTINO:', local_destino);
+  console.log('REMETENTE:', remetente_nome, remetente_cnpj);
+  console.log('DESTINATÁRIO:', destinatario_nome, destinatario_cnpj);
+  console.log('VALOR CARGA:', valor_total_carga);
+
+  return {
+    tipo: 'cte',
+    local_origem,
+    local_destino,
+    remetente_nome,
+    remetente_cnpj,
+    destinatario_nome,
+    destinatario_cnpj,
+    valor_total_carga,
+  };
+}
 
 
 
@@ -513,9 +747,36 @@ const NovaSM = ({ onUploadSuccess, onClose }) => {
     // Precisamos dos dois: um CT-e e um MDF-e
     // Estrategia: ler os textos e detectar qual é qual pela presença de palavras-chaves (MDFe / CTe / Documento Auxiliar)
     try {
-      const reads = await Promise.all(pdfs.map((f) => readPdfText(f)));
-      // assoc texts to files
-      const parsed = pdfs.map((f, idx) => ({ file: f, text: reads[idx] }));
+
+
+
+
+
+
+
+
+      // const reads = await Promise.all(pdfs.map((f) => readPdfText(f)));
+      const textReads = await Promise.all(pdfs.map((f) => readPdfText(f)));
+      const itemReads = await Promise.all(pdfs.map((f) => readPdfItems(f)));
+
+
+
+      // const parsed = pdfs.map((f, idx) => ({ file: f, text: reads[idx] }));
+
+const parsed = pdfs.map((f, idx) => ({
+  file: f,
+  text: textReads[idx],
+  items: itemReads[idx],
+}));
+
+
+
+
+
+
+
+
+
 
       // detectar mdfe e cte por heurística
       let mdfeEntry = parsed.find(
@@ -541,7 +802,28 @@ const NovaSM = ({ onUploadSuccess, onClose }) => {
 
       // parse
       const mdfeData = parsePdfMDFe(mdfeEntry.text);
-      const cteData = parsePdfCTe(cteEntry.text);
+
+
+
+
+
+
+
+
+
+
+
+      // const cteData = parsePdfCTe(cteEntry.text);
+const cteData = parsePdfCTeFromItems(cteEntry.items);
+
+
+
+
+
+
+
+
+
 
       // salvar textos brutos para depuração / GNRE checks
       setRawPdfTexts((prev) => [...prev, mdfeEntry.text, cteEntry.text]);
