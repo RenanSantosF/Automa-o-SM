@@ -3,6 +3,8 @@ from sqlalchemy.sql import func
 from database import Base  # ou como você estiver importando sua base declarativa
 from sqlalchemy.orm import relationship
 from sqlalchemy import Date
+from models_gerais.permissoes import Grupo
+
 class Execucao(Base):
     __tablename__ = "execucoes"
 
@@ -56,8 +58,14 @@ class User(Base):
     senha_apisul = Column(String, nullable=True)
     
     knowledge_entries = relationship("Knowledge", back_populates="author")
+    grupo_id = Column(Integer, ForeignKey("grupos.id"))
+    grupo = relationship("Grupo")
 
-
+    @property
+    def permissoes(self):
+        if not self.grupo:
+            return []
+        return [p.codigo for p in self.grupo.permissoes]
 
 class Document(Base):
     __tablename__ = "documents"

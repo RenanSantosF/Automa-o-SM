@@ -153,7 +153,7 @@ export default function RegisterForm() {
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45 }}
-      className="flex items-center justify-center min-h-[80vh] bg-[#222]"
+      className="flex items-center  justify-center h-screen w-full min-h-[80vh] bg-[#222]"
     >
       <form
         onSubmit={handleSubmit}

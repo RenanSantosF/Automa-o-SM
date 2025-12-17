@@ -19,8 +19,10 @@ from api import (
     routes_documents,
     routes_gestor_cargas,
     routes_nfe_download,
-    routes_knowledge
+    routes_knowledge,
 )
+
+from api.routes_grupos import router as routes_grupos
 
 import workers.fila_worker
 
@@ -44,7 +46,7 @@ app.include_router(routes_documents.router, prefix="/api")
 app.include_router(routes_gestor_cargas.router, prefix="/api")
 app.include_router(routes_nfe_download.router, prefix="/api")
 app.include_router(routes_knowledge.router, prefix="/api")
-
+app.include_router(routes_grupos, prefix="/api")
 
 # Arquivos estáticos
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

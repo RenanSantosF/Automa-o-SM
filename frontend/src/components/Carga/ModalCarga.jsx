@@ -2,7 +2,12 @@ import { useState, useEffect } from 'react';
 import { MdClose, MdDelete, MdEdit } from 'react-icons/md';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+
 const API_URL = import.meta.env.VITE_API_URL;
+
 
 export default function ModalCarga({ cargaInicial = null, onClose, onSucesso }) {
   // começar em edição quando não há cargaInicial (ou seja, criando)
@@ -207,7 +212,7 @@ useEffect(() => {
       onClose();
     } catch (err) {
       console.error('Erro ao deletar carga:', err);
-      alert('Erro ao deletar carga. Veja o console.');
+      toast.error(err.response?.data?.detail || 'Erro ao deletar carga!');
     }
   };
 
@@ -258,7 +263,7 @@ useEffect(() => {
       onClose();
     } catch (err) {
       console.error('Erro ao salvar carga:', err);
-      alert('Erro ao salvar carga. Veja o console para detalhes.');
+      toast.error(err.response?.data?.detail || 'Erro ao registrar carga"');
     }
   };
 

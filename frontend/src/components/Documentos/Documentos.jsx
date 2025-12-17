@@ -6,6 +6,7 @@ import Filtros from './Filtros';
 import { useLogin } from '../../Contexts/LoginContext';
 import { toast } from 'react-toastify';
 import { motion, AnimatePresence } from 'framer-motion';
+import { can, canAny, canAll } from '../../utils/permissions';
 
 const LIMIT = 20;
 const api = import.meta.env.VITE_API_URL;
@@ -60,9 +61,13 @@ const Documentos = () => {
     const agora = new Date();
 
     docList.forEach((doc) => {
-      const ignorarNotificacoes =
-        doc.usuario_id === userData.id ||
-        (userData.setor === 'outros' && doc.usuario_id !== userData.id);
+
+    const ignorarNotificacoes =
+      // ignora notificações do próprio usuário
+      doc.usuario_id === userData.id ||
+
+      // se NÃO tem permissão de ver todos, ignora docs de outros
+      !can(userData, 'comprovantes.view_all');
 
       // 🔔 Notificar novos ARQUIVOS (se permitido)
       if (!ignorarNotificacoes) {
@@ -429,10 +434,9 @@ const Documentos = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const documentosFiltrados =
-    userData.setor === 'outros'
-      ? documentos.filter((doc) => doc.usuario_id === userData.id)
-      : documentos;
+const documentosFiltrados = can(userData, 'comprovantes.view_all')
+  ? documentos
+  : documentos.filter((doc) => doc.usuario_id === userData.id);
 
   return (
     <div className="flex h-[calc(100dvh-20px)] bg-white rounded-md overflow-hidden border">

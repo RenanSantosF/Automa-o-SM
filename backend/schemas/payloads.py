@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime, date
 from pydantic import EmailStr
+from schemas.grupos import GrupoSchema
 
 class LoginData(BaseModel):
     usuario: str
@@ -73,6 +74,7 @@ class UserOut(BaseModel):
     nome: Optional[str] = None
     transportadora: Optional[str] = None
     filial: Optional[str] = None
+    permissoes: list[str] = []
 
     class Config:
         orm_mode = True
@@ -99,13 +101,20 @@ class UserSchema(BaseModel):
     username: str
     email: Optional[EmailStr]
     setor: str
-    # NOVOS CAMPOS
+
     nome: Optional[str] = None
     transportadora: Optional[str] = None
     filial: Optional[str] = None
 
+    # 🔥 ESSENCIAL
+    grupo_id: Optional[int]
+    grupo: Optional[GrupoSchema]
+
+    # já existe no model (property)
+    permissoes: List[str]
+
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class DocumentFileSchema(BaseModel):
     id: int

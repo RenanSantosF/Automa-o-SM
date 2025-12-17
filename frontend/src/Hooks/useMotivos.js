@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import fetchWithAuth from "../utils/fetchWithAuth";
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -51,15 +53,25 @@ export const useMotivos = () => {
     }
   };
 
-  const deletarMotivo = async (id) => {
-    try {
-      await fetchWithAuth(`${API_URL}/gestor-cargas/motivos/${id}`, { method: "DELETE" });
-      setMotivos((prev) => prev.filter((m) => m.id !== id));
-    } catch (err) {
-      console.error('Erro ao deletar motivo:', err);
-      throw err;
-    }
-  };
+const deletarMotivo = async (id) => {
+  try {
+    const result = await fetchWithAuth(
+      `${API_URL}/gestor-cargas/motivos/${id}`,
+      { method: "DELETE" }
+    );
+
+    setMotivos((prev) => prev.filter((m) => m.id !== id));
+
+    toast.success("Motivo deletado com sucesso.");
+    return { success: true, data: result };
+  } catch (err) {
+    console.error('Erro ao deletar motivo:', err);
+    toast.error(err?.detail || err?.message || "Erro ao deletar motivo.");
+
+    return { success: false };
+  }
+};
+
 
 // useMotivos.js - Corrigir a função listarMotivosPorTipo
 const listarMotivosPorTipo = async (tipoId) => {

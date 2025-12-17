@@ -20,12 +20,21 @@ const fetchWithAuth = async (url, options = {}) => {
   if (response.status === 401) {
     localStorage.removeItem("token");
     window.dispatchEvent(new Event("auth:expired"));
-    throw new Error("Sessão expirada. Faça login novamente.");
+    throw { detail: "Sessão expirada. Faça login novamente." };
   }
 
   if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(errorText || "Erro na requisição");
+    let errorData;
+
+    try {
+      errorData = await response.json(); // 🔥 tenta ler { detail }
+    } catch {
+      const text = await response.text();
+      throw { detail: text || "Erro na requisição." };
+    }
+
+    // 🔥 LANÇA O OBJETO ORIGINAL DO BACKEND
+    throw errorData;
   }
 
   return response.json();

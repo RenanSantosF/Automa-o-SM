@@ -45,70 +45,86 @@ export default function NfePorChave() {
     window.open(url, '_blank');
   };
 
-  // ------------------------- HANDLER DE DOWNLOAD -------------------------
-  const handleDownload = async (modo) => {
-    const lista = sanitize(chaves);
-    if (!lista.length) return toast.error('Cole ao menos uma chave!');
+// ------------------------- HANDLER DE DOWNLOAD -------------------------
+const handleDownload = async (modo) => {
+  const token = localStorage.getItem('token');
+  const lista = sanitize(chaves);
+  if (!lista.length) return toast.error('Cole ao menos uma chave!');
 
-    try {
-      setLoading(true);
-      setModoUsado(modo);
+  try {
+    setLoading(true);
+    setModoUsado(modo);
 
-      if (modo === 'zip') {
-        const res = await axios.post(`${api}/nfe/download?modo=zip`, lista, {
+    const headers = {
+      Authorization: `Bearer ${token}`,
+    };
+
+    if (modo === 'zip') {
+      const res = await axios.post(
+        `${api}/nfe/download?modo=zip`,
+        lista,
+        {
+          headers,
           responseType: 'blob',
-        });
-
-        const blob = new Blob([res.data]);
-        setUltimoZip(blob);
-
-        const agora = new Date();
-
-        const ano = agora.getFullYear();
-        const mes = String(agora.getMonth() + 1).padStart(2, '0');
-        const dia = String(agora.getDate()).padStart(2, '0');
-
-        const h = String(agora.getHours()).padStart(2, '0');
-        const m = String(agora.getMinutes()).padStart(2, '0');
-        const s = String(agora.getSeconds()).padStart(2, '0');
-
-        const nomeZip = `notas fiscais ${dia}-${mes}-${ano} - ${h}h-${m}m-${s}s.zip`;
-
-        baixarBlob(blob, nomeZip);
-
-        toast.success('ZIP baixado!');
-        setConcluido(true);
-        setListaNotas([]);
-      } else if (modo === 'multi') {
-        const res = await axios.post(`${api}/nfe/download?modo=multi`, lista);
-
-        if (!res.data.sucesso.length) {
-          toast.error('Nenhuma nota válida!');
-          return;
         }
+      );
 
-        // 🔥 Salva lista das notas baixadas
-        setListaNotas(res.data.sucesso);
+      const blob = new Blob([res.data]);
+      setUltimoZip(blob);
 
-        // Baixa automaticamente cada uma
-        res.data.sucesso.forEach((n) => {
-          const pdfBlob = base64ToBlob(n.pdf, 'application/pdf');
-          baixarBlob(pdfBlob, `${n.chave}.pdf`);
+      const agora = new Date();
+      const nomeZip = `notas fiscais ${agora.toLocaleDateString('pt-BR')} - ${agora
+        .toLocaleTimeString('pt-BR')
+        .replace(/:/g, 'h')}s.zip`;
 
-          const xmlBlob = new Blob([n.xml], { type: 'application/xml' });
-          baixarBlob(xmlBlob, `${n.chave}.xml`);
-        });
+      baixarBlob(blob, nomeZip);
 
-        toast.success('Download individual completo!');
-        setConcluido(true);
-      }
-    } catch (e) {
-      console.error(e);
-      toast.error('Erro ao baixar NFes!');
-    } finally {
-      setLoading(false);
+      toast.success('ZIP baixado!');
+      setConcluido(true);
+      setListaNotas([]);
     }
-  };
+
+    else if (modo === 'multi') {
+      const res = await axios.post(
+        `${api}/nfe/download?modo=multi`,
+        lista,
+        { headers }
+      );
+
+      if (!res.data?.sucesso?.length) {
+        toast.error('Nenhuma nota válida!');
+        return;
+      }
+
+      setListaNotas(res.data.sucesso);
+
+      res.data.sucesso.forEach((n) => {
+        const pdfBlob = base64ToBlob(n.pdf, 'application/pdf');
+        baixarBlob(pdfBlob, `${n.chave}.pdf`);
+
+        const xmlBlob = new Blob([n.xml], { type: 'application/xml' });
+        baixarBlob(xmlBlob, `${n.chave}.xml`);
+      });
+
+      toast.success('Download individual completo!');
+      setConcluido(true);
+    }
+  } catch (err) {
+    console.error(err);
+
+    // 🔥 Captura REAL do erro do backend
+    const backendError =
+      err.response?.data?.detail ||
+      err.response?.data?.message ||
+      (err.response?.data instanceof Blob
+        ? 'Erro ao gerar arquivo.'
+        : null);
+
+    toast.error(backendError || 'Erro ao baixar NFes!');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleBaixarUltimoZip = () => {
     if (!ultimoZip) return;

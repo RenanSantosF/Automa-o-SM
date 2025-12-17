@@ -81,10 +81,6 @@ const DocItem = ({ doc, onClick, isActive }) => {
   const badge = getStatusBadge();
 
   const handleDelete = async () => {
-    if (userData.setor !== 'admin') {
-      toast.error('Apenas administradores podem deletar documentos.');
-      return;
-    }
 
     setModalAberto(true); // abre o modal
   };
@@ -99,8 +95,13 @@ const DocItem = ({ doc, onClick, isActive }) => {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
       });
+      
+      const data = await res.json().catch(() => null)
 
-      if (!res.ok) throw new Error();
+      if (!res.ok) {
+        toast.error(data?.detail || data?.msg || 'Erro inesperado')
+        return
+      }
 
       toast.success('Documento deletado com sucesso!');
       setModalAberto(false);

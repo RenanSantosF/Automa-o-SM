@@ -6,6 +6,8 @@ import { toast } from 'react-toastify';
 import { formatDate } from './utils';
 const api = import.meta.env.VITE_API_URL;
 import { ModalReprovacao } from './ModalReprovacao';
+import { can } from '../../utils/permissions';
+
 
 import { MdDateRange, MdAccessTime, MdPerson } from 'react-icons/md';
 
@@ -68,10 +70,6 @@ const ChatBox = ({
   };
 
   const baixarManifesto = async () => {
-    if (!['expedicao', 'admin'].includes(userData.setor) || doc.manifesto_baixado) {
-      toast.error('Ação não permitida.');
-      return;
-    }
 
     try {
       const res = await fetch(`${api}/documentos/${doc.id}/manifesto-baixado`, {
@@ -79,9 +77,11 @@ const ChatBox = ({
         headers,
       });
 
+      const data = await res.json().catch(() => null)
+
       if (!res.ok) {
-        toast.error('Erro ao marcar manifesto como baixado');
-        return;
+        toast.error(data?.detail || data?.msg || 'Erro inesperado')
+        return
       }
 
       await enviarComentarioAutom('baixou o manifesto.');
@@ -111,8 +111,13 @@ const ChatBox = ({
         headers: { Authorization: headers.Authorization }, // sem Content-Type
         body: formData,
       });
+      const data = await res.json().catch(() => null)
 
-      if (!res.ok) throw new Error('Erro no upload da nova versão');
+
+      if (!res.ok) {
+        toast.error(data?.detail || data?.msg || 'Erro inesperado')
+        return
+      }
 
       toast.success('Documento Enviado');
 
@@ -138,9 +143,10 @@ const ChatBox = ({
         headers: { ...headers, 'Content-Type': 'application/json' },
         body: JSON.stringify({ texto }),
       });
+      const data = await res.json().catch(() => null)
 
       if (!res.ok) {
-        toast.error('Erro ao enviar comentário');
+        toast.error(data?.detail || data?.msg || 'Erro inesperado')
         return;
       }
 
@@ -171,95 +177,82 @@ const ChatBox = ({
     }
   };
 
-  const aprovar = async () => {
-    if (
-      !['enviado', 'reprovado'].includes(doc.status) ||
-      !['ocorrencia', 'admin'].includes(userData.setor)
-    ) {
-      console.log(userData.setor);
-      console.log(doc.status);
-      toast.error('Ação não permitida.');
+const aprovar = async () => {
+  try {
+    const res = await fetch(`${api}/documentos/${doc.id}/aprovar`, {
+      method: 'POST',
+      headers,
+    });
 
+    const data = await res.json().catch(() => null);
+
+    if (!res.ok) {
+      toast.error(data?.detail || data?.msg || 'Ação não permitida.');
       return;
     }
+
+    await enviarComentarioAutom('aprovou o documento.');
+    toast.success(data?.msg || 'Documento aprovado');
 
     try {
-      const res = await fetch(`${api}/documentos/${doc.id}/aprovar`, {
-        method: 'POST',
-        headers,
-      });
-
-      if (!res.ok) {
-        toast.error('Erro ao aprovar');
-        return;
-      }
-
-      await enviarComentarioAutom('aprovou o documento.');
-      toast.success('Documento aprovado');
-
-      try {
-        await atualizarDocumentoSilencioso(); // função separada sem toast de erro
-      } catch (err) {
-        console.error('Erro ao atualizar doc após aprovar', err);
-      }
+      await atualizarDocumentoSilencioso();
     } catch (err) {
-      toast.error('Erro ao aprovar');
-      console.error(err);
+      console.error('Erro ao atualizar doc após aprovar', err);
     }
-  };
+  } catch (err) {
+    toast.error('Erro de conexão com o servidor');
+    console.error(err);
+  }
+};
 
-  const reprovar = async () => {
-    const statusValido = ['enviado', 'aprovado', 'reprovado'];
-    if (!statusValido.includes(doc.status) || doc.status === 'saldo_liberado') {
-      toast.error('Documento não pode ser reprovado nesse status.');
+const reprovar = async () => {
+  const statusValido = ['enviado', 'aprovado', 'reprovado'];
+  if (!statusValido.includes(doc.status) || doc.status === 'saldo_liberado') {
+    toast.error('Documento não pode ser reprovado nesse status.');
+    return;
+  }
+
+  const motivo = (motivoReprovacao?.[doc.id] || '').trim();
+  if (!motivo) {
+    toast.error('Informe o motivo da reprovação.');
+    return;
+  }
+
+  try {
+    const res = await fetch(`${api}/documentos/${doc.id}/reprovar`, {
+      method: 'POST',
+      headers: { ...headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ comentario: motivo }),
+    });
+
+    const data = await res.json().catch(() => null);
+
+    if (!res.ok) {
+      toast.error(data?.detail || data?.msg || 'Ação não permitida.');
       return;
     }
-    if (!['ocorrencia', 'admin'].includes(userData.setor)) {
-      toast.error('Ação não permitida.');
-      return;
-    }
-    const motivo = (motivoReprovacao?.[doc.id] || '').trim();
-    if (!motivo) {
-      toast.error('Informe o motivo da reprovação.');
-      return;
-    }
+
+    await enviarComentarioAutom(`reprovou: ${motivo}`);
+    toast.success(data?.msg || 'Documento reprovado');
+
+    setMotivoReprovacao((prev) => ({ ...prev, [doc.id]: '' }));
+    setModalReprovarAberto(null);
 
     try {
-      const res = await fetch(`${api}/documentos/${doc.id}/reprovar`, {
-        method: 'POST',
-        headers: { ...headers, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ comentario: motivo }),
-      });
-
-      if (!res.ok) {
-        toast.error('Erro ao reprovar');
-        return;
-      }
-
-      await enviarComentarioAutom(`reprovou: ${motivo}`);
-      toast.success('Documento reprovado');
-
-      setMotivoReprovacao((prev) => ({ ...prev, [doc.id]: '' }));
-      setModalReprovarAberto(null);
-
-      try {
-        const novosDocs = await fetchDocumentos();
-        const atualizado = novosDocs.find((d) => d.id === doc.id);
-        if (atualizado) setDocumentoSelecionado(atualizado);
-      } catch (err) {
-        console.error('Erro ao atualizar documento após reprovação:', err);
-      }
+      const novosDocs = await fetchDocumentos();
+      const atualizado = novosDocs.find((d) => d.id === doc.id);
+      if (atualizado) setDocumentoSelecionado(atualizado);
     } catch (err) {
-      toast.error('Erro ao reprovar');
-      console.error(err);
+      console.error('Erro ao atualizar documento após reprovação:', err);
     }
-  };
+  } catch (err) {
+    toast.error('Erro de conexão com o servidor');
+    console.error(err);
+  }
+};
+
 
   const liberarSaldo = async () => {
-    if (doc.status !== 'aprovado' || !['expedicao', 'admin'].includes(userData.setor)) {
-      toast.error('Ação não permitida.');
-      return;
-    }
 
     try {
       const res = await fetch(`${api}/documentos/${doc.id}/saldo-liberado`, {
@@ -267,9 +260,11 @@ const ChatBox = ({
         headers,
       });
 
+      const data = await res.json().catch(() => null)
+
       if (!res.ok) {
-        toast.error('Erro ao liberar saldo');
-        return;
+        toast.error(data?.detail || data?.msg || 'Erro inesperado')
+        return
       }
 
       await enviarComentarioAutom('liberou saldo.');
@@ -289,10 +284,7 @@ const ChatBox = ({
   };
 
   const solicitarAprovacao = async () => {
-    if (userData.id !== doc.usuario_id && doc.status !== 'reprovado') {
-      toast.error('Você não pode solicitar aprovação.');
-      return;
-    }
+
 
     try {
       const res = await fetch(`${api}/documentos/${doc.id}/solicitar-aprovacao`, {
@@ -300,9 +292,11 @@ const ChatBox = ({
         headers,
       });
 
+      const data = await res.json().catch(() => null)
+
       if (!res.ok) {
-        toast.error('Erro ao solicitar aprovação');
-        return;
+        toast.error(data?.detail || data?.msg || 'Erro inesperado')
+        return
       }
 
       toast.success('Solicitação de aprovação enviada');
@@ -339,8 +333,6 @@ const ChatBox = ({
     }
   };
 
-  const podeComentar =
-    ['ocorrencia', 'expedicao', 'admin'].includes(userData.setor) || userData.id === doc.usuario_id;
 
   function formatDateBr(dataStr) {
     const [year, month, day] = dataStr.split('-');
@@ -441,64 +433,78 @@ const ChatBox = ({
             <Stepper status={doc.status} />
           </div>
         </div>
+{/* Ações */}
+<div className="flex flex-wrap gap-2 px-4 py-3 border-b border-gray-200 bg-white text-sm">
 
-        {/* Ações */}
-        {/* Ações */}
-        <div className="flex flex-wrap gap-2 px-4 py-3 border-b border-gray-200 bg-white text-sm">
-          {(userData.id === doc.usuario_id || userData.setor === 'admin') &&
-            doc.status === 'reprovado' && (
-              <button
-                onClick={solicitarAprovacao}
-                className="cursor-pointer flex items-center gap-1 bg-blue-100 hover:bg-blue-200 text-blue-800 border border-blue-300 px-3 py-1.5 rounded-md shadow-sm transition"
-              >
-                <FaPaperPlane size={14} />
-                Solicitar Aprovação Novamente
-              </button>
-            )}
+  {/* Solicitar aprovação novamente */}
+  {(userData.id === doc.usuario_id ||
+    can(userData, 'comprovantes.solicitar_aprovacao_novamente')) &&
+    doc.status === 'reprovado' && (
+      <button
+        onClick={solicitarAprovacao}
+        className="cursor-pointer flex items-center gap-1 bg-blue-100 hover:bg-blue-200 text-blue-800 border border-blue-300 px-3 py-1.5 rounded-md shadow-sm transition"
+      >
+        <FaPaperPlane size={14} />
+        Solicitar Aprovação Novamente
+      </button>
+    )
+  }
 
-          {['ocorrencia', 'admin'].includes(userData.setor) &&
-            ['enviado', 'reprovado'].includes(doc.status) && (
-              <button
-                onClick={aprovar}
-                className="cursor-pointer flex items-center gap-1 bg-green-100 hover:bg-green-200 text-green-800 border border-green-300 px-3 py-1.5 rounded-md shadow-sm transition"
-              >
-                <FaPaperPlane size={14} />
-                Aprovar
-              </button>
-            )}
+  {/* Aprovar */}
+  {can(userData, 'comprovantes.aprovar') &&
+    ['enviado', 'reprovado'].includes(doc.status) && (
+      <button
+        onClick={aprovar}
+        className="cursor-pointer flex items-center gap-1 bg-green-100 hover:bg-green-200 text-green-800 border border-green-300 px-3 py-1.5 rounded-md shadow-sm transition"
+      >
+        <FaPaperPlane size={14} />
+        Aprovar
+      </button>
+    )
+  }
 
-          {['ocorrencia', 'admin'].includes(userData.setor) &&
-            ['enviado', 'aprovado'].includes(doc.status) &&
-            doc.status !== 'saldo_liberado' && (
-              <button
-                onClick={() => setModalReprovarAberto(doc.id)}
-                className="cursor-pointer flex items-center gap-1 bg-red-100 hover:bg-red-200 text-red-800 border border-red-300 px-3 py-1.5 rounded-md shadow-sm transition"
-              >
-                <FaPaperclip size={14} />
-                Reprovar
-              </button>
-            )}
+  {/* Reprovar */}
+  {can(userData, 'comprovantes.reprovar') &&
+    ['enviado', 'aprovado'].includes(doc.status) &&
+    doc.status !== 'saldo_liberado' && (
+      <button
+        onClick={() => setModalReprovarAberto(doc.id)}
+        className="cursor-pointer flex items-center gap-1 bg-red-100 hover:bg-red-200 text-red-800 border border-red-300 px-3 py-1.5 rounded-md shadow-sm transition"
+      >
+        <FaPaperclip size={14} />
+        Reprovar
+      </button>
+    )
+  }
 
-          {['expedicao', 'admin'].includes(userData.setor) && doc.status === 'aprovado' && (
-            <button
-              onClick={liberarSaldo}
-              className="cursor-pointer flex items-center gap-1 bg-blue-100 hover:bg-blue-200 text-blue-800 border border-blue-300 px-3 py-1.5 rounded-md shadow-sm transition"
-            >
-              <FaExternalLinkAlt size={14} />
-              Liberar Saldo
-            </button>
-          )}
+  {/* Liberar saldo */}
+  {can(userData, 'comprovantes.liberar_saldo') &&
+    doc.status === 'aprovado' && (
+      <button
+        onClick={liberarSaldo}
+        className="cursor-pointer flex items-center gap-1 bg-blue-100 hover:bg-blue-200 text-blue-800 border border-blue-300 px-3 py-1.5 rounded-md shadow-sm transition"
+      >
+        <FaExternalLinkAlt size={14} />
+        Liberar Saldo
+      </button>
+    )
+  }
 
-          {['expedicao', 'admin'].includes(userData.setor) && !doc.manifesto_baixado && (
-            <button
-              onClick={baixarManifesto}
-              className="cursor-pointer flex items-center gap-1 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 border border-yellow-300 px-3 py-1.5 rounded-md shadow-sm transition"
-            >
-              <FaExternalLinkAlt size={14} />
-              Baixar Manifesto
-            </button>
-          )}
-        </div>
+  {/* Baixar manifesto */}
+  {can(userData, 'comprovantes.baixar_manifesto') &&
+    !doc.manifesto_baixado && (
+      <button
+        onClick={baixarManifesto}
+        className="cursor-pointer flex items-center gap-1 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 border border-yellow-300 px-3 py-1.5 rounded-md shadow-sm transition"
+      >
+        <FaExternalLinkAlt size={14} />
+        Baixar Manifesto
+      </button>
+    )
+  }
+
+</div>
+
 
         {/* Conteúdo principal (mensagens + envio) */}
         <div className="flex flex-col flex-1 overflow-hidden">
@@ -509,7 +515,7 @@ const ChatBox = ({
             ))}
           </div>
 
-          {podeComentar && (
+
             <div className="p-4 border-t bg-white border-gray-200 flex items-center gap-2">
               <input
                 type="text"
@@ -552,7 +558,7 @@ const ChatBox = ({
                 }}
               />
             </div>
-          )}
+
         </div>
 
         {/* Modal de reprovação */}

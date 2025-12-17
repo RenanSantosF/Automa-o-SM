@@ -7,6 +7,8 @@ from schemas.knowledge import KnowledgeCreate, KnowledgeOut
 from utils.get_current_user import get_current_user
 from uuid import uuid4
 import os
+from models import User
+from utils.permissoes import require_permissao
 
 router = APIRouter(prefix="/knowledge", tags=["Knowledge Base"])
 
@@ -29,7 +31,9 @@ async def upload_image(file: UploadFile = File(...)):
 def create_knowledge(
     item: KnowledgeCreate,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user)
+    current_user=Depends(get_current_user),
+    usuario: User = Depends(require_permissao("base_de_conhecimento.criar", "Você não tem permissão pra adicionar um novo registro !")),
+
 ):
     existing = db.query(Knowledge).filter(Knowledge.title == item.title).first()
     if existing:
@@ -63,20 +67,6 @@ def list_knowledge(
     )
 
 
-# @router.get("/", response_model=List[KnowledgeOut])
-# def list_knowledge(
-#     q: str | None = Query(None),
-#     db: Session = Depends(get_db)
-# ):
-#     query = db.query(Knowledge)
-#     if q:
-#         query = query.filter(
-#             (Knowledge.title.ilike(f"%{q}%")) |
-#             (Knowledge.content.ilike(f"%{q}%"))
-#         )
-#     return query.order_by(Knowledge.created_at.desc()).all()
-
-
 @router.get("/{item_id}", response_model=KnowledgeOut)
 def get_knowledge(item_id: int, db: Session = Depends(get_db)):
     entry = db.query(Knowledge).filter(Knowledge.id == item_id).first()
@@ -90,7 +80,8 @@ def update_knowledge(
     item_id: int,
     item: KnowledgeCreate,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user)
+    current_user=Depends(get_current_user),
+    usuario: User = Depends(require_permissao("base_de_conhecimento.editar", "Você não tem permissão pra atualizar registros !")),
 ):
     entry = db.query(Knowledge).filter(Knowledge.id == item_id).first()
     if not entry:
@@ -112,7 +103,8 @@ def update_knowledge(
 def delete_knowledge(
     item_id: int,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user)
+    current_user=Depends(get_current_user),
+    usuario: User = Depends(require_permissao("base_de_conhecimento.deletar", "Você não tem permissão pra deletar registros !")),
 ):
     entry = db.query(Knowledge).filter(Knowledge.id == item_id).first()
     if not entry:

@@ -4,6 +4,8 @@ import { MdAddBox } from "react-icons/md";
 import axios from "axios";
 import ModalCarga from "../components/Carga/ModalCarga";
 import ModalRelatorio from "../components/Modal/ModalRelatorioCarga";
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -162,7 +164,7 @@ export default function CargasPage() {
       return res.data;
     } catch (err) {
       console.error("Erro ao gerar relatório:", err);
-      alert("Erro ao gerar relatório. Veja o console para detalhes.");
+      toast.error(err.response?.data?.detail || "Erro ao gerar relatório. Veja o console para detalhes.");
       return null;
     }
   };

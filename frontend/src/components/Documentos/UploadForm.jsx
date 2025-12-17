@@ -42,8 +42,13 @@ const UploadForm = ({ isAuthenticated, fetchDocumentos }) => {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
       });
+      const data = await res.json().catch(() => null)
 
-      if (!res.ok) throw new Error();
+      if (!res.ok) {
+        toast.error(data?.detail || data?.msg || 'Erro inesperado')
+        return
+      }
+
       toast.success('Documento enviado');
       setNome('');
       setPlaca('');

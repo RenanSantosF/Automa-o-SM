@@ -5,11 +5,17 @@ import { motion, AnimatePresence } from 'framer-motion';
 import 'react-quill-new/dist/quill.snow.css';
 import { FiEdit2, FiTrash2, FiPlusCircle, FiX } from 'react-icons/fi';
 
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 import ReactQuill, { Quill } from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import ImageResize from 'quill-image-resize';
+import { confirmToast } from '../utils/confirmToast';
+
 Quill.register('modules/imageResize', ImageResize);
+
+
 
 
 // 🔹 Modal claro com fundo escurecido translúcido
@@ -110,7 +116,7 @@ const fetchEntries = async (newOffset = 0) => {
     setHasMore(res.data.length === 50);
     setOffset(newOffset);
   } catch {
-    alert('Erro ao carregar registros.');
+    toast.error('Erro ao carregar registros.');
   } finally {
     setLoading(false);
   }
@@ -146,7 +152,8 @@ useEffect(() => {
           const range = quill.getSelection(true);
           quill.insertEmbed(range.index, 'image', res.data.url);
         } catch {
-          alert('Erro ao enviar imagem.');
+          toast.error('Erro ao enviar imagem.');
+
         }
       }
     };
@@ -191,37 +198,50 @@ const modules = {
     'image',
   ];
 
-  // 🔹 Salvar / editar
-  const handleSubmit = async () => {
-    if (!title.trim() || !content.trim()) {
-      alert('Preencha o título e o conteúdo.');
-      return;
-    }
-    try {
-      if (editingId) await api.put(`/${editingId}`, { title, type, content });
-      else await api.post('/', { title, type, content });
+const handleSubmit = async () => {
+  if (!title.trim() || !content.trim()) {
+    toast.warn('Preencha o título e o conteúdo.');
+    return;
+  }
 
-      setTitle('');
-      setContent('');
-      setEditingId(null);
-      setFormModalOpen(false);
-      fetchEntries(0);
-    } catch (err) {
-      alert(err.response?.data?.detail || 'Erro ao salvar.');
+  try {
+    if (editingId) {
+      await api.put(`/${editingId}`, { title, type, content });
+      toast.success('Documento atualizado com sucesso.');
+    } else {
+      await api.post('/', { title, type, content });
+      toast.success('Documento criado com sucesso.');
     }
-  };
+
+    setTitle('');
+    setContent('');
+    setEditingId(null);
+    setFormModalOpen(false);
+    fetchEntries(0);
+  } catch (err) {
+    toast.error(err.response?.data?.detail || 'Erro ao salvar.');
+  }
+};
+
 
   // 🔹 Deletar
-  const handleDelete = async (id) => {
-    if (!confirm('Tem certeza que deseja excluir?')) return;
+const handleDelete = (id) => {
+  confirmToast('Tem certeza que deseja excluir este registro?', async () => {
     try {
       await api.delete(`/${id}`);
+      toast.success('Registro excluído com sucesso.');
       fetchEntries(0);
       setViewModalOpen(false);
-    } catch {
-      alert('Erro ao deletar.');
+    } catch (err) {
+      toast.error(
+        err.response?.data?.detail ||
+        err.response?.data?.message ||
+        'Erro ao deletar.'
+      );
     }
-  };
+  });
+};
+
 
   const canEdit = setor === 'admin' || setor === 'expedicao';
 

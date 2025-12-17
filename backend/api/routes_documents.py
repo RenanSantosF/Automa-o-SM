@@ -33,6 +33,7 @@ from fastapi.encoders import jsonable_encoder
 import json
 from sqlalchemy.orm import selectinload
 
+from utils.permissoes import tem_permissao
 
 SECRET_KEY = os.getenv("SECRET_KEY", "sua_chave_secreta_aqui")
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
@@ -186,6 +187,11 @@ async def upload_documento(
     db: Session = Depends(get_db),
     usuario: User = Depends(get_current_user),
 ):
+    
+        # 🔐 RBAC: permissão para criar comprovantes
+    if not tem_permissao(usuario, "comprovantes.criar"):
+        raise HTTPException(403, "Você não tem permissão para enviar comprovantes")
+    
     caminho = salvar_comprovante(file)
 
     try:
@@ -220,35 +226,6 @@ async def upload_documento(
 
 
     return {"id_documento": doc.id, "status": doc.status}
-
-
-# ----- 🔍 Listagens -----
-@router.get("/pendentes", response_model=List[DocumentSchema])
-async def listar_pendentes(
-    db: Session = Depends(get_db),
-    usuario: User = Depends(get_current_user),
-):
-    if usuario.setor != "ocorrencia":
-        raise HTTPException(403, "Não autorizado")
-
-    documentos = db.query(Document).filter(
-        Document.status.in_(["enviado", "reprovado"])
-    ).all()
-
-    return documentos
-
-
-@router.get("/aprovados", response_model=List[DocumentSchema])
-async def listar_aprovados(
-    db: Session = Depends(get_db),
-    usuario: User = Depends(get_current_user),
-):
-    if usuario.setor != "expedicao":
-        raise HTTPException(403, "Não autorizado")
-
-    documentos = db.query(Document).filter(Document.status == "aprovado").all()
-
-    return documentos
 
 @router.get("/todos", response_model=List[DocumentSchema])
 async def listar_todos_documentos(
@@ -428,8 +405,8 @@ async def aprovar_documento(
     db: Session = Depends(get_db),
     usuario: User = Depends(get_current_user),
 ):
-    if usuario.setor not in ["ocorrencia", "admin"]:
-        raise HTTPException(403, "Não autorizado")
+    if not tem_permissao(usuario, "comprovantes.aprovar"):
+        raise HTTPException(403, "Você não tem permissão para executar essa operação!")
 
 
     doc = db.get(Document, doc_id)
@@ -454,8 +431,9 @@ async def reprovar_documento(
     usuario: User = Depends(get_current_user),
 ):
     
-    if usuario.setor not in ["ocorrencia", "admin"]:
-        raise HTTPException(403, "Não autorizado")
+    if not tem_permissao(usuario, "comprovantes.reprovar"):
+        raise HTTPException(403, "Você não tem permissão para executar essa operação!")
+
 
     doc = db.get(Document, doc_id)
     if not doc:
@@ -479,6 +457,10 @@ async def adicionar_comentario(
     db: Session = Depends(get_db),
     usuario: User = Depends(get_current_user),
 ):
+    
+    if not tem_permissao(usuario, "comprovantes.comentar"):
+        raise HTTPException(403, "Você não tem permissão para comentar")
+    
     doc = db.get(Document, doc_id)
     if not doc:
         raise HTTPException(404, "Documento não encontrado")
@@ -505,9 +487,15 @@ async def upload_nova_versao(
     db: Session = Depends(get_db),
     usuario: User = Depends(get_current_user),
 ):
+    
+    if not tem_permissao(usuario, "comprovantes.comentar"):
+        raise HTTPException(403, "Você não tem permissão para enviar comprovantes")
+    
     doc = db.get(Document, doc_id)
     if not doc:
         raise HTTPException(404, "Documento não encontrado")
+
+
 
 
     caminho = salvar_comprovante(file)
@@ -539,8 +527,9 @@ async def solicitar_aprovacao(
         raise HTTPException(404, "Documento não encontrado")
 
     # Permite se for o dono do documento ou se for admin
-    if usuario.id != doc.usuario_id and usuario.setor != "admin":
-        raise HTTPException(403, "Não autorizado")
+    if usuario.id != doc.usuario_id and not tem_permissao(usuario, "comprovantes.solicitar_aprovacao_novamente"):
+        raise HTTPException(403, "Você não tem permissão para solicitar aprovação novamente!")
+
 
     if doc.status != "reprovado":
         raise HTTPException(400, "Aprovação só pode ser solicitada se estiver reprovado")
@@ -561,8 +550,8 @@ async def liberar_saldo(
     db: Session = Depends(get_db),
     usuario: User = Depends(get_current_user),
 ):
-    if usuario.setor not in ["expedicao", "admin"]:
-        raise HTTPException(status_code=403, detail="Não autorizado")
+    if not tem_permissao(usuario, "comprovantes.liberar_saldo"):
+            raise HTTPException(403, "Você não tem permissão para liberar saldo!")
 
 
     doc = db.get(Document, doc_id)
@@ -579,27 +568,28 @@ async def liberar_saldo(
     return {"msg": "Saldo liberado para o documento"}
 
 
-@router.post("/{doc_id}/baixar")
-async def baixar_documento(
-    doc_id: int,
-    db: Session = Depends(get_db),
-    usuario: User = Depends(get_current_user),
-):
-    if usuario.setor != "expedicao":
-        raise HTTPException(403, "Não autorizado")
+# @router.post("/{doc_id}/baixar")
+# async def baixar_documento(
+#     doc_id: int,
+#     db: Session = Depends(get_db),
+#     usuario: User = Depends(get_current_user),
+# ):
 
-    doc = db.get(Document, doc_id)
-    if not doc:
-        raise HTTPException(404, "Documento não encontrado")
+#     if not tem_permissao(usuario, "comprovantes.baixar_manifesto"):
+#             raise HTTPException(403, "Você não tem permissão para baixar manifesto!")
 
-    doc.status = "baixado"
-    doc.atualizado_em = datetime.now(timezone.utc)
-    db.commit()
+#     doc = db.get(Document, doc_id)
+#     if not doc:
+#         raise HTTPException(404, "Documento não encontrado")
 
-    asyncio.create_task(notificar_documento_atualizado(doc.id))
+#     doc.status = "baixado"
+#     doc.atualizado_em = datetime.now(timezone.utc)
+#     db.commit()
+
+#     asyncio.create_task(notificar_documento_atualizado(doc.id))
 
 
-    return {"msg": "Documento marcado como baixado"}
+#     return {"msg": "Documento marcado como baixado"}
 
 
 @router.post("/{doc_id}/manifesto-baixado")
@@ -608,9 +598,9 @@ async def marcar_manifesto_baixado(
     db: Session = Depends(get_db),
     usuario: User = Depends(get_current_user),
 ):
-    # Apenas usuários do setor 'expedicao' podem marcar como baixado
-    if usuario.setor not in ["expedicao", "admin"]:
-        raise HTTPException(status_code=403, detail="Não autorizado")
+    
+    if not tem_permissao(usuario, "comprovantes.baixar_manifesto"):
+            raise HTTPException(403, "Você não tem permissão para baixar manifesto!")
 
     documento = db.query(Document).filter(Document.id == doc_id).first()
     if not documento:
@@ -645,8 +635,6 @@ async def visualizar_arquivo(
     return FileResponse(caminho, media_type=mime_type)
 
 
-
-
 @router.delete("/{doc_id}", status_code=204)
 async def deletar_documento(
     doc_id: int,
@@ -656,6 +644,9 @@ async def deletar_documento(
     doc = db.get(Document, doc_id)
     if not doc:
         raise HTTPException(404, "Documento não encontrado")
+
+    if not tem_permissao(usuario, "comprovantes.deletar"):
+        raise HTTPException(403, "Você não tem permissão para deletar este documento")
 
     # Deletar arquivos físicos associados
     arquivos = db.query(DocumentFile).filter(DocumentFile.document_id == doc.id).all()

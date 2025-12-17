@@ -4,7 +4,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from typing import List, Optional
 from datetime import date
 from sqlalchemy import func
-
+from utils.permissoes import require_permissao
 from database import SessionLocal
 from core.dependencies import get_db
 from utils.get_current_user import get_current_user
@@ -80,6 +80,7 @@ async def criar_carga(
     payload: CargaCreateSchema,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
+    usuario: User = Depends(require_permissao("cargas.criar", "Você não tem permissão pra adicionar uma nova carga !")),
 ):
     """
     Cria uma nova carga e registra automaticamente os dados do criador (usuário logado).
@@ -225,6 +226,8 @@ async def atualizar_carga(
     payload: CargaUpdateSchema = Body(...),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
+    usuario: User = Depends(require_permissao("cargas.editar", "Você não tem permissão pra editar uma carga !")),
+
 ):
     try:
         # carregar carga com ocorrências originais
@@ -332,6 +335,7 @@ async def deletar_carga(
     carga_id: int,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
+    usuario: User = Depends(require_permissao("cargas.deletar", "Você não tem permissão pra deletar uma carga !")),
 ):
     carga = db.query(Carga).filter(Carga.id == carga_id).first()
     if not carga:
@@ -345,7 +349,12 @@ async def deletar_carga(
 # =====================================================
 
 @router.post("/tipos", response_model=TipoOcorrenciaSchema)
-async def criar_tipo(payload: TipoOcorrenciaCreateSchema, db: Session = Depends(get_db)):
+async def criar_tipo(
+    payload: TipoOcorrenciaCreateSchema, 
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+    usuario: User = Depends(require_permissao("ocorrencias.tipos.criar", "Você não tem permissão para registrar um novo tipo de ocorrência !"))
+):
     tipo = TipoOcorrencia(**payload.dict())
     db.add(tipo)
     db.commit()
@@ -354,12 +363,22 @@ async def criar_tipo(payload: TipoOcorrenciaCreateSchema, db: Session = Depends(
 
 
 @router.get("/tipos", response_model=List[TipoOcorrenciaSchema])
-async def listar_tipos(db: Session = Depends(get_db)):
+async def listar_tipos(
+    db: Session = Depends(get_db),
+
+):
     return db.query(TipoOcorrencia).options(selectinload(TipoOcorrencia.motivos)).all()
 
 
 @router.put("/tipos/{tipo_id}", response_model=TipoOcorrenciaSchema)
-async def atualizar_tipo(tipo_id: int, payload: TipoOcorrenciaUpdateSchema, db: Session = Depends(get_db)):
+async def atualizar_tipo(
+    tipo_id: int, 
+    payload: TipoOcorrenciaUpdateSchema, 
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+    usuario: User = Depends(require_permissao("ocorrencias.tipos.editar", "Você não tem permissão para editar um tipo de ocorrência !"))
+
+):
     tipo = db.query(TipoOcorrencia).filter(TipoOcorrencia.id == tipo_id).first()
     if not tipo:
         raise HTTPException(404, "Tipo não encontrado")
@@ -371,7 +390,13 @@ async def atualizar_tipo(tipo_id: int, payload: TipoOcorrenciaUpdateSchema, db: 
 
 
 @router.delete("/tipos/{tipo_id}")
-async def deletar_tipo(tipo_id: int, db: Session = Depends(get_db)):
+async def deletar_tipo(
+    tipo_id: int, 
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+    usuario: User = Depends(require_permissao("ocorrencias.tipos.deletar", "Você não tem permissão para deletar um tipo de ocorrência !"))
+
+):
     tipo = db.query(TipoOcorrencia).get(tipo_id)
     if not tipo:
         raise HTTPException(404, "Tipo não encontrado")
@@ -394,7 +419,13 @@ async def deletar_tipo(tipo_id: int, db: Session = Depends(get_db)):
 # -------------------
 
 @router.post("/motivos", response_model=MotivoOcorrenciaSchema)
-async def criar_motivo(payload: MotivoOcorrenciaCreateSchema, db: Session = Depends(get_db)):
+async def criar_motivo(
+    payload: MotivoOcorrenciaCreateSchema, 
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+    usuario: User = Depends(require_permissao("ocorrencias.motivos.criar", "Você não tem permissão para registrar um motivo de ocorrência !"))
+
+):
     motivo = MotivoOcorrencia(**payload.dict())
     db.add(motivo)
     db.commit()
@@ -408,7 +439,14 @@ async def listar_motivos(db: Session = Depends(get_db)):
 
 
 @router.put("/motivos/{motivo_id}", response_model=MotivoOcorrenciaSchema)
-async def atualizar_motivo(motivo_id: int, payload: MotivoOcorrenciaUpdateSchema, db: Session = Depends(get_db)):
+async def atualizar_motivo(
+    motivo_id: int, 
+    payload: MotivoOcorrenciaUpdateSchema, 
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+    usuario: User = Depends(require_permissao("ocorrencias.motivos.editar", "Você não tem permissão para editar um motivo de ocorrência !"))
+
+):
     motivo = db.query(MotivoOcorrencia).filter(MotivoOcorrencia.id == motivo_id).first()
     if not motivo:
         raise HTTPException(404, "Motivo não encontrado")
@@ -420,7 +458,13 @@ async def atualizar_motivo(motivo_id: int, payload: MotivoOcorrenciaUpdateSchema
 
 
 @router.delete("/motivos/{motivo_id}")
-async def deletar_motivo(motivo_id: int, db: Session = Depends(get_db)):
+async def deletar_motivo(
+    motivo_id: int, 
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+    usuario: User = Depends(require_permissao("ocorrencias.motivos.deletar", "Você não tem permissão para deletar um motivo de ocorrência !"))
+
+):
     motivo = db.query(MotivoOcorrencia).filter(MotivoOcorrencia.id == motivo_id).first()
     if not motivo:
         raise HTTPException(404, "Motivo não encontrado")
@@ -578,6 +622,7 @@ async def estatisticas(
     limit: int = Query(100, ge=1, le=1000),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
+    usuario: User = Depends(require_permissao("cargas.relatorio", "Você não tem permissão gerar relatórios !")),
 ):
     try:
         # --- Base query ---

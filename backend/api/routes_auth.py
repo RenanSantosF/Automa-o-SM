@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from core.dependencies import get_db # Função para obter sessão do DB
 from utils.hash import hash_password, verify_password
 from utils.gerarToken import create_access_token
-from schemas.payloads import UserCreate, UserOut, Token, UserUpdate
+from schemas.payloads import UserCreate, UserSchema, UserOut, Token, UserUpdate
 from models import User
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
@@ -11,10 +11,11 @@ import os
 from utils.get_current_user import get_current_user
 from models import Document, DocumentFile, DocumentComment
 from datetime import timedelta
-
+from utils.permissoes import require_permissao
 from utils.email import enviar_email_recuperacao
+from models_gerais.permissoes import Grupo
 
-
+from sqlalchemy.orm import selectinload
 
 SECRET_KEY = os.getenv("SECRET_KEY")      # pega a chave secreta
 ALGORITHM = os.getenv("ALGORITHM")     
@@ -133,14 +134,25 @@ def update_user(
 
 
 
-@router.get("/usuarios", response_model=list[UserOut])
-def listar_usuarios(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    # ⚠️ Opcional: Verifique se o current_user tem permissão (ex: admin)
-    usuarios = db.query(User).all()
-    return usuarios
+@router.get("/usuarios", response_model=list[UserSchema])
+def listar_usuarios(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return (
+        db.query(User)
+        .options(
+            selectinload(User.grupo).selectinload(Grupo.permissoes)
+        )
+        .all()
+    )
 
 @router.delete("/usuarios/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
-def deletar_usuario(user_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def deletar_usuario(
+    user_id: int, 
+    db: Session = Depends(get_db), 
+    current_user: User = Depends(get_current_user),
+):
     usuario = db.query(User).filter(User.id == user_id).first()
 
     if not usuario:
@@ -171,7 +183,7 @@ def atualizar_usuario(
     user_id: int,
     dados: UserUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
     usuario = db.query(User).filter(User.id == user_id).first()
     if not usuario:

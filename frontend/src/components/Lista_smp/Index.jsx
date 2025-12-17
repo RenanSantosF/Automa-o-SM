@@ -8,6 +8,7 @@ import { IoReloadCircle } from 'react-icons/io5';
 import Loader from '../loarder/Loader';
 import { MdDelete } from 'react-icons/md';
 import { TbReport } from 'react-icons/tb';
+import { toast } from 'react-toastify';
 
 const api = import.meta.env.VITE_API_URL;
 
@@ -37,7 +38,14 @@ const ListaSM = () => {
     const url = `${api}/execucoes/?limite=${LIMITE_POR_PAGINA}&offset=${offsetReal}`;
 
     try {
-      const response = await fetch(url);
+      const token = localStorage.getItem('token');
+
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
       const textoResposta = await response.text();
 
       let novasExecucoes = [];
@@ -64,26 +72,47 @@ const ListaSM = () => {
     }
     setCarregandoMais(false);
   };
-
   const deletarExecucao = async (id) => {
     if (!confirm('Tem certeza que deseja deletar esta execução?')) return;
 
     setLoading(true);
+
     try {
+      const token = localStorage.getItem('token');
+
+      if (!token) {
+        toast.error('Sessão expirada. Faça login novamente.');
+        return;
+      }
+
       const response = await fetch(`${api}/execucao/${id}`, {
         method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
+
+      // 🔒 Sem permissão
+      if (response.status === 401 || response.status === 403) {
+        const data = await response.json().catch(() => ({}));
+        toast.error(data?.detail || 'Você não tem permissão para deletar esta execução.');
+        return;
+      }
 
       if (!response.ok) {
         throw new Error('Erro ao deletar execução');
       }
 
-      // Remove do estado
+      // ✅ Remove do estado
       setExecucoes((prev) => prev.filter((e) => e.id !== id));
+
+      toast.success('Execução deletada com sucesso!');
     } catch (error) {
-      console.error(`Erro ao deletar execução ${id}:`, error.message);
+      console.error(`Erro ao deletar execução ${id}:`, error);
+      toast.error('Erro inesperado ao deletar a execução.');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const openModal = (content) => {
@@ -124,40 +153,61 @@ const ListaSM = () => {
     Sucesso: 2,
   };
 
-  const reprocessarExecucao = async (id) => {
-    setLoading(true);
+const reprocessarExecucao = async (id) => {
+  setLoading(true);
+
+  try {
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+      toast.error('Sessão expirada. Faça login novamente.');
+      return;
+    }
+
+    if (!userData?.usuario_apisul || !userData?.senha_apisul) {
+      toast.error('Credenciais da Apisul não configuradas.');
+      return;
+    }
+
     const payload = {
-      execucao_id: {
-        id: id,
-      },
+      execucao_id: { id },
       login: {
         usuario: userData.usuario_apisul,
         senha: userData.senha_apisul,
       },
     };
 
+    const response = await fetch(`${api}/reprocessar-execucao/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    });
 
-    try {
-      const response = await fetch(`${api}/reprocessar-execucao/`, {
-        method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        throw new Error('Erro ao reprocessar');
-      }
-
-      await recarregarExecucoes();
-      console.log('Reprocessamento iniciado com sucesso!');
-      setLoading(false);
-    } catch (error) {
-      setLoading(false);
-      console.log(`Erro ao reprocessar execução ${id}: ${error.message}`);
+    // 🔒 Sem permissão
+    if (response.status === 401 || response.status === 403) {
+      const data = await response.json().catch(() => ({}));
+      toast.error(data?.detail || 'Você não tem permissão para reprocessar esta execução.');
+      return;
     }
-  };
+
+    if (!response.ok) {
+      throw new Error('Erro ao reprocessar execução');
+    }
+
+    toast.success('Reprocessamento iniciado com sucesso!');
+
+    await recarregarExecucoes();
+  } catch (error) {
+    console.error(`Erro ao reprocessar execução ${id}:`, error);
+    toast.error('Erro inesperado ao reprocessar a execução.');
+  } finally {
+    setLoading(false);
+  }
+};
+
   const formatarCNPJ = (cnpj) => {
     if (!cnpj) return '';
     return cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5');
@@ -274,10 +324,9 @@ const ListaSM = () => {
   return (
     <>
       {loading ? (
-        <div className='w-full flex justify-center'>
+        <div className="w-full flex justify-center">
           <Loader />
         </div>
-        
       ) : execucoes.length === 0 ? (
         <p className="text-xl text-gray-500">Nenhuma execução registrada ainda.</p>
       ) : (

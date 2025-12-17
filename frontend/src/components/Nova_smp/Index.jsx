@@ -8,7 +8,7 @@ import { necessitaGNRE } from '../../utils/necessita_gnre';
 import AlertaGNRE from '../Alerta_GNRE/AlertaGNRE';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf'; // legacy build tends a ser mais compatível
 import { motion } from 'framer-motion';
-
+import { toast } from 'react-toastify';
 import workerSrc from 'pdfjs-dist/build/pdf.worker?url';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
@@ -930,25 +930,55 @@ const cteData = parsePdfCTeFromItems(cteEntry.items);
       senha: userData?.senha_apisul,
     },
   };
+const handleSubmit = async (e = null) => {
+  if (e) e.preventDefault();
+  if (!xmlData || error) return;
 
-  const handleSubmit = async (e = null) => {
-    if (e) e.preventDefault();
-    if (!xmlData || error) return;
-    try {
-      const response = await fetch(`${api}/upload-xml/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      const data = await response.json();
-      setResposta(JSON.stringify(data, null, 2));
-      onUploadSuccess();
-      if (onClose) onClose();
-    } catch (err) {
-      console.error('Erro ao enviar dados:', err);
-      alert('Erro interno do servidor.');
+  try {
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+      toast.error('Sessão expirada. Faça login novamente.');
+      return;
     }
-  };
+
+    const response = await fetch(`${api}/upload-xml/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json().catch(() => ({}));
+
+    // 🔒 Sem permissão / não autenticado
+    if (response.status === 401 || response.status === 403) {
+      toast.error(
+        data?.detail || 'Você não tem permissão para criar uma solicitação.'
+      );
+      return;
+    }
+
+    if (!response.ok) {
+      throw new Error(data?.erro || 'Erro ao enviar os dados.');
+    }
+
+    toast.success('Solicitação enviada com sucesso!');
+
+    setResposta(JSON.stringify(data, null, 2));
+
+    // Atualiza lista somente em sucesso
+    onUploadSuccess();
+    if (onClose) onClose();
+
+  } catch (err) {
+    console.error('Erro ao enviar dados:', err);
+    toast.error('Erro interno do servidor ao enviar a solicitação.');
+  }
+};
+
 
   const confirmarEnvio = (e) => {
     e.preventDefault();

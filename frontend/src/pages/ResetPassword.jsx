@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { IoLockClosedOutline, IoEye, IoEyeOff } from 'react-icons/io5';
 import { toast } from 'react-toastify';
 
 export default function ResetPassword() {
   const [novaSenha, setNovaSenha] = useState('');
-  const [showSenha, setShowSenha] = useState(false); // para mostrar/ocultar
+  const [showSenha, setShowSenha] = useState(false);
   const [loading, setLoading] = useState(false);
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
@@ -21,11 +22,11 @@ export default function ResetPassword() {
         body: JSON.stringify({ token, nova_senha: novaSenha }),
       });
 
-      if (!res.ok) throw new Error('Erro ao redefinir senha');
+      if (!res.ok) throw new Error();
 
       toast.success('Senha redefinida com sucesso! Redirecionando...');
       setTimeout(() => navigate('/'), 2000);
-    } catch (err) {
+    } catch {
       toast.error('Falha ao redefinir senha');
     } finally {
       setLoading(false);
@@ -34,77 +35,71 @@ export default function ResetPassword() {
 
   if (!token) {
     return (
-      <div className="flex justify-center items-center min-h-screen text-red-400 bg-gradient-to-br from-[#222] to-[#444] p-4">
+      <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-[#0e0d0d] via-[#272729] to-[#1b1d22] text-red-400">
         Token inválido ou ausente
       </div>
     );
   }
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-[#222] to-[#444] p-4">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-[#2b2b2b] border border-gray-700 rounded-3xl shadow-xl w-full max-w-md p-8 space-y-6 transition-all"
-      >
-        <div className="flex flex-col items-center gap-4">
-          <IoLockClosedOutline size={50} className="text-green-400 animate-pulse" />
-          <h2 className="text-3xl font-bold text-green-400">Redefinir Senha</h2>
-          <p className="text-gray-400 text-center">
-            Digite sua nova senha abaixo para acessar sua conta novamente
-          </p>
-        </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-[#0e0d0d] via-[#272729] to-[#1b1d22] p-4">
+      
+      {/* Luz ambiental */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(120,130,255,0.06),transparent_65%)]"
+      />
 
-        {/* Input com botão para mostrar/ocultar */}
-        <div className="relative">
+      <motion.form
+        onSubmit={handleSubmit}
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: 'easeOut' }}
+        className="relative w-full max-w-md bg-white/5 backdrop-blur-xl rounded-md px-10 py-10 shadow-[0_20px_60px_rgba(0,0,0,0.6)] text-center"
+      >
+        <IoLockClosedOutline size={42} className="mx-auto mb-6 text-green-400" />
+
+        <h2 className="text-2xl font-semibold text-white">
+          Redefinir senha
+        </h2>
+
+        <p className="mt-2 text-sm text-gray-400">
+          Digite sua nova senha para acessar sua conta novamente
+        </p>
+
+        {/* Input senha */}
+        <div className="relative mt-8">
           <input
             type={showSenha ? 'text' : 'password'}
             placeholder="Nova senha"
             value={novaSenha}
             onChange={(e) => setNovaSenha(e.target.value)}
             required
-            className="w-full p-2 rounded-sm bg-[#1f1f1f] border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all"
+            disabled={loading}
+            className="w-full bg-transparent px-1 pb-2 text-white placeholder-gray-400 outline-none border-b border-white/20 focus:border-green-400 transition"
           />
+
           <button
             type="button"
             onClick={() => setShowSenha((prev) => !prev)}
-            className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 hover:text-green-400 transition-colors"
+            className="absolute right-0 bottom-2 text-gray-400 hover:text-green-400 transition"
           >
-            {showSenha ? <IoEyeOff size={20} /> : <IoEye size={20} />}
+            {showSenha ? <IoEyeOff size={18} /> : <IoEye size={18} />}
           </button>
         </div>
 
-        <button
+        {/* Botão */}
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.97 }}
           type="submit"
           disabled={loading}
-          className={`w-full flex cursor-pointer justify-center items-center gap-2 bg-green-600 hover:bg-green-700 text-white p-2 rounded-sm font-semibold transition-all ${
-            loading ? 'opacity-70 cursor-not-allowed' : ''
-          }`}
+          className="mt-8 w-full rounded-sm bg-green-500 py-2.5 text-sm font-semibold text-black transition hover:bg-green-400 disabled:opacity-60"
         >
-          {loading ? (
-            <svg
-              className="animate-spin h-5 w-5 text-white"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              />
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-              />
-            </svg>
-          ) : null}
           {loading ? 'Salvando...' : 'Redefinir senha'}
-        </button>
-      </form>
+        </motion.button>
+      </motion.form>
     </div>
   );
 }

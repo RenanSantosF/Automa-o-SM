@@ -240,7 +240,7 @@ export default function UpdateUser() {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45 }}
-      className="flex items-center justify-center min-h-[80vh] bg-[#222]"
+      className="flex h-screen w-full items-center justify-center min-h-[80vh] bg-[#222]"
     >
       <form
         onSubmit={handleSubmit}

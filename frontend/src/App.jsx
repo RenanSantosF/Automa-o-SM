@@ -1,88 +1,82 @@
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useLogin } from './Contexts/LoginContext';
 import { useEffect, useState } from 'react';
 
 import LoginModal from './components/LoginModal/LoginModal';
 import Header from './components/Header/Header';
-import HeaderMobile from './components/Header/HeaderMobile';
-import OcorrenciasPage from './pages/ocorrenciasPage';
-import SolicitacaoMonitoramento from './pages/SolicitacaoMonitoramento';
 
-import RegistroUsuario from './pages/Registro';
-import AtualizaUsuario from './pages/AtualizaUsuario';
-import Comprovantes from './pages/Comprovantes';
-import NaoAutorizado from './pages/NaoAutorizado';
-import PrivateRoute from './components/PrivateRoute/PrivateRoute';
-import 'react-toastify/dist/ReactToastify.css';
-import { ToastContainer } from 'react-toastify';
-import PainelUsuarios from './pages/PainelUsuarios';
-import ForgotPassword from './pages/ForgotPassword';
-import ResetPassword from './pages/ResetPassword';
+import SolicitacaoMonitoramento from './pages/SolicitacaoMonitoramento';
+import OcorrenciasPage from './pages/ocorrenciasPage';
 import CargasPage from './pages/CargasPage';
+import Comprovantes from './pages/Comprovantes';
 import KnowledgePage from './pages/knowledgePage';
 import NfeDownloadPage from './pages/NfeDownloadPage';
 
+import RegistroUsuario from './pages/Registro';
+import AtualizaUsuario from './pages/AtualizaUsuario';
+import PainelUsuarios from './pages/PainelUsuarios';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+import NaoAutorizado from './pages/NaoAutorizado';
+
+import PrivateRoute from './components/PrivateRoute/PrivateRoute';
+
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 function App() {
   const { isAuthenticated } = useLogin();
-  const [isOpen, setIsOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
+  // 🔑 estado REAL da sidebar
+  const [isOpen, setIsOpen] = useState(true);
 
-useEffect(() => {
-  const pedirPermissao = () => {
-    if (Notification.permission !== "granted") {
-      Notification.requestPermission();
-    }
-    window.removeEventListener("click", pedirPermissao);
-  };
-
-  window.addEventListener("click", pedirPermissao);
-}, []);
-
-
-
+  // 🔔 Permissão de notificações
   useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 1050);
+    const pedirPermissao = () => {
+      if (Notification.permission !== 'granted') {
+        Notification.requestPermission();
+      }
+      window.removeEventListener('click', pedirPermissao);
     };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+
+    window.addEventListener('click', pedirPermissao);
   }, []);
 
   return (
     <>
       <Router>
+        {/* HEADER ÚNICO */}
         {isAuthenticated && (
-          <>{isMobile ? <HeaderMobile /> : <Header isOpen={isOpen} setIsOpen={setIsOpen} />}</>
+          <Header isOpen={isOpen} setIsOpen={setIsOpen} />
         )}
 
+        {/* CONTEÚDO — EMPURRADO PELO HEADER */}
         <div
           className={`
             transition-all duration-300
             ${
               isAuthenticated
-                ? isMobile
-                  ? 'mt-16 ml-0' /* Espaço para header fixo no topo no mobile */
-                  : isOpen
+                ? isOpen
                   ? 'ml-[260px]'
-                  : 'ml-[80px]'
+                  : 'ml-[78px]'
                 : 'ml-0'
             }
-            py-2 px-2 min-h-screen bg-[#333]
+            min-h-screen bg-[#333]
           `}
         >
           <Routes>
-            {/* 🔓 Pública */}
+            {/* 🔓 PÚBLICAS */}
             <Route path="/registro" element={<RegistroUsuario />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
-            {/* 🔒 Privadas */}
+
+            {/* 🔒 PRIVADAS */}
             {isAuthenticated ? (
               <>
                 <Route
                   path="/"
                   element={
-                    <PrivateRoute allowedSetores={['expedicao', 'admin']}>
+                    <PrivateRoute permissions={['comprovantes.acessar_pagina']}>
                       <SolicitacaoMonitoramento />
                     </PrivateRoute>
                   }
@@ -96,35 +90,38 @@ useEffect(() => {
                     </PrivateRoute>
                   }
                 />
+
                 <Route
                   path="/comprovantes"
                   element={
-                    <PrivateRoute>
+                    <PrivateRoute permissions={['comprovantes.acessar_pagina']}>
                       <Comprovantes />
                     </PrivateRoute>
                   }
                 />
-                {/* Cargas com subsessões */}
+
                 <Route
                   path="/cargas"
                   element={
-                    <PrivateRoute>
+                    <PrivateRoute permissions={['cargas.acessar_pagina']}>
                       <CargasPage />
                     </PrivateRoute>
                   }
                 />
+
                 <Route
                   path="/ocorrencias"
                   element={
-                    <PrivateRoute>
+                    <PrivateRoute permissions={['ocorrencias.tipos.acessar_pagina']}>
                       <OcorrenciasPage />
                     </PrivateRoute>
                   }
                 />
+
                 <Route
                   path="/knowledge"
                   element={
-                    <PrivateRoute>
+                    <PrivateRoute permissions={['base_de_conhecimento.acessar_pagina']}>
                       <KnowledgePage />
                     </PrivateRoute>
                   }
@@ -133,12 +130,13 @@ useEffect(() => {
                 <Route
                   path="/nfe-download"
                   element={
-                    <PrivateRoute>
+                    <PrivateRoute permissions={['baixar_nfes.acessar_pagina']}>
                       <NfeDownloadPage />
                     </PrivateRoute>
                   }
                 />
 
+                {/* 🛡️ ADMIN */}
                 <Route
                   path="/painel-usuarios"
                   element={
@@ -147,13 +145,12 @@ useEffect(() => {
                     </PrivateRoute>
                   }
                 />
+
                 <Route path="/nao-autorizado" element={<NaoAutorizado />} />
                 <Route path="*" element={<Navigate to="/comprovantes" />} />
               </>
             ) : (
-              <>
-                <Route path="*" element={<LoginModal />} />
-              </>
+              <Route path="*" element={<LoginModal />} />
             )}
           </Routes>
         </div>
@@ -161,14 +158,11 @@ useEffect(() => {
 
       <ToastContainer
         position="top-right"
-        autoClose={3000} // desaparece após 3 segundos
+        autoClose={3000}
         hideProgressBar={false}
-        newestOnTop={false}
         closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
         pauseOnHover
+        draggable
       />
     </>
   );

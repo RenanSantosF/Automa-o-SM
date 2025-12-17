@@ -2,7 +2,7 @@ import RegisterForm from '../components/RegisterForm/RegisterForm';
 
 const RegistroUsuario = () => {
   return (
-    <div className="p-2">
+    <div className="">
       <RegisterForm />
     </div>
   );
