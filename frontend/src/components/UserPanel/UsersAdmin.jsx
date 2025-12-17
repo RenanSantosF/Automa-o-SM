@@ -6,14 +6,15 @@ import InputField from './InputField';
 import SelectField from './SelectField';
 import { SETORES, FILIAIS, TRANSPORTADORAS } from '../../constants/catalogos';
 
-function normalize(str = '') {
-  return str
-    .toString()
-    .normalize('NFD') // separa acentos
-    .replace(/[\u0300-\u036f]/g, '') // remove acentos
+function normalize(value) {
+  if (value === null || value === undefined) return '';
+  return String(value)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
     .trim();
 }
+
 
 export default function UsersAdmin() {
   const [usuarios, setUsuarios] = useState([]);
