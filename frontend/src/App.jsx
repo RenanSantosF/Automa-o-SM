@@ -76,7 +76,7 @@ function App() {
                 <Route
                   path="/"
                   element={
-                    <PrivateRoute permissions={['comprovantes.acessar_pagina']}>
+                    <PrivateRoute permissions={['execucoes.acessar_pagina']}>
                       <SolicitacaoMonitoramento />
                     </PrivateRoute>
                   }
@@ -112,7 +112,7 @@ function App() {
                 <Route
                   path="/ocorrencias"
                   element={
-                    <PrivateRoute permissions={['ocorrencias.tipos.acessar_pagina']}>
+                    <PrivateRoute permissions={['ocorrencias.tipos.acessar_pagina', 'ocorrencias.motivos.acessar_pagina']}>
                       <OcorrenciasPage />
                     </PrivateRoute>
                   }

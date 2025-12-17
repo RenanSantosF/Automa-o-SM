@@ -19,9 +19,9 @@ export const PERMISSOES_DISPONIVEIS = {
 
   Execuções: [
     { code: 'execucoes.reprocessar', label: 'Reprocessar execuções' },
-    { code: 'execuções.deletar', label: 'Deletar execuções' },
-    { code: 'execuções.criar', label: 'Criar execuções' },
-    { code: 'execuções.acessar_pagina', label: 'Acessar página de execuções' },
+    { code: 'execucoes.deletar', label: 'Deletar execuções' },
+    { code: 'execucoes.criar', label: 'Criar execuções' },
+    { code: 'execucoes.acessar_pagina', label: 'Acessar página de execuções' },
   ],
 
   Cargas: [

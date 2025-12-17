@@ -27,9 +27,9 @@ permissoes = [
 
 
     "execucoes.reprocessar",
-    "execuções.deletar",
-    "execuções.criar",
-    "execuções.acessar_pagina",
+    "execucoes.deletar",
+    "execucoes.criar",
+    "execucoes.acessar_pagina",
 
 
     "cargas.create",

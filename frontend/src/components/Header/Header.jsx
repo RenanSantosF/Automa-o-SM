@@ -44,7 +44,7 @@ const Header = ({ isOpen, setIsOpen }) => {
   ];
 
   const menuPermissions = {
-    Monitoramento: 'comprovantes.acessar_pagina',
+    Monitoramento: 'execucoes.acessar_pagina',
     Comprovantes: 'comprovantes.acessar_pagina',
     Cargas: 'cargas.acessar_pagina',
     'Cadastros de Ocorrências': 'ocorrencias.tipos.acessar_pagina',
