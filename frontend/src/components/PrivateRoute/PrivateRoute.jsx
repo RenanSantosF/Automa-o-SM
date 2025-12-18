@@ -1,53 +1,65 @@
-import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useLogin } from '../../Contexts/LoginContext';
 import { canAny, canAll } from '../../utils/permissions';
 
-const PrivateRoute = ({
+export default function PrivateRoute({
   children,
-  allowedSetores = [],     // continua existindo (admin)
-  permissions = [],        // NOVO: permissões exigidas
-  requireAll = false       // NOVO: todas ou apenas uma
-}) => {
+  allowedSetores = [],
+  permissions = [],
+  requireAll = false
+}) {
   const { isAuthenticated, userData } = useLogin();
   const location = useLocation();
 
-  // 🔒 Não autenticado
+  /* =======================
+     1️⃣ NÃO AUTENTICADO
+  ======================= */
   if (!isAuthenticated) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/login" replace />;
   }
 
-  // 🔎 Validação de cadastro
-  const nome = userData?.nome?.toString().trim();
-  const email = userData?.email?.toString().trim();
-  const transportadora = userData?.transportadora?.toString().trim();
-  const filial = userData?.filial?.toString().trim();
-
-  const cadastroIncompleto = !(nome && email && transportadora && filial);
-
-  // 🔁 Força atualização de cadastro
-  if (cadastroIncompleto && location.pathname !== '/updateusuario') {
-    return <Navigate to="/updateusuario" replace />;
-  }
-
-  // 🔓 Sempre permitir updateusuario (evita loop)
+  /* =======================
+     2️⃣ LIBERA UPDATEUSUARIO
+     (evita loop)
+  ======================= */
   if (location.pathname === '/updateusuario') {
     return children;
   }
 
-  // 🛡️ REGRA 1 — Por SETOR (ex: admin)
-  if (allowedSetores.length > 0) {
-    const setorUsuario = userData?.setor?.toString().toLowerCase() || '';
-    const allowed = allowedSetores.map(s => s.toString().toLowerCase());
+  /* =======================
+     3️⃣ VALIDA CADASTRO
+  ======================= */
+  const isFilled = (v) =>
+    typeof v === 'string' && v.trim().length > 0;
 
-    if (!allowed.includes(setorUsuario)) {
-      return <Navigate to="/nao-autorizado" replace />;
-    }
+  const cadastroIncompleto = !(
+    isFilled(userData?.nome) &&
+    isFilled(userData?.email) &&
+    isFilled(userData?.transportadora) &&
+    isFilled(userData?.filial)
+  );
 
-    return children;
+  if (cadastroIncompleto) {
+    return <Navigate to="/updateusuario" replace />;
   }
 
-  // 🛡️ REGRA 2 — Por PERMISSÃO
+  /* =======================
+     4️⃣ VALIDA SETOR
+  ======================= */
+  if (allowedSetores.length > 0) {
+    const setorUsuario = userData?.setor?.toLowerCase?.() || '';
+    const setoresPermitidos = allowedSetores.map(s =>
+      s.toLowerCase()
+    );
+
+    if (!setoresPermitidos.includes(setorUsuario)) {
+      return <Navigate to="/nao-autorizado" replace />;
+    }
+  }
+
+  /* =======================
+     5️⃣ VALIDA PERMISSÕES
+  ======================= */
   if (permissions.length > 0) {
     const autorizado = requireAll
       ? canAll(userData, permissions)
@@ -58,8 +70,8 @@ const PrivateRoute = ({
     }
   }
 
-  // 🔓 Liberado
+  /* =======================
+     6️⃣ ACESSO LIBERADO
+  ======================= */
   return children;
-};
-
-export default PrivateRoute;
+}

@@ -37,11 +37,11 @@ export const PERMISSOES_DISPONIVEIS = {
     { code: 'cargas.acessar_pagina', label: 'Acessar página de cargas' },
   ],
 
-  Usuários: [
-    { code: 'usuarios.list', label: 'Listar usuários' },
-    { code: 'usuarios.edit', label: 'Editar usuários' },
-    { code: 'usuarios.delete', label: 'Deletar usuários' },
-  ],
+  // Usuários: [
+  //   { code: 'usuarios.list', label: 'Listar usuários' },
+  //   { code: 'usuarios.edit', label: 'Editar usuários' },
+  //   { code: 'usuarios.delete', label: 'Deletar usuários' },
+  // ],
 
   Conhecimento: [
     { code: 'base_de_conhecimento.criar', label: 'Criar base de conhecimento' },

@@ -10,6 +10,7 @@ import { FaHome, FaFileInvoice } from 'react-icons/fa';
 import { FaFileSignature, FaTruck } from 'react-icons/fa6';
 import { FiUsers } from 'react-icons/fi';
 import { IoDocumentTextOutline } from 'react-icons/io5';
+import { MdTrackChanges } from 'react-icons/md';
 
 import { useLogin } from '../../Contexts/LoginContext';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -17,18 +18,20 @@ import { useState } from 'react';
 
 const SIDEBAR_OPEN = 260;
 const SIDEBAR_CLOSED = 78;
+  const isActive = (path) => location.pathname === path;
 
 const Header = ({ isOpen, setIsOpen }) => {
   const { userData, logout } = useLogin();
   const location = useLocation();
   const [openSubmenu, setOpenSubmenu] = useState(null);
+  const isMeusDadosActive = isActive('/updateusuario');
 
-  const isActive = (path) => location.pathname === path;
   const toggleSidebar = () => setIsOpen(!isOpen);
 
   /* ================= MENU ================= */
   const menuItems = [
-    { label: 'Monitoramento', path: '/', icon: <FaHome /> },
+    { label: 'Início', path: '/', icon: <FaHome /> },
+    { label: 'Monitoramento', path: '/monitoramento', icon: <MdTrackChanges /> },
     { label: 'Comprovantes', path: '/comprovantes', icon: <FaFileSignature /> },
     {
       label: 'Cargas',
@@ -62,13 +65,21 @@ const Header = ({ isOpen, setIsOpen }) => {
     return userData?.permissoes?.includes(perm);
   };
 
+  
+
+
   /* ================= CLASSES ================= */
-  const itemBase =
-    'flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-all select-none';
-  const itemActive = 'bg-green-700/80 text-white shadow-md';
-  const itemIdle = 'text-gray-300 hover:bg-green-900 hover:text-white';
-  const itemDisabled =
-    'flex items-center gap-3 px-3 py-2.5 rounded-md text-sm text-gray-500 bg-[#1b1b1b] border border-gray-800 cursor-not-allowed';
+const itemBase =
+  'flex items-center gap-3 px-3 py-2.5 rounded-sm text-sm transition-all select-none';
+
+const itemActive =
+  'bg-[#1f2a25] text-green-300 shadow-inner ring-1 ring-green-700/20';
+
+const itemIdle =
+  'text-gray-300 hover:bg-[#1f1f22] hover:text-green-300';
+
+const itemDisabled =
+  'flex items-center gap-3 px-3 py-2.5 rounded-sm text-sm text-gray-500 bg-[#141414] border border-gray-800 cursor-not-allowed';
 
   /* ================= RENDER ================= */
   return (
@@ -84,19 +95,20 @@ const Header = ({ isOpen, setIsOpen }) => {
             <IoMenu size={22} />
           </button>
 
-          <AnimatePresence>
-            {isOpen && (
-              <motion.div
-                initial={{ opacity: 0, x: -6 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -6 }}
-                className="flex items-center gap-2 text-green-300 text-lg font-bold"
-              >
-                <img src="/logo.png" className="w-7" alt="Logo" />
-                Dellmar Docs
-              </motion.div>
-            )}
-          </AnimatePresence>
+<AnimatePresence>
+  {isOpen && (
+    <motion.div
+      initial={{ opacity: 0, x: -6 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -6 }}
+      className="flex items-center gap-2 text-gray-200 text-lg font-semibold"
+    >
+      <img src="/logo.png" className="w-7 drop-shadow" alt="Logo" />
+      Dellmar Docs
+    </motion.div>
+  )}
+</AnimatePresence>
+
         </div>
 
         {/* MENU */}
@@ -105,17 +117,14 @@ const Header = ({ isOpen, setIsOpen }) => {
             const allowed = hasPermission(item.label);
             const hasSubmenu = !!item.subItems;
             const active =
-              item.path && isActive(item.path) ||
+              (item.path && isActive(item.path)) ||
               (hasSubmenu && item.subItems.some((s) => isActive(s.path)));
 
             return (
               <div key={item.label}>
                 {/* ITEM NORMAL */}
                 {!hasSubmenu && allowed && (
-                  <Link
-                    to={item.path}
-                    className={`${itemBase} ${active ? itemActive : itemIdle}`}
-                  >
+                  <Link to={item.path} className={`${itemBase} ${active ? itemActive : itemIdle}`}>
                     {item.icon}
                     {isOpen && <span>{item.label}</span>}
                   </Link>
@@ -144,8 +153,8 @@ const Header = ({ isOpen, setIsOpen }) => {
                         {item.icon}
                         {isOpen && <span>{item.label}</span>}
                       </div>
-                      {isOpen && (
-                        allowed ? (
+                      {isOpen &&
+                        (allowed ? (
                           <IoChevronForward
                             className={`transition-transform ${
                               openSubmenu === item.label ? 'rotate-90' : ''
@@ -153,8 +162,7 @@ const Header = ({ isOpen, setIsOpen }) => {
                           />
                         ) : (
                           <IoLockClosedOutline className="text-gray-600" />
-                        )
-                      )}
+                        ))}
                     </div>
 
                     <AnimatePresence>
@@ -197,7 +205,10 @@ const Header = ({ isOpen, setIsOpen }) => {
 
       {/* FOOTER */}
       <div className="px-3 py-4 border-t border-gray-800 flex flex-col gap-2">
-        <Link to="/updateusuario" className={`${itemBase} ${itemIdle}`}>
+        <Link
+          to="/updateusuario"
+          className={`${itemBase} ${isMeusDadosActive ? itemActive : itemIdle}`}
+        >
           <IoPersonCircleOutline />
           {isOpen && <span>Meus Dados</span>}
         </Link>

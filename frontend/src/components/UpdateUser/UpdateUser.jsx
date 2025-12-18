@@ -325,7 +325,7 @@ export default function UpdateUser() {
     name="transportadora"
     value={form.transportadora}
     onChange={handleChange}
-    disabled={!isEditing}
+    disabled
     className={`bg-[#161616] text-sm px-3 py-2 border rounded-md focus:outline-none
       appearance-none
       ${isEditing ? 'cursor-pointer hover:bg-[#1d1d1f]' : 'cursor-not-allowed opacity-80'}
@@ -346,7 +346,7 @@ export default function UpdateUser() {
     name="filial"
     value={form.filial}
     onChange={handleChange}
-    disabled={!isEditing}
+    disabled
     className={`bg-[#161616] text-sm px-3 py-2 border rounded-md focus:outline-none
       appearance-none
       ${isEditing ? 'cursor-pointer hover:bg-[#1d1d1f]' : 'cursor-not-allowed opacity-80'}

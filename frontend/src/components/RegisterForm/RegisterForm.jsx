@@ -1,18 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useUser } from '../../Contexts/RegisterContext';
-import {
-  FiUser,
-  FiKey,
-  FiServer,
-  FiCheckCircle,
-  FiLoader,
-  FiEye,
-  FiEyeOff,
-} from 'react-icons/fi';
+import { FiUser, FiKey, FiServer, FiCheckCircle, FiLoader, FiEye, FiEyeOff } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-
-const setores = ['ocorrencia', 'expedicao', 'outros', 'admin'];
+import { SETORES, FILIAIS, TRANSPORTADORAS } from '../../constants/catalogos';
 
 export default function RegisterForm() {
   const { register, loading: loadingContext, error: registerError } = useUser();
@@ -23,7 +14,7 @@ export default function RegisterForm() {
     username: '',
     email: '',
     senha: '',
-    setor: setores[0],
+    setor: SETORES[0].value,
     usuario_apisul: '',
     senha_apisul: '',
     nome: '',
@@ -130,13 +121,14 @@ export default function RegisterForm() {
           username: '',
           email: '',
           senha: '',
-          setor: setores[0],
+          setor: SETORES[0].value,
           usuario_apisul: '',
           senha_apisul: '',
           nome: '',
           transportadora: '',
           filial: '',
         });
+
         setSenhaConfirm('');
         navigate('/login');
       }
@@ -210,59 +202,53 @@ export default function RegisterForm() {
               ${!form.nome.trim() ? 'border-red-500' : 'border-gray-600'}`}
           />
         </div>
-{/* Transportadora - obrigatório */}
-<div className="flex flex-col">
-  <label className="text-xs text-gray-300 mb-1 flex gap-2 items-center">
-    Transportadora *
-  </label>
-  <select
-    name="transportadora"
-    value={form.transportadora}
-    onChange={handleChange}
-    required
-    className={`bg-[#161616] text-sm px-3 py-2 border rounded-md focus:outline-none
-      appearance-none
-      cursor-pointer hover:bg-[#1d1d1f]
+        {/* Transportadora - obrigatório */}
+        <div className="flex flex-col">
+          <label className="text-xs text-gray-300 mb-1">Transportadora *</label>
+
+          <select
+            name="transportadora"
+            value={form.transportadora}
+            onChange={handleChange}
+            required
+            className={`bg-[#161616] text-sm px-3 py-2 border rounded-md focus:outline-none
+      appearance-none cursor-pointer hover:bg-[#1d1d1f]
       ${!form.transportadora.trim() ? 'border-red-500' : 'border-gray-600'}
     `}
-  >
-    <option value="">Selecione a transportadora</option>
-    <option value="Dellmar Transportes LTDA">Dellmar Transportes LTDA</option>
-  </select>
-</div>
+          >
+            <option value="">Selecione a transportadora</option>
 
-{/* Filial - obrigatório */}
-<div className="flex flex-col">
-  <label className="text-xs text-gray-300 mb-1 flex gap-2 items-center">
-    Filial *
-  </label>
-  <select
-    name="filial"
-    value={form.filial}
-    onChange={handleChange}
-    required
-    className={`bg-[#161616] text-sm px-3 py-2 border rounded-md focus:outline-none
-      appearance-none
-      cursor-pointer hover:bg-[#1d1d1f]
+            {TRANSPORTADORAS.map((t) => (
+              <option key={t.value} value={t.value}>
+                {t.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Filial - obrigatório */}
+        <div className="flex flex-col">
+          <label className="text-xs text-gray-300 mb-1">Filial *</label>
+
+          <select
+            name="filial"
+            value={form.filial}
+            onChange={handleChange}
+            required
+            className={`bg-[#161616] text-sm px-3 py-2 border rounded-md focus:outline-none
+      appearance-none cursor-pointer hover:bg-[#1d1d1f]
       ${!form.filial.trim() ? 'border-red-500' : 'border-gray-600'}
     `}
-  >
-    <option value="">Selecione a filial</option>
-    <option value="Viana - ES">Viana - ES</option>
-    <option value="Pindamonhangaba - SP">Pindamonhangaba - SP</option>
-    <option value="Itatiaia - RJ">Itatiaia - RJ</option>
-    <option value="Aparecida de Goiânia - GO">Aparecida de Goiânia - GO</option>
-    <option value="Ponta Grossa - PR">Ponta Grossa - PR</option>
-    <option value="São Jose dos Campos - SP">São Jose dos Campos - SP</option>
-    <option value="Campos dos Goytacazes - RJ">Campos dos Goytacazes - RJ</option>
-    <option value="Conceição Do Jacuípe - BA">Conceição Do Jacuípe - BA</option>
-    <option value="João Pessoa - PB">João Pessoa - PB</option>
-    <option value="Jaboatão dos Guararapes - PE">Jaboatão dos Guararapes - PE</option>
-    <option value="Açailândia - MA">Açailândia - MA</option>
-    <option value="Rondonópolis - MT">Rondonópolis - MT</option>
-  </select>
-</div>
+          >
+            <option value="">Selecione a filial</option>
 
+            {FILIAIS.map((f) => (
+              <option key={f.value} value={f.value}>
+                {f.label}
+              </option>
+            ))}
+          </select>
+        </div>
 
         <div className="flex flex-col relative">
           <label className="text-xs text-gray-300 mb-1 flex gap-1 items-center">
@@ -292,6 +278,7 @@ export default function RegisterForm() {
           <label className="text-xs text-gray-300 mb-1 flex gap-1 items-center">
             <FiServer /> Setor *
           </label>
+
           <select
             name="setor"
             value={form.setor}
@@ -299,9 +286,9 @@ export default function RegisterForm() {
             required
             className="bg-[#161616] text-sm px-3 py-1.5 border border-gray-600 rounded-md focus:outline-none"
           >
-            {setores.map((setor) => (
-              <option key={setor} value={setor}>
-                {setor.charAt(0).toUpperCase() + setor.slice(1)}
+            {SETORES.map((s) => (
+              <option key={s.value} value={s.value}>
+                {s.label}
               </option>
             ))}
           </select>
@@ -384,7 +371,11 @@ export default function RegisterForm() {
             type="submit"
             disabled={submitDisabled}
             className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-medium
-              ${submitDisabled ? 'bg-gray-700 text-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600 text-white'}
+              ${
+                submitDisabled
+                  ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
+                  : 'bg-green-500 hover:bg-green-600 text-white'
+              }
               transition`}
           >
             {loadingContext ? (
