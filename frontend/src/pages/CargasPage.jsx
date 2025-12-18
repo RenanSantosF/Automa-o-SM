@@ -158,7 +158,6 @@ export default function CargasPage() {
         if (v !== "" && v !== null && v !== undefined) params[k] = v;
       });
       const res = await api.get("/estatisticas", { params });
-      console.log("Relatório:", res.data);
       alert("Relatório gerado! Veja o console para detalhes.");
       setModalRelatorio(false);
       return res.data;

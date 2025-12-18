@@ -23,9 +23,7 @@ export function useCargas() {
       return;
     }
     try {
-      console.log("Enviando carga:", cargaData);
       const created = await criarCarga(cargaData);
-      console.log("Carga criada:", created);
       await fetchCargas();
       return created;
     } catch (error) {

@@ -77,7 +77,6 @@ const deletarMotivo = async (id) => {
 const listarMotivosPorTipo = async (tipoId) => {
   try {
     const data = await fetchWithAuth(`${API_URL}/gestor-cargas/motivos?tipo_id=${tipoId}`);
-    console.log('Motivos por tipo', tipoId, ':', data); // Para debug
     return data;
   } catch (err) {
     console.error('Erro ao buscar motivos por tipo:', err);

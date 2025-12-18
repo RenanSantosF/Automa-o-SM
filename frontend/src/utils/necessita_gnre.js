@@ -8,7 +8,6 @@ export function necessitaGNRE(xmlString) {
     for (let i = 0; i < cstElements.length; i++) {
       const cstValue = cstElements[i].textContent?.trim();
       if (cstValue === '90' || cstValue === '090') {
-        console.log('CST 090 encontrado:', cstElements[i].parentNode);
         return true;
       }
     }

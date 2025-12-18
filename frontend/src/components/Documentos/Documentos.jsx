@@ -82,7 +82,7 @@ const Documentos = () => {
         });
 
         for (const arquivo of novosArquivos) {
-          console.log('🔔 Notificando arquivo:', arquivo.id, arquivo.nome_arquivo);
+          
           if (Notification.permission === 'granted') {
             const notification = new Notification(`📎 Novo arquivo enviado`, {
               body: arquivo.nome_arquivo || 'Arquivo novo enviado',
@@ -109,7 +109,7 @@ const Documentos = () => {
         });
 
         for (const coment of novosComentarios) {
-          console.log('🔔 Notificando comentário:', coment.id, coment.texto);
+          
           if (Notification.permission === 'granted') {
             const notification = new Notification(
               `📨 Nova mensagem de ${coment.usuario?.username || 'Usuário'}`,
@@ -293,13 +293,13 @@ const Documentos = () => {
 
         // Se for atualização de documentos
         if (data?.tipo === 'documento_atualizado') {
-          console.log('📡 Documento atualizado recebido via WS:', data.documento);
+          
           atualizarDocumento(data.documento);
         }
 
         // Se for atualização geral (todos documentos)
         if (data?.tipo === 'documentos_atualizados') {
-          console.log('📡 Atualização recebida via WebSocket');
+
           const atualizados = await fetchDocumentosCompletos();
           if (atualizados) {
             verificarNotificacoes(atualizados);
@@ -308,7 +308,7 @@ const Documentos = () => {
 
         // NOVO: tratar documento deletado
         if (data?.tipo === 'documento_deletado') {
-          console.log('🗑 Documento deletado recebido via WS:', data.id);
+          
 
           setDocumentos((prevDocs) => prevDocs.filter((d) => d.id !== data.id));
 

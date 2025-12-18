@@ -33,7 +33,6 @@ const ListaSM = () => {
     setCarregandoMais(true);
 
     const offsetReal = offsetForcado !== null ? offsetForcado : offset;
-    console.log('carregarMaisExecucoes chamado com offsetReal:', offsetReal);
 
     const url = `${api}/execucoes/?limite=${LIMITE_POR_PAGINA}&offset=${offsetReal}`;
 

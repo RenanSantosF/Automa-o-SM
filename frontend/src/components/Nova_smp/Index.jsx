@@ -388,9 +388,6 @@ const findAnchor = (items, regex) => items.find((it) => regex.test(it.text));
         return `[Y=${yKey}] ` + group.map((i) => i.text).join(' ');
       });
 
-    console.log('=== MAPA REAL DO PDF ===');
-    linhasOrdenadas.forEach((l) => console.log(l));
-
     // também retorna o texto simples
     return linhasOrdenadas.join('\n');
   };
@@ -439,7 +436,7 @@ const findAnchor = (items, regex) => items.find((it) => regex.test(it.text));
       .map((l) => l.replace(/^\[Y=\d+\]\s*/, '').trim())
       .filter(Boolean);
 
-    console.log('=== CTE CLEAN ===', lines);
+
 
     // -------- REMETENTE / DESTINATÁRIO --------
     const linhaRD = lines.find((l) => l.includes('REMETENTE') && l.includes('DESTINATÁRIO')) || '';
@@ -481,8 +478,7 @@ const findAnchor = (items, regex) => items.find((it) => regex.test(it.text));
       }
     }
 
-    console.log('ORIGEM PDF:', local_origem);
-    console.log('DESTINO PDF:', local_destino);
+
 
     return {
       tipo: 'cte',
@@ -614,16 +610,6 @@ function parsePdfCTeFromItems(items) {
       destinatario_cnpj = cnpjTerminal;
     }
   }
-
-  // ============================
-  // ✅ DEBUG FINAL
-  // ============================
-  console.log('✅ CTE FINAL COMPLETO:');
-  console.log('ORIGEM:', local_origem);
-  console.log('DESTINO:', local_destino);
-  console.log('REMETENTE:', remetente_nome, remetente_cnpj);
-  console.log('DESTINATÁRIO:', destinatario_nome, destinatario_cnpj);
-  console.log('VALOR CARGA:', valor_total_carga);
 
   return {
     tipo: 'cte',

@@ -14,8 +14,6 @@ const OcorrenciaForm = ({ tipos = [], motivos = [], initialData = {}, onSubmit, 
   const [loadingMotivos, setLoadingMotivos] = useState(false);
 
 
-  console.log('OcorrenciaForm initialData:', initialData);
-console.log('OcorrenciaForm props:', { tipos, motivos, onListMotivosPorTipo });
 
 
   // Carrega motivos quando o tipo é selecionado ou alterado
@@ -25,8 +23,7 @@ console.log('OcorrenciaForm props:', { tipos, motivos, onListMotivosPorTipo });
         setLoadingMotivos(true);
         try {
           const motivosPorTipo = await onListMotivosPorTipo(formData.tipo_id);
-          console.log('Motivos filtrados para tipo', formData.tipo_id, ':', motivosPorTipo);
-          
+
           setMotivosFiltrados(motivosPorTipo);
           
           if (formData.motivo_id && !motivosPorTipo.some(m => m.id == formData.motivo_id)) {
@@ -50,7 +47,7 @@ console.log('OcorrenciaForm props:', { tipos, motivos, onListMotivosPorTipo });
   // Inicializa com dados existentes
   useEffect(() => {
     if (initialData.id) {
-      console.log('Initial data:', initialData);
+
       setFormData({
         tipo_id: initialData.tipo_id || "",
         motivo_id: initialData.motivo_id || "",
@@ -78,8 +75,7 @@ console.log('OcorrenciaForm props:', { tipos, motivos, onListMotivosPorTipo });
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-// No OcorrenciaForm, certifique-se de que está enviando apenas motivo_id
-// OcorrenciaForm.jsx - Adicione um console.log para debug
+
 const handleAddOrUpdate = (e) => {
   e.preventDefault();
   
@@ -95,8 +91,6 @@ const handleAddOrUpdate = (e) => {
     observacao: formData.observacao
   };
 
-  
-  console.log('OcorrenciaForm enviando:', dadosParaEnviar);
   onSubmit(dadosParaEnviar);
   
   setIsEditing(false);

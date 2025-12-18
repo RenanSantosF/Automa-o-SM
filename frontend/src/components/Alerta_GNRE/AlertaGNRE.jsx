@@ -16,7 +16,7 @@ const AlertaGNRE = ({ isOpen, onClose }) => {
 
   if (!isOpen && !showModal) return null;
 
-  console.log('modal ativado');
+
 
   return (
     <div className="fixed inset-0 z-50 flex justify-center items-center">

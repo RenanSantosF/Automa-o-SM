@@ -4,7 +4,7 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 const API_URL = import.meta.env.VITE_API_URL;
-console.log(API_URL)
+
 export const useTipos = () => {
   const [tipos, setTipos] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -15,7 +15,7 @@ const listarTipos = async () => {
     setLoading(true);
     setError(null);
     const data = await fetchWithAuth(`${API_URL}/gestor-cargas/tipos`);
-    console.log('Tipos retornados:', data); // ← Adicione esta linha
+
     setTipos(data);
   } catch (err) {
     console.error('Erro ao buscar tipos:', err);
@@ -68,7 +68,6 @@ const atualizarTipo = async (tipoData) => {
 
     return { success: true, data: updated };
   } catch (err) {
-    console.log(err);
     toast.error(err?.detail || err?.message || "Erro ao atualizar tipo.");
 
     return { success: false }; // 🔥 NÃO lança erro
