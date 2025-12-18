@@ -69,13 +69,12 @@ export const PERMISSOES_DISPONIVEIS = {
   ],
 };
 
-
 export default function GroupsAdmin() {
   const [grupos, setGrupos] = useState([]);
   const [grupoAtivo, setGrupoAtivo] = useState(null);
   const [criando, setCriando] = useState(false);
-const [tab, setTab] = useState('permissoes');
-const [usuariosGrupo, setUsuariosGrupo] = useState([]);
+  const [tab, setTab] = useState('permissoes');
+  const [usuariosGrupo, setUsuariosGrupo] = useState([]);
 
   useEffect(() => {
     fetchGrupos();
@@ -137,192 +136,178 @@ const [usuariosGrupo, setUsuariosGrupo] = useState([]);
   }
 
   async function abrirGrupo(g) {
-  try {
-    // normaliza permissões
-    setGrupoAtivo({
-      ...g,
-      permissoes: g.permissoes?.map((p) => p.codigo) || [],
-    });
+    try {
+      // normaliza permissões
+      setGrupoAtivo({
+        ...g,
+        permissoes: g.permissoes?.map((p) => p.codigo) || [],
+      });
 
-    setTab('permissoes');
+      setTab('permissoes');
 
-    // busca usuários
-    const users = await apiFetch('/usuarios');
+      // busca usuários
+      const users = await apiFetch('/usuarios');
 
-    // filtra usuários do grupo
-    const vinculados = users.filter((u) => u.grupo_id === g.id);
+      // filtra usuários do grupo
+      const vinculados = users.filter((u) => u.grupo_id === g.id);
 
-    setUsuariosGrupo(vinculados);
-  } catch (e) {
-    toast.error('Erro ao carregar usuários do grupo');
+      setUsuariosGrupo(vinculados);
+    } catch (e) {
+      toast.error('Erro ao carregar usuários do grupo');
+    }
   }
-}
-
 
   return (
     <div className="space-y-4">
       {/* Header */}
-  <div className="flex justify-between items-center">
-    <h2 className="text-2xl font-semibold text-green-400">
-      Grupos de Permissão
-    </h2>
-
-    <button
-      onClick={() => {
-        setGrupoAtivo({ nome: '', permissoes: [] });
-        setCriando(true);
-      }}
-      className="bg-green-600 hover:bg-green-700 px-5 py-2.5 rounded-md font-medium transition"
-    >
-      + Criar grupo
-    </button>
-  </div>
-
-  {/* Lista */}
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-    {grupos.map((g) => (
-<div
-  key={g.id}
-  onClick={() => abrirGrupo(g)}
-  className="
-    cursor-pointer bg-[#1c1c1c] border border-gray-700
-    rounded-xl p-5 hover:border-green-500 transition
-  "
->
-        <div className="flex justify-between items-start">
-          <div>
-            <p className="text-lg font-semibold text-green-300">
-              {g.nome}
-            </p>
-            <p className="text-xs text-gray-400 mt-1">
-              {g.permissoes?.length ?? 0} permissões
-            </p>
-          </div>
-
-          <span className="text-xs text-gray-500">
-            ID #{g.id}
-          </span>
-        </div>
-      </div>
-    ))}
-  </div>
-
-      <Modal
-  open={!!grupoAtivo || criando}
-  onClose={() => {
-    setGrupoAtivo(null);
-    setCriando(false);
-    setTab('permissoes');
-  }}
-  title={grupoAtivo?.id ? 'Editar grupo' : 'Criar grupo'}
->
-  {grupoAtivo && (
-    <div className="space-y-6">
-
-      {/* Nome */}
-      <input
-        value={grupoAtivo.nome}
-        onChange={(e) =>
-          setGrupoAtivo({ ...grupoAtivo, nome: e.target.value })
-        }
-        className="w-full bg-[#111] border border-gray-600 rounded-md px-4 py-2.5 text-sm"
-        placeholder="Nome do grupo"
-      />
-
-      {/* Tabs */}
-      <div className="flex gap-4 border-b border-gray-700">
-        {['permissoes', 'usuarios'].map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`pb-2 text-sm font-medium transition ${
-              tab === t
-                ? 'text-green-400 border-b-2 border-green-400'
-                : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            {t === 'permissoes' ? 'Permissões' : 'Usuários vinculados'}
-          </button>
-        ))}
-      </div>
-
-      {/* Conteúdo */}
-      {tab === 'permissoes' && (
-        <div className="space-y-4 max-h-[55vh] overflow-auto">
-          {Object.entries(PERMISSOES_DISPONIVEIS).map(
-            ([categoria, permissoes]) => (
-              <div key={categoria}>
-                <h3 className="text-green-400 font-semibold mb-2">
-                  {categoria}
-                </h3>
-
-                <div className="grid grid-cols-2 gap-2">
-                  {permissoes.map(({ code, label }) => (
-                    <label
-                      key={code}
-                      className="flex items-center gap-2 text-sm"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={grupoAtivo.permissoes.includes(code)}
-                        onChange={() => togglePermissao(code)}
-                      />
-                      {label}
-                    </label>
-                  ))}
-                </div>
-              </div>
-            )
-          )}
-        </div>
-      )}
-
-      {tab === 'usuarios' && (
-        <div className="space-y-3 max-h-[55vh] overflow-auto">
-          {usuariosGrupo.length === 0 && (
-            <p className="text-gray-400 text-sm">
-              Nenhum usuário vinculado a este grupo.
-            </p>
-          )}
-
-          {usuariosGrupo.map((u) => (
-            <div
-              key={u.id}
-              className="bg-[#111] border border-gray-700 rounded-md p-3"
-            >
-              <p className="font-medium text-green-300">
-                {u.nome}
-              </p>
-              <p className="text-xs text-gray-400">
-                {u.email}
-              </p>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Ações */}
-      <div className="flex justify-between pt-4 border-t border-gray-700">
-        {grupoAtivo.id && (
-          <button
-            onClick={deletarGrupo}
-            className="text-red-500 hover:text-red-400 transition"
-          >
-            Deletar grupo
-          </button>
-        )}
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-semibold text-green-400">Grupos de Permissão</h2>
 
         <button
-          onClick={salvarGrupo}
-          className="bg-green-600 hover:bg-green-700 px-6 py-2 rounded-md font-medium transition"
+          onClick={() => {
+            setGrupoAtivo({ nome: '', permissoes: [] });
+            setCriando(true);
+          }}
+          className="bg-green-600 hover:bg-green-700 px-5 py-2.5 rounded-sm cursor-pointer font-medium transition"
         >
-          Salvar alterações
+          + Criar grupo
         </button>
       </div>
-    </div>
-  )}
-</Modal>
 
+      {/* Lista */}
+{/* Lista */}
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+  {grupos.map((g) => (
+    <div
+      key={g.id}
+      onClick={() => abrirGrupo(g)}
+      className="
+        group cursor-pointer
+        rounded-lg bg-[#161616]
+        border border-gray-800
+        p-5 transition-all
+        hover:bg-[#1b1b1b]
+        hover:border-gray-700
+      "
+    >
+      <div className="flex justify-between items-start">
+        <div className="space-y-1">
+          <p className="text-base font-medium text-gray-100 group-hover:text-green-400 transition">
+            {g.nome}
+          </p>
+
+          <div className="flex items-center gap-2 text-xs text-gray-500">
+            <span>{g.permissoes?.length ?? 0} permissões</span>
+            <span className="text-gray-700">•</span>
+            <span>ID #{g.id}</span>
+          </div>
+        </div>
+
+        <div className="text-xs text-gray-600 opacity-0 group-hover:opacity-100 transition">
+          Ver detalhes →
+        </div>
+      </div>
+    </div>
+  ))}
+</div>
+
+
+      <Modal
+        open={!!grupoAtivo || criando}
+        onClose={() => {
+          setGrupoAtivo(null);
+          setCriando(false);
+          setTab('permissoes');
+        }}
+        title={grupoAtivo?.id ? 'Editar grupo' : 'Criar grupo'}
+      >
+        {grupoAtivo && (
+          <div className="space-y-6">
+            {/* Nome */}
+            <input
+              value={grupoAtivo.nome}
+              onChange={(e) => setGrupoAtivo({ ...grupoAtivo, nome: e.target.value })}
+              className="w-full bg-[#111] border border-gray-600 rounded-md px-4 py-2.5 text-sm"
+              placeholder="Nome do grupo"
+            />
+
+            {/* Tabs */}
+            <div className="flex gap-4 border-b border-gray-700">
+              {['permissoes', 'usuarios'].map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setTab(t)}
+                  className={`pb-2 text-sm font-medium transition ${
+                    tab === t
+                      ? 'text-green-400 border-b-2 border-green-400'
+                      : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  {t === 'permissoes' ? 'Permissões' : 'Usuários vinculados'}
+                </button>
+              ))}
+            </div>
+
+            {/* Conteúdo */}
+            {tab === 'permissoes' && (
+              <div className="space-y-4 max-h-[55vh] overflow-auto">
+                {Object.entries(PERMISSOES_DISPONIVEIS).map(([categoria, permissoes]) => (
+                  <div key={categoria}>
+                    <h3 className="text-green-400 font-semibold mb-2">{categoria}</h3>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      {permissoes.map(({ code, label }) => (
+                        <label key={code} className="flex items-center gap-2 text-sm">
+                          <input
+                            type="checkbox"
+                            checked={grupoAtivo.permissoes.includes(code)}
+                            onChange={() => togglePermissao(code)}
+                          />
+                          {label}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {tab === 'usuarios' && (
+              <div className="space-y-3 max-h-[55vh] overflow-auto">
+                {usuariosGrupo.length === 0 && (
+                  <p className="text-gray-400 text-sm">Nenhum usuário vinculado a este grupo.</p>
+                )}
+
+                {usuariosGrupo.map((u) => (
+                  <div key={u.id} className="bg-[#111] border border-gray-700 rounded-md p-3">
+                    <p className="font-medium text-green-300">{u.nome}</p>
+                    <p className="text-xs text-gray-400">{u.email}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Ações */}
+            <div className="flex justify-between pt-4 border-t border-gray-700">
+              {grupoAtivo.id && (
+                <button
+                  onClick={deletarGrupo}
+                  className="text-red-500 hover:text-red-400 transition"
+                >
+                  Deletar grupo
+                </button>
+              )}
+
+              <button
+                onClick={salvarGrupo}
+                className="bg-green-600 hover:bg-green-700 px-6 py-2 rounded-md font-medium transition"
+              >
+                Salvar alterações
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

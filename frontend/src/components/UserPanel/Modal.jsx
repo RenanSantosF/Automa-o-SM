@@ -15,7 +15,7 @@ export default function Modal({ open, onClose, title, children }) {
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 40 }}
         transition={{ duration: 0.25 }}
-        className="relative bg-[#1c1c1c] border border-gray-700 rounded-2xl p-8
+        className="relative bg-[#1c1c1c] border border-gray-700 rounded-md p-8
                    w-full max-w-4xl max-h-[90vh] overflow-auto shadow-2xl"
       >
         <div className="flex justify-between items-center mb-6">

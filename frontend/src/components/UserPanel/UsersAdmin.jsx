@@ -17,6 +17,7 @@ function normalize(value) {
 
 
 export default function UsersAdmin() {
+  const [filtroSetor, setFiltroSetor] = useState('');
   const [usuarios, setUsuarios] = useState([]);
   const [grupos, setGrupos] = useState([]);
   const [usuarioAtivo, setUsuarioAtivo] = useState(null);
@@ -27,20 +28,27 @@ export default function UsersAdmin() {
     fetchAll();
   }, []);
 
-  const usuariosFiltrados = usuarios.filter((u) => {
-    const termoBusca = normalize(busca);
-    const termoFilial = normalize(filtroFilial);
+const usuariosFiltrados = usuarios.filter((u) => {
+  const termoBusca = normalize(busca);
+  const termoFilial = normalize(filtroFilial);
+  const termoSetor = normalize(filtroSetor);
 
-    const nome = normalize(u.nome);
-    const email = normalize(u.email);
-    const filial = normalize(u.filial);
+  const nome = normalize(u.nome);
+  const email = normalize(u.email);
+  const filial = normalize(u.filial);
+  const setor = normalize(u.setor);
 
-    const matchBusca = nome.includes(termoBusca) || email.includes(termoBusca);
+  const matchBusca =
+    nome.includes(termoBusca) || email.includes(termoBusca);
 
-    const matchFilial = !termoFilial || filial.includes(termoFilial);
+  const matchFilial =
+    !termoFilial || filial.includes(termoFilial);
 
-    return matchBusca && matchFilial;
-  });
+  const matchSetor =
+    !termoSetor || setor === termoSetor;
+
+  return matchBusca && matchFilial && matchSetor;
+});
 
   async function fetchAll() {
     setLoading(true);
@@ -106,44 +114,97 @@ export default function UsersAdmin() {
 
   return (
     <div className="space-y-3">
-      <div className="flex gap-2 mb-4">
-        <input
-          value={busca}
-          onChange={(e) => setBusca(e.target.value)}
-          placeholder="Buscar por nome ou email..."
-          className="flex-1 bg-[#111] border border-gray-600 rounded px-3 py-2"
-        />
+      <div className="flex flex-col md:flex-row gap-3 mb-4">
+  <input
+    value={busca}
+    onChange={(e) => setBusca(e.target.value)}
+    placeholder="Buscar por nome ou email..."
+    className="
+      flex-1 bg-[#111] border border-gray-700
+      rounded-md px-3 py-2 text-sm
+      focus:outline-none focus:border-green-500
+    "
+  />
 
-        <input
-          value={filtroFilial}
-          onChange={(e) => setFiltroFilial(e.target.value)}
-          placeholder="Filtrar por filial"
-          className="bg-[#111] border border-gray-600 rounded px-3 py-2"
-        />
-      </div>
+  <input
+    value={filtroFilial}
+    onChange={(e) => setFiltroFilial(e.target.value)}
+    placeholder="Filtrar por filial"
+    className="
+      bg-[#111] border border-gray-700
+      rounded-md px-3 py-2 text-sm
+      focus:outline-none focus:border-green-500
+    "
+  />
+
+  <select
+    value={filtroSetor}
+    onChange={(e) => setFiltroSetor(e.target.value)}
+    className="
+      bg-[#111] border border-gray-700
+      rounded-md px-3 py-2 text-sm text-gray-300
+      focus:outline-none focus:border-green-500
+    "
+  >
+    <option value="">Todos os setores</option>
+    {SETORES.map((s) => (
+      <option key={s.value} value={s.value}>
+        {s.label}
+      </option>
+    ))}
+  </select>
+</div>
+
       {loading && (
         <div className="flex justify-center py-10 text-green-400 animate-pulse">
           Carregando usuários...
         </div>
       )}
-      {usuariosFiltrados.map((u) => (
-        <div
-          key={u.id}
-          onClick={() =>
-            setUsuarioAtivo({
-              ...u,
-              grupo_id: u.grupo_id ?? '',
-              grupo_id_original: u.grupo_id ?? '',
-              senha: '',
-            })
-          }
-          className="cursor-pointer bg-[#1c1c1c] border border-gray-600 rounded-sm p-4 hover:border-green-500"
-        >
-          <p className="font-semibold text-green-300">{u.nome}</p>
-          <p className="text-sm text-gray-400">Email: {u.email}</p>
-          <p className="text-sm text-gray-400">Filial: {u.filial}</p>
+<div className="space-y-3">
+  {usuariosFiltrados.map((u) => (
+    <div
+      key={u.id}
+      onClick={() =>
+        setUsuarioAtivo({
+          ...u,
+          grupo_id: u.grupo_id ?? '',
+          grupo_id_original: u.grupo_id ?? '',
+          senha: '',
+        })
+      }
+      className="
+        group cursor-pointer
+        rounded-md bg-[#161616]
+        border border-gray-800
+        p-4 transition-all
+        hover:bg-[#1b1b1b]
+        hover:border-gray-700
+      "
+    >
+      <div className="flex justify-between items-start">
+        <div className="space-y-1">
+          <p className="text-sm font-medium text-gray-100 group-hover:text-green-400 transition">
+            {u.nome}
+          </p>
+
+          <p className="text-xs text-gray-400">
+            {u.email}
+          </p>
+
+          <div className="flex gap-3 text-xs text-gray-500">
+            <span>Filial: {u.filial || '—'}</span>
+            <span>•</span>
+            <span>Setor: {u.setor || '—'}</span>
+          </div>
         </div>
-      ))}
+
+        <span className="text-xs text-gray-600 opacity-0 group-hover:opacity-100 transition">
+          Editar →
+        </span>
+      </div>
+    </div>
+  ))}
+</div>
 
       <Modal open={!!usuarioAtivo} onClose={() => setUsuarioAtivo(null)} title="Editar usuário">
         {usuarioAtivo && (

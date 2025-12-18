@@ -10,6 +10,42 @@ import {
 } from 'react-icons/fa';
 import { MdTrackChanges } from 'react-icons/md';
 import { Link } from 'react-router-dom';
+import TypingText from '../components/TypingText/TypingText';
+
+const getSaudacao = () => {
+  const hora = new Date().getHours();
+
+  if (hora >= 5 && hora < 12) return 'Bom dia,';
+  if (hora >= 12 && hora < 18) return 'Boa tarde,';
+  return 'Boa noite,';
+};
+
+const containerVariants = {
+  hidden: {},
+  show: {
+    transition: {
+      staggerChildren: 0.12, // mais lento e elegante
+      delayChildren: 0.1,
+    },
+  },
+};
+
+const cardVariants = {
+  hidden: {
+    opacity: 0,
+    y: 20,
+    filter: 'blur(6px)',
+  },
+  show: {
+    opacity: 1,
+    y: 0,
+    filter: 'blur(0px)',
+    transition: {
+      duration: 0.6,
+      ease: [0.22, 1, 0.36, 1], // easeOut elegante
+    },
+  },
+};
 
 const atalhos = [
   {
@@ -73,8 +109,7 @@ const atalhos = [
 export default function Home() {
   const { userData } = useLogin();
 
-  const primeiroNome =
-    userData?.nome?.trim()?.split(' ')[0] || 'Usuário';
+  const primeiroNome = userData?.nome?.trim()?.split(' ')[0] || 'Usuário';
 
   const temPermissao = (item) => {
     if (item.adminOnly) {
@@ -87,17 +122,33 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen p-8">
       {/* TÍTULO */}
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-10"
-      >
-        <h1 className="text-3xl font-semibold text-white">
-          Olá, <span className="text-green-400">{primeiroNome}</span>
-        </h1>
-        <p className="mt-1 text-sm text-gray-400">
-          Bem-vindo ao sistema corporativo <strong>Dellmar Docs</strong>
-        </p>
+      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="mb-10">
+<div className="mb-10">
+  <div className="flex gap-1 text-3xl font-semibold">
+    <TypingText
+      as="span"
+      text={getSaudacao()}
+      className="text-white"
+      speed={0.045}
+    />
+    <TypingText
+      as="span"
+      text={primeiroNome}
+      className="text-green-400"
+      delay={0.55}
+      speed={0.045}
+    />
+  </div>
+
+  <TypingText
+    as="p"
+    text="Bem-vindo ao sistema corporativo Dellmar Docs"
+    className="mt-1 text-sm text-gray-400"
+    delay={1.1}
+    speed={0.025}
+  />
+</div>
+
       </motion.div>
 
       {/* ATALHOS */}
@@ -108,29 +159,37 @@ export default function Home() {
           return (
             <motion.div
               key={item.title}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.04 }}
+              initial={{
+                opacity: 0,
+                y: 22,
+                filter: 'blur(6px)',
+              }}
+              animate={{
+                opacity: 1,
+                y: 0,
+                filter: 'blur(0px)',
+              }}
+              transition={{
+                delay: index * 0.08, // MAIS lento e elegante
+                duration: 0.55,
+                ease: [0.22, 1, 0.36, 1], // easeOut premium
+              }}
             >
               <Link to={item.to}>
                 <motion.div
-                  whileHover={{ y: -4 }}
-                  whileTap={{ scale: 0.98 }}
+                  whileHover={{ y: -4 }} // 🔒 hover original preservado
+                  whileTap={{ scale: 0.98 }} // 🔒 original
                   className={`
-                    h-full rounded-lg bg-gradient-to-br ${item.color}
-                    p-5 shadow-md transition-all
-                  `}
+              h-full rounded-md bg-gradient-to-br ${item.color}
+              p-5 shadow-md transition-all
+            `}
                 >
                   <div className="flex items-center gap-3 mb-3">
                     <Icon size={20} className="text-white" />
-                    <h2 className="text-base font-semibold text-white">
-                      {item.title}
-                    </h2>
+                    <h2 className="text-base font-semibold text-white">{item.title}</h2>
                   </div>
 
-                  <p className="text-sm text-white/80 leading-relaxed">
-                    {item.desc}
-                  </p>
+                  <p className="text-sm text-white/80 leading-relaxed">{item.desc}</p>
                 </motion.div>
               </Link>
             </motion.div>
@@ -154,9 +213,7 @@ export default function Home() {
               </a>
             </span>
 
-            <span>
-              Em caso de instabilidade, entre em contato com o setor de TI.
-            </span>
+            <span>Em caso de instabilidade, entre em contato com o setor de TI.</span>
           </div>
 
           <div className="text-xs text-gray-500">
